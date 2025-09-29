@@ -1,6 +1,6 @@
 export default function TopRated() {
   return (
-    <section className="col-span-12 w-full z-50 px-40 py-[7.5rem] bg-neutral rounded-t-2xl mt-16">
+    <section className="col-span-12 w-full z-50 px-60 py-[7.5rem] bg-neutral rounded-t-2xl mt-16">
       <div className="col-span-12 w-full relative rounded-2xl bg-secondary-3">
         <div className="grid grid-cols-12 gap-8 items-center">
           {/* Left block */}

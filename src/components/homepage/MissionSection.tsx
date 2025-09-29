@@ -3,7 +3,7 @@ import { CheckIcon } from '@/components/icons';
 
 export default function MissionSection() {
   return (
-    <section className="px-40 col-span-12 w-full bg-neutral relative pb-40">
+    <section className="px-60 col-span-12 w-full bg-neutral relative pb-40">
       <div className="flex flex-col gap-8">
         <div className="body-18-semi text-neutral-9">
           Care shouldn&apos;t be a battle
@@ -51,7 +51,7 @@ export default function MissionSection() {
           View more
         </button>
       </div>
-      <div className="absolute right-40 top-16 w-[570px] h-[560px]">
+      <div className="absolute right-60 top-16 w-[520px] h-[510px]">
         <div className="relative w-full h-full">
           <Image
             src="/plant.svg"

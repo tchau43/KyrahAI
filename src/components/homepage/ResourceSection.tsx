@@ -7,7 +7,8 @@ const resourcesData = [
   },
   {
     title: 'UNHCR GBV Toolkit',
-    description: 'Guidance, tools, and resource lists for survivors and responders',
+    description:
+      'Guidance, tools, and resource lists for survivors and responders',
   },
   {
     title: 'Befrienders Worldwide',
@@ -17,7 +18,7 @@ const resourcesData = [
 
 export default function ResourceSection() {
   return (
-    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-secondary-1 z-60 px-40 py-30 items-stretch">
+    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-secondary-1 z-60 px-60 py-30 items-stretch">
       <div className="col-span-6 flex flex-col gap-7.5">
         <div className="body-18-semi text-neutral">Resources & Hotlines</div>
         <div className="heading-54 text-neutral">Find Safety, Find Support</div>

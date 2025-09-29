@@ -34,7 +34,7 @@ export default function NewsLetterSection() {
     countries?.sort((a, b) => a.name.common.localeCompare(b.name.common)) || [];
 
   return (
-    <section className="col-span-12 w-full bg-secondary-2 px-40 pt-30 pb-40">
+    <section className="col-span-12 w-full bg-secondary-2 px-60 pt-30 pb-40">
       <div className="grid grid-cols-12 gap-13 items-center justify-center">
         <div className="col-start-1 col-span-5 bg-neutral rounded-2xl px-8 py-10">
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">

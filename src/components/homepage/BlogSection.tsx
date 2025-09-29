@@ -59,7 +59,7 @@ export default function BlogSection() {
   };
 
   return (
-    <section className="col-span-12 w-full bg-neutral-1 px-40 py-30">
+    <section className="col-span-12 w-full bg-neutral-1 px-60 py-30">
       <div className="grid grid-cols-12 gap-8 items-start">
         {/* Header */}
         <div className="flex flex-col gap-6 col-start-1 col-span-5 text-neutral-9">

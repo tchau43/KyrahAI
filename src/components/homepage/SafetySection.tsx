@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function SafetySection() {
   return (
-    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-60 px-40 pt-7.5 pb-60">
+    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-60 px-60 pt-7.5 pb-60">
       <div className="col-span-6">
         <div className="flex flex-col gap-2.5 mb-20">
           <div className="body-18-semi">Safety tips</div>
