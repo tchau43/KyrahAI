@@ -38,7 +38,7 @@ export default function Footer() {
               <div className="flex items-center gap-2">
                 <EmailIcon />
                 <span className="body-16-regular text-neutral">
-                  safe@kyrah.ai
+                  Ask@Kyrah.AI
                 </span>
               </div>
               <div className="flex gap-7">

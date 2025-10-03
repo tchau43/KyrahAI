@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Input, Select, SelectItem, Checkbox } from '@heroui/react';
+import { Input, Select, SelectItem, Checkbox, Textarea } from '@heroui/react';
 import { useGetAllCountries } from '@/features/homepage/hooks/useGetAllCountry';
 
 export default function NewsLetterSection() {
@@ -114,7 +114,7 @@ export default function NewsLetterSection() {
               </Select>
 
               {/* Message textarea */}
-              <Input
+              <Textarea
                 aria-label="Anything you'd like to share with us?"
                 placeholder="Anything you'd like to share with us?"
                 value={formData.message}

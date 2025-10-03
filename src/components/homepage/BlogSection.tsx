@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import BlogCard from './cards/BlogCard';
+import BlogCard from '../cards/BlogCard';
 import { LeftIcon, RightIcon } from '../icons';
 
 const blogData = [

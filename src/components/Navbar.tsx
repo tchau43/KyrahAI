@@ -2,8 +2,95 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+interface NavItem {
+  href: string;
+  label: string;
+  disabled?: boolean;
+  comingSoon?: boolean;
+}
+
+const navigationItems: NavItem[] = [
+  { href: '/about', label: 'About' },
+  { href: '/#how-it-works', label: 'How It Works' },
+  { href: '/safety-tips', label: 'Safety Tips' },
+  { href: '/resource', label: 'Resource' },
+  { href: '/blog', label: 'Blog', disabled: true, comingSoon: true },
+];
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const [currentHash, setCurrentHash] = useState('');
+
+  useEffect(() => {
+    const updateHash = () => {
+      setCurrentHash(window.location.hash);
+    };
+
+    updateHash();
+    window.addEventListener('hashchange', updateHash);
+
+    return () => window.removeEventListener('hashchange', updateHash);
+  }, []);
+
+  const isActivePath = (href: string): boolean => {
+    if (href === '/#how-it-works') {
+      return pathname === '/' && currentHash === '#how-it-works';
+    }
+    return pathname === href;
+  };
+
+  const getNavLinkClassName = (item: NavItem): string => {
+    const baseClasses = 'font-inter transition-colors body-16-semi relative';
+
+    if (item.disabled) {
+      return `${baseClasses} text-secondary-2 cursor-not-allowed`;
+    }
+
+    return `${baseClasses} text-neutral-9`;
+  };
+
+  const renderNavItem = (item: NavItem) => {
+    const isActive = isActivePath(item.href);
+    const linkContent = (
+      <>
+        {item.label}
+        {isActive && (
+          <span className="absolute -bottom-1 left-0 w-[80%] h-0.5 bg-neutral-9 rounded-full" />
+        )}
+      </>
+    );
+
+    if (item.comingSoon) {
+      return (
+        <div key={item.href} className="relative">
+          <Link
+            href={item.href}
+            className={getNavLinkClassName(item)}
+            onClick={e => e.preventDefault()}
+          >
+            {linkContent}
+          </Link>
+          <span className="absolute -top-6 -right-7 bg-secondary-3 text-xs px-2 py-0.5 rounded-full text-black font-inter caption-14-semi">
+            Soon
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={getNavLinkClassName(item)}
+      >
+        {linkContent}
+      </Link>
+    );
+  };
+
   return (
     <nav
       className="fixed top-0 z-99 left-1/2 transform -translate-x-1/2 w-[66.666667%] mx-auto mt-8
@@ -28,42 +115,7 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link
-              href="/about"
-              className="text-neutral-9 font-inter transition-colors body-16-semi"
-            >
-              About
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="text-neutral-9 font-inter transition-colors body-16-semi"
-            >
-              How It Works
-            </Link>
-            <Link
-              href="/safety-tips"
-              className="text-neutral-9 font-inter transition-colors body-16-semi"
-            >
-              Safety Tips
-            </Link>
-            <Link
-              href="/resource"
-              className="text-neutral-9 font-inter transition-colors body-16-semi"
-            >
-              Resource
-            </Link>
-            <div className="relative">
-              <Link
-                href="/blog"
-                className="text-secondary-2 font-inter transition-colors body-16-semi cursor-not-allowed"
-                onClick={e => e.preventDefault()}
-              >
-                Blog
-              </Link>
-              <span className="absolute -top-6 -right-7 bg-secondary-3 text-xs px-2 py-0.5 rounded-full text-black font-inter caption-14-semi">
-                Soon
-              </span>
-            </div>
+            {navigationItems.map(renderNavItem)}
           </div>
 
           {/* Safe Exit Button */}

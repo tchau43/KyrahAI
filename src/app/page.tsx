@@ -1,4 +1,3 @@
-import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/homepage/HeroSection';
 import TopRated from '@/components/homepage/TopRated';
 import DiscoverSection from '@/components/homepage/DiscoverSection';
@@ -8,12 +7,10 @@ import SafetySection from '@/components/homepage/SafetySection';
 import ResourceSection from '@/components/homepage/ResourceSection';
 import BlogSection from '@/components/homepage/BlogSection';
 import NewsLetterSection from '@/components/homepage/NewsLetterSection';
-import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
     <div className="font-spectral grid grid-cols-12 grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-primary overflow-hidden pt-40">
-      <Navbar />
       <HeroSection />
       <TopRated />
       <MissionSection />
@@ -23,7 +20,6 @@ export default function Home() {
       <ResourceSection />
       <BlogSection />
       <NewsLetterSection />
-      <Footer />
     </div>
   );
 }

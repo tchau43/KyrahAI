@@ -1,4 +1,4 @@
-import ResourceCard from './cards/ResourceCard';
+import ResourceCard from '../cards/ResourceCard';
 
 const resourcesData = [
   {

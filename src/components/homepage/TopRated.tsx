@@ -1,13 +1,13 @@
 export default function TopRated() {
   return (
-    <section className="col-span-12 w-full z-50 px-60 py-[7.5rem] bg-neutral rounded-t-2xl mt-16">
+    <section className="col-span-12 w-full z-50 px-60 py-[7.5rem] bg-neutral rounded-t-3xl mt-16">
       <div className="col-span-12 w-full relative rounded-2xl bg-secondary-3">
         <div className="grid grid-cols-12 gap-8 items-center">
           {/* Left block */}
           <div className="col-span-3 px-20 flex items-center gap-1">
             {/* Vertical email */}
             <span className="text-xl text-neutral-9 self-start font-inter font-semibold tracking-widest [writing-mode:sideways-lr] pt-2">
-              safe@kyrah.ai
+              Ask@Kyrah.AI
             </span>
 
             {/* Award text */}
