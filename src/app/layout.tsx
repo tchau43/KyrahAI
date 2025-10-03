@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { spectral, inter, inder } from '@/config/fonts';
 import { headers } from 'next/headers';
+import ModalProvider from '@/components/provider/ModalProvider';
 
 export const metadata: Metadata = {
   title: 'KyrahAI',
@@ -32,6 +33,7 @@ export default async function RootLayout({
           {!hideNav && <Navbar />}
           {children}
           <Footer />
+          <ModalProvider />
         </ThemeProviders>
       </body>
     </html>

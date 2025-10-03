@@ -542,3 +542,28 @@ export const SearchIcon: React.FC<IconSvgProps> = ({
     />
   </svg>
 );
+
+export const ExitIcon: React.FC<IconSvgProps> = ({
+  size = 18,
+  width = 18,
+  height = 18,
+  stroke = '#2F3A56',
+  ...props
+}) => (
+  <svg
+    width={size || width}
+    height={size || height}
+    viewBox="0 0 18 18"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path
+      d="M11 1.001H1V15.001C1 15.5314 1.21071 16.0401 1.58579 16.4152C1.96086 16.7903 2.46957 17.001 3 17.001H11M13.7143 12.001L16.7143 9.001M16.7143 9.001L13.7143 6.001M16.7143 9.001H6.71429"
+      stroke={stroke}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

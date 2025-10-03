@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ExitIcon } from './icons';
 
 interface NavItem {
   href: string;
@@ -73,7 +74,7 @@ export default function Navbar() {
           >
             {linkContent}
           </Link>
-          <span className="absolute -top-6 -right-7 bg-secondary-3 text-xs px-2 py-0.5 rounded-full text-black font-inter caption-14-semi">
+          <span className="absolute -top-4 -right-7 bg-secondary-3 text-xs px-2 rounded-full text-black font-inter caption-14-semi">
             Soon
           </span>
         </div>
@@ -119,13 +120,14 @@ export default function Navbar() {
           </div>
 
           {/* Safe Exit Button */}
-          <div className="flex items-center">
+          <div className="flex items-center px-6 py-2 border rounded-full gap-3 hover:bg-gray-50 cursor-pointer">
             <Link
               href="/safe-exit"
-              className="px-6 py-2 border rounded-full text-neutral-9 body-16-semi hover:bg-gray-50 font-inter text-base transition-colors bold-16-semi"
+              className=" text-neutral-9 body-16-semi  font-inter text-base transition-colors bold-16-semi"
             >
               Safe Exit
             </Link>
+            <ExitIcon />
           </div>
 
           {/* Mobile Menu Button */}

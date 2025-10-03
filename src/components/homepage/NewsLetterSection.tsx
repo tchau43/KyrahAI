@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Input, Select, SelectItem, Checkbox, Textarea } from '@heroui/react';
 import { useGetAllCountries } from '@/features/homepage/hooks/useGetAllCountry';
+import Link from 'next/link';
 
 export default function NewsLetterSection() {
   const [formData, setFormData] = useState({
@@ -140,13 +141,31 @@ export default function NewsLetterSection() {
                   }}
                 >
                   I agree to the{' '}
-                  <span className="font-semibold underline">
+                  <Link
+                    href="/terms-of-service"
+                    target="_blank"
+                    className="font-semibold underline hover:text-neutral-9"
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open('/terms-of-service', '_blank');
+                    }}
+                  >
                     Terms of Service
-                  </span>{' '}
+                  </Link>{' '}
                   and{' '}
-                  <span className="font-semibold underline">
+                  <Link
+                    href="/privacy-policy"
+                    target="_blank"
+                    className="font-semibold underline hover:text-neutral-9"
+                    onClick={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open('/privacy-policy', '_blank');
+                    }}
+                  >
                     Privacy Policy
-                  </span>{' '}
+                  </Link>{' '}
                   , and{' '}
                   <span className="font-semibold">
                     I understand that Kyrah.ai is not a medical or emergency

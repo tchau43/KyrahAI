@@ -1,6 +1,10 @@
+'use client';
+
 import Image from 'next/image';
+import { useModalStore } from '@/store/useModalStore';
 
 export default function HeroSection() {
+  const { openModal } = useModalStore();
   return (
     <section className="col-span-12 w-full min-h-[600px] relative mt-3">
       <div className="w-full grid grid-cols-12 gap-8 items-center px-60 py-40 relative">
@@ -23,8 +27,11 @@ export default function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="gap-4 grid grid-cols-12 h-14">
-            <button className="col-span-4 px-8 py-3.5 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-colors cursor-pointer">
-              Join Early Access
+            <button
+              onClick={() => openModal('begin-modal')}
+              className="col-span-4 px-8 py-3.5 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-colors cursor-pointer"
+            >
+              Chat with Kyrah (Alpha test)
             </button>
             <button className="col-span-4 px-8 py-3.5 bg-transparent border border-neutral-6 text-neutral-10 rounded-full font-inter body-16-semi hover:bg-neutral-1 transition-colors cursor-pointer">
               Watch Demo
