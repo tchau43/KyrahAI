@@ -5,7 +5,7 @@ export const termsPolicy: PolicyProps[] = [
     id: 'purpose-of-use',
     policyName: 'Purpose of Use',
     policyContent:
-      'Kyrah.ai is provided for awareness and informational purposes only. It is <span className="font-semibold">not a substitute for medical, legal, or emergency services.</span>',
+      'Kyrah.ai is provided for awareness and informational purposes only. It is <span class="font-semibold">not a substitute for medical, legal, or emergency services.</span>',
   },
   {
     id: 'eligibility',
@@ -26,7 +26,7 @@ export const termsPolicy: PolicyProps[] = [
     id: 'no-emergency-response',
     policyName: 'No Emergency Response',
     policyContent:
-      'Kyrah.ai cannot respond to emergencies. If you are in crisis or feel unsafe, <span className="font-semibold">call 911 (U.S.), 999 (U.K.)</span>, or your local emergency number.</span>',
+      'Kyrah.ai cannot respond to emergencies. If you are in crisis or feel unsafe, <span class="font-semibold">call 911 (U.S.), 999 (U.K.)</span>, or your local emergency number.',
   },
   {
     id: 'intellectual-property',
@@ -53,7 +53,7 @@ export const privacyPolicy: PolicyProps[] = [
     id: 'what-we-collect',
     policyName: 'What We Collect (MVP stage)',
     policyContent: [
-      'Name and email address, but <span className="font-semibold">only if you sign up</span> for Early Access or our newsletter.',
+      'Name and email address, but <span class="font-semibold">only if you sign up</span> for Early Access or our newsletter.',
       'We do not collect or store sensitive personal information.',
     ],
   },
@@ -61,7 +61,7 @@ export const privacyPolicy: PolicyProps[] = [
     id: 'how-we-use-it',
     policyName: 'How We Use It',
     policyContent: [
-      'To send updates or information <span className="font-semibold">only if you have opted in</span> (newsletter, Early Access form).',
+      'To send updates or information <span class="font-semibold">only if you have opted in</span> (newsletter, Early Access form).',
       'To improve our platform with anonymized user feedback.',
     ],
   },
@@ -87,7 +87,7 @@ export const privacyPolicy: PolicyProps[] = [
     policyName: 'Your Rights',
     policyContent: [
       'You can unsubscribe or opt out of communication at any time.',
-      'You may request deletion of your data at any time by contacting us at <span className="font-semibold">[Ask@Kyrah.AI]</span>.',
+      'You may request deletion of your data at any time by contacting us at <span class="font-semibold">[Ask@Kyrah.AI]</span>.',
     ],
   },
 ];
@@ -120,7 +120,7 @@ export const cookiePolicy: PolicyProps[] = [
     policyName: 'Your choices',
     policyContent: [
       'You can accept or decline cookies when you first visit our site. You can also manage or disable cookies through your browser settings at any time.',
-      'For questions about our Cookie Policy, contact us at <span className="font-semibold">[Ask@Kyrah.AI]</span>.',
+      'For questions about our Cookie Policy, contact us at <span class="font-semibold">[Ask@Kyrah.AI]</span>.',
     ],
   },
 ];

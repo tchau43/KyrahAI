@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Input, Select, SelectItem, Checkbox, Textarea } from '@heroui/react';
 import { useGetAllCountries } from '@/features/homepage/hooks/useGetAllCountry';
 import Link from 'next/link';
@@ -31,8 +31,15 @@ export default function NewsLetterSection() {
   };
 
   // Sort countries alphabetically
-  const sortedCountries =
-    countries?.sort((a, b) => a.name.common.localeCompare(b.name.common)) || [];
+  const sortedCountries = useMemo(
+    () =>
+      countries
+        ? [...countries].sort((a, b) =>
+            a.name.common.localeCompare(b.name.common)
+          )
+        : [],
+    [countries]
+  );
 
   return (
     <section className="col-span-12 w-full bg-secondary-2 px-60 pt-30 pb-40">
@@ -95,9 +102,14 @@ export default function NewsLetterSection() {
               <Select
                 aria-label="Your country"
                 placeholder="Your country"
-                value={formData.country}
-                onChange={e => handleInputChange('country', e.target.value)}
+                selectedKeys={
+                  formData.country ? new Set([formData.country]) : new Set()
+                }
                 isLoading={isLoading}
+                onSelectionChange={keys => {
+                  const [key] = Array.from(keys as Set<string>);
+                  handleInputChange('country', key ?? '');
+                }}
                 classNames={{
                   trigger:
                     'border border-neutral-2 bg-neutral data-[hover=true]:bg-neutral data-[hover=true]:border-neutral-4 transition-colors',
@@ -144,11 +156,10 @@ export default function NewsLetterSection() {
                   <Link
                     href="/terms-of-service"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="font-semibold underline hover:text-neutral-9"
                     onClick={e => {
-                      e.preventDefault();
                       e.stopPropagation();
-                      window.open('/terms-of-service', '_blank');
                     }}
                   >
                     Terms of Service
@@ -157,11 +168,10 @@ export default function NewsLetterSection() {
                   <Link
                     href="/privacy-policy"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="font-semibold underline hover:text-neutral-9"
                     onClick={e => {
-                      e.preventDefault();
                       e.stopPropagation();
-                      window.open('/privacy-policy', '_blank');
                     }}
                   >
                     Privacy Policy

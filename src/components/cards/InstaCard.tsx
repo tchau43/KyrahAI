@@ -24,7 +24,7 @@ export default function InstaCard() {
       <div className="w-full h-[367px] relative bg-secondary-3 border border-neutral-2">
         <Image
           src="/loving.svg"
-          alt="loving"
+          alt="Illustration of loving people"
           fill
           className="object-contain pb-[0.907rem]"
         />

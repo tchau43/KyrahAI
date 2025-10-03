@@ -10,11 +10,16 @@ import {
 } from '@heroui/react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
+import router from 'next/router';
 
 export default function BeginModal() {
   const { isModalOpen, closeModal } = useModalStore();
   const isOpen = isModalOpen('begin-modal');
   const handleClose = () => closeModal('begin-modal');
+  const handleContinue = () => {
+    router.push('/chat');
+  };
+  const handleExit = () => handleClose();
 
   return (
     <Modal
@@ -53,6 +58,7 @@ export default function BeginModal() {
               <Link
                 href="/resource"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="font-semibold underline hover:text-neutral-9"
               >
                 Resources & Hotlines
@@ -64,6 +70,7 @@ export default function BeginModal() {
               <Link
                 href="/terms-of-service"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="font-semibold underline hover:text-neutral-9"
               >
                 Terms of Service
@@ -72,6 +79,7 @@ export default function BeginModal() {
               <Link
                 href="/privacy-policy"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="font-semibold underline hover:text-neutral-9"
               >
                 Privacy Policy
@@ -82,14 +90,14 @@ export default function BeginModal() {
         </ModalBody>
         <ModalFooter className="flex flex-col gap-3 pb-8 px-12">
           <Button
-            onPress={handleClose}
+            onPress={handleContinue}
             className="bg-neutral-9 text-neutral w-full py-6 body-18-semi rounded-full hover:bg-slate-800"
             size="lg"
           >
             I understand, let&apos;s continue
           </Button>
           <Button
-            onPress={handleClose}
+            onPress={handleExit}
             variant="bordered"
             className="border-2 border-neutral-9 text-neutral-9 w-full py-6 body-18-semi rounded-full hover:bg-neutral-1"
             size="lg"

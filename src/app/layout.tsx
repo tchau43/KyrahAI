@@ -33,7 +33,7 @@ export default async function RootLayout({
         className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
       >
         <ThemeProviders>
-          {!hideNav || (hideLayout && <Navbar />)}
+          {!hideLayout && !hideNav && <Navbar />}
           {children}
           {!hideLayout && <Footer />}
           <ModalProvider />

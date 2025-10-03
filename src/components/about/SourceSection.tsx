@@ -49,9 +49,9 @@ export default function SourceSection() {
                 </div>
               </div>
               <div className="flex flex-col gap-2 w-max bg-[#F0B6407A] rounded-2xl p-6 text-neutral-10">
-                <div className="heading-28">Safe & Together Institute</div>
+                <div className="heading-28">UNESCO</div>
                 <div className="body-16-regular">
-                  Family violence & safety insights
+                  Gender-based violence & health
                 </div>
               </div>
             </div>

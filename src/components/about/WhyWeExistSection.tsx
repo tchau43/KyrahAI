@@ -27,7 +27,7 @@ export default function WhyWeExistSection() {
           <div className="w-[830px] h-[658.51px] relative">
             <Image
               src="/clumsy.svg"
-              alt="clumsy"
+              alt="Illustration depicting signs of emotional distress"
               fill
               className="object-cover"
             />

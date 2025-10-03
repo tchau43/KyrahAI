@@ -38,8 +38,7 @@ export default function ChatMainView({
     }
   }, [inputValue]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const doSubmit = () => {
     if (inputValue.trim()) {
       onSendMessage(inputValue.trim());
       setInputValue('');
@@ -51,10 +50,15 @@ export default function ChatMainView({
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    doSubmit();
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      doSubmit();
     }
   };
 

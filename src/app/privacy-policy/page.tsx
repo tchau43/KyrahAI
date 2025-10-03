@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import DOMPurify from 'isomorphic-dompurify';
 import { privacyPolicy } from '@/features/policy/data';
 import { PolicyProps } from '@/features/policy/types';
 import PolicySidebar from '@/components/policy/PolicySidebar';
@@ -80,7 +81,9 @@ export default function PrivacyPolicyPage() {
                         >
                           <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#2F3A56]" />
                           <span
-                            dangerouslySetInnerHTML={{ __html: item }}
+                            dangerouslySetInnerHTML={{
+                              __html: DOMPurify.sanitize(item),
+                            }}
                             className="leading-relaxed"
                           />
                         </li>
@@ -89,7 +92,7 @@ export default function PrivacyPolicyPage() {
                   ) : (
                     <p
                       dangerouslySetInnerHTML={{
-                        __html: policy.policyContent,
+                        __html: DOMPurify.sanitize(policy.policyContent),
                       }}
                       className="leading-relaxed text-neutral-9"
                     />

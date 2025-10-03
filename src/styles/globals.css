@@ -68,7 +68,7 @@ body {
   font-weight: 600;
   font-size: 3.5rem;
   line-height: 110%;
-  letter-spacing: 0.06;
+  letter-spacing: 0.06em;
 }
 
 .heading-54 {
@@ -76,7 +76,7 @@ body {
   font-weight: 600;
   font-size: 3.375rem;
   line-height: 110%;
-  letter-spacing: 0.06;
+  letter-spacing: 0.06em;
 }
 
 .heading-40 {
@@ -84,7 +84,7 @@ body {
   font-weight: 500;
   font-size: 2.5rem;
   line-height: 110%;
-  letter-spacing: 0.06;
+  letter-spacing: 0.06em;
 }
 
 .heading-32 {
@@ -92,7 +92,7 @@ body {
   font-weight: 600;
   font-size: 2rem;
   line-height: 110%;
-  letter-spacing: 0.04;
+  letter-spacing: 0.06em;
 }
 
 .heading-28 {
@@ -100,7 +100,7 @@ body {
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 110%;
-  letter-spacing: 0.04;
+  letter-spacing: 0.06em;
 }
 
 .subtitle-22 {
@@ -187,7 +187,7 @@ body {
   font-size: 4.5rem;
   font-weight: 600;
   line-height: 110%;
-  letter-spacing: 0.06;
+  letter-spacing: 0.06em;
 }
 
 /* Font family utility classes */

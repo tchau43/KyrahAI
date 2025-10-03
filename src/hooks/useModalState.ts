@@ -11,8 +11,14 @@ export function useModalState() {
     if (!stored) return false;
 
     try {
-      const { timestamp } = JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      const timestamp =
+        typeof parsed?.timestamp === 'number' ? parsed.timestamp : NaN;
       const now = Date.now();
+      if (!Number.isFinite(timestamp) || timestamp <= 0) {
+        localStorage.removeItem(MODAL_STORAGE_KEY);
+        return false;
+      }
 
       // Check if 1 month has passed
       if (now - timestamp > ONE_MONTH_MS) {

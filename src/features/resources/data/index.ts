@@ -48,8 +48,7 @@ export const resources: Resources[] = [
       },
       {
         label: 'Befrienders Worldwide',
-        contact:
-          ' International suicide prevention hotlines at befrienders.org',
+        contact: 'International suicide prevention hotlines at befrienders.org',
       },
     ],
   },
@@ -60,7 +59,7 @@ export const resources: Resources[] = [
       {
         label: 'Region-specific verified partners and local hotlines',
         contact:
-          ' will be added as Kyrah.ai expands, ensuring access to trusted support wherever you are.',
+          'will be added as Kyrah.ai expands, ensuring access to trusted support wherever you are.',
       },
     ],
   },

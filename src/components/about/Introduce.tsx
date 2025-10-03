@@ -14,6 +14,8 @@ export default function Introduce() {
               src="/hero-2.jpg"
               alt="About us"
               fill
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               className="object-cover rounded-t-3xl"
             />
           </div>
