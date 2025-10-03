@@ -49,7 +49,7 @@ export default function CookiePolicyPage() {
             </div>
 
             {/* Right Illustration */}
-            <div className="flex justify-center pb-16 lg:justify-end relative w-[724px] h-[593px]">
+            <div className="relative flex justify-center pb-16 lg:justify-end w-full max-w-[724px] h-[593px]">
               <Image
                 src="/cookie.svg"
                 alt="Cookie Policy Illustration"

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@heroui/react';
-import { Conversation, Message } from '../data';
+import { Conversation } from '../data';
 import ChatBubble from './ChatBubble';
 
 interface ChatMainViewProps {
@@ -14,7 +13,6 @@ interface ChatMainViewProps {
 export default function ChatMainView({
   conversation,
   onSendMessage,
-  onToggleSidebar,
 }: ChatMainViewProps) {
   const [inputValue, setInputValue] = useState('');
   const [isMultiline, setIsMultiline] = useState(false);
@@ -38,7 +36,8 @@ export default function ChatMainView({
     }
   }, [inputValue]);
 
-  const doSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (inputValue.trim()) {
       onSendMessage(inputValue.trim());
       setInputValue('');
@@ -50,15 +49,10 @@ export default function ChatMainView({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    doSubmit();
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      doSubmit();
+      handleSubmit(e);
     }
   };
 
@@ -87,6 +81,7 @@ export default function ChatMainView({
                 } p-[0.625rem] min-h-[2.25rem] flex items-center`}
               >
                 <textarea
+                  aria-label="Message input"
                   ref={textareaRef}
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
@@ -116,6 +111,7 @@ export default function ChatMainView({
                 } p-[0.625rem] min-h-[2.25rem] flex items-center`}
               >
                 <textarea
+                  aria-label="Message input"
                   ref={textareaRef}
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}

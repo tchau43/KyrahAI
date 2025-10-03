@@ -50,7 +50,7 @@ export default function TermsOfServicePage() {
             </div>
 
             {/* Right Illustration */}
-            <div className="flex justify-center pb-16 lg:justify-end relative w-[724px] h-[593px]">
+            <div className="flex justify-center pb-16 lg:justify-end relative w-full max-w-[724px] h-[593px]">
               <Image
                 src="/unboxing.svg"
                 alt="Terms of Service Illustration"
