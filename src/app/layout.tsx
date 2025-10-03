@@ -20,9 +20,12 @@ export default async function RootLayout({
   const headersList = await headers();
   const pathname = headersList.get('x-pathname') || '';
 
-  const hideNav = pathname.startsWith('/terms-of-service') ||
-                  pathname.startsWith('/privacy-policy') ||
-                  pathname.startsWith('/cookie-policy');
+  const hideNav =
+    pathname.startsWith('/terms-of-service') ||
+    pathname.startsWith('/privacy-policy') ||
+    pathname.startsWith('/cookie-policy');
+
+  const hideLayout = pathname.startsWith('/chat');
 
   return (
     <html lang="en">
@@ -30,9 +33,9 @@ export default async function RootLayout({
         className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
       >
         <ThemeProviders>
-          {!hideNav && <Navbar />}
+          {!hideNav || (hideLayout && <Navbar />)}
           {children}
-          <Footer />
+          {!hideLayout && <Footer />}
           <ModalProvider />
         </ThemeProviders>
       </body>
