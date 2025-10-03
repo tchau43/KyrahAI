@@ -120,15 +120,28 @@ export default function Navbar() {
           </div>
 
           {/* Safe Exit Button */}
-          <div className="flex items-center px-6 py-2 border rounded-full gap-3 hover:bg-gray-50 cursor-pointer">
-            <Link
-              href="/safe-exit"
-              className=" text-neutral-9 body-16-semi  font-inter text-base transition-colors bold-16-semi"
-            >
+          <button
+            onClick={() => {
+              localStorage.clear();
+              sessionStorage.clear();
+              document.cookie.split(';').forEach(c => {
+                document.cookie = c
+                  .replace(/^ +/, '')
+                  .replace(
+                    /=.*/,
+                    '=;expires=' + new Date().toUTCString() + ';path=/'
+                  );
+              });
+              window.location.replace('https://www.google.com');
+              window.close();
+            }}
+            className="flex items-center px-6 py-2 border rounded-full gap-3 hover:bg-gray-50 cursor-pointer"
+          >
+            <span className="text-neutral-9 body-16-semi font-inter text-base transition-colors bold-16-semi">
               Safe Exit
-            </Link>
+            </span>
             <ExitIcon />
-          </div>
+          </button>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
