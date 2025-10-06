@@ -58,6 +58,7 @@ export default function ResourcesPage() {
                       <Link
                         href={hotline.link}
                         target="_blank"
+                        rel="noopener noreferrer"
                         className="underline"
                       >
                         {hotline.label}:

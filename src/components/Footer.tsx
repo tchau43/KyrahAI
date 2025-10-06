@@ -93,6 +93,7 @@ export default function Footer() {
               <Link
                 href="/privacy-policy"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="body-16-regular text-neutral hover:opacity-80 transition-opacity underline"
               >
                 Privacy Policy
@@ -100,6 +101,7 @@ export default function Footer() {
               <Link
                 href="/terms-of-service"
                 target="_blank"
+                rel="noopener noreferrer"
                 className="body-16-regular text-neutral hover:opacity-80 transition-opacity underline"
               >
                 Terms of Service
@@ -132,7 +134,7 @@ export default function Footer() {
             <Link
               onClick={e => e.preventDefault()}
               href="/blog"
-              className="body-18-regular text-neutral hover:opacity-80 transition-opacity cursor-not-allowed"
+              className="body-18-regular text-neutral transition-opacity cursor-not-allowed"
             >
               Blog
             </Link>

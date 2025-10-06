@@ -3,14 +3,17 @@
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 
+const PATHS_WITHOUT_NAVBAR = [
+  '/terms-of-service',
+  '/privacy-policy',
+  '/cookie-policy',
+  '/chat',
+] as const;
+
 export default function ConditionalNavbar() {
   const pathname = usePathname();
 
-  const hideNav =
-    pathname.startsWith('/terms-of-service') ||
-    pathname.startsWith('/privacy-policy') ||
-    pathname.startsWith('/cookie-policy') ||
-    pathname.startsWith('/chat');
+  const hideNav = PATHS_WITHOUT_NAVBAR.some(path => pathname.startsWith(path));
 
   if (hideNav) return null;
 

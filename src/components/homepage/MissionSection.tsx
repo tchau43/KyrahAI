@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { CheckIcon } from '@/components/icons';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function MissionSection() {
   const router = useRouter();
@@ -52,14 +53,12 @@ export default function MissionSection() {
             </li>
           </ul>
         </div>
-        <button
+        <Link
+          href="/about"
           className="body-18-semi w-max rounded-full border border-neutral-9 px-28 py-3.5 mt-5 cursor-pointer"
-          onClick={() => {
-            router.push('/about');
-          }}
         >
           View more
-        </button>
+        </Link>
       </div>
       <div className="absolute right-50 bottom-40 w-[569px] h-[559px]">
         <div className="relative w-full h-full">
