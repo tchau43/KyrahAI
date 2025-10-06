@@ -20,7 +20,9 @@ export default function HowItWorksCard({
   isFirst = false,
 }: HowItWorksCardProps) {
   return (
-    <div className={`col-span-4 ${isFirst ? 'col-start-1' : ''} ${backgroundColor} p-8 rounded-2xl mt-10`}>
+    <div
+      className={`col-span-4 ${isFirst ? 'col-start-1' : ''} ${backgroundColor} p-8 rounded-2xl mt-10`}
+    >
       <div className="flex flex-col gap-6 mb-5">
         <div className="heading-40 text-neutral-9">
           <i>{step}/</i> {title}
@@ -29,7 +31,7 @@ export default function HowItWorksCard({
           {description}
         </div>
       </div>
-      <div className="relative w-full h-[450px]">
+      <div className="relative w-full md:h-[400px] h-[250px] ">
         <Image src={imageSrc} fill alt={imageAlt} />
       </div>
     </div>

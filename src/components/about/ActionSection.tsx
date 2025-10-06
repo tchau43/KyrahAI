@@ -6,7 +6,9 @@ export default function ActionSection() {
     <section className="col-span-12 w-full md:px-80 px-60 bg-neutral pt-30 pb-20">
       <div className="flex flex-col gap-30">
         <div className="flex justify-between gap-20">
-          <div className="heading-54">Turning Awareness Into Action</div>
+          <div className="heading-54 text-neutral-9">
+            Turning Awareness Into Action
+          </div>
           <Quote />
         </div>
         <div className="flex flex-col gap-20">

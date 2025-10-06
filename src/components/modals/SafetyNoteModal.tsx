@@ -43,11 +43,11 @@ export default function SafetyNoteModal() {
       }}
     >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-1 text-center text-neutral-9">
+        <ModalHeader className="flex flex-col gap-1 text-center text-neutral-9 pt-10 pb-0">
           <h2 className="heading-32 ">Safety Note</h2>
         </ModalHeader>
-        <ModalBody className="px-12">
-          <p className="body-18-regular text-center mb-4">
+        <ModalBody className="px-10 gap-6">
+          <p className="body-18-regular text-center">
             Your privacy is paramount. For added discretion, use
             Incognito/Private mode or clear your browser history.
           </p>
@@ -60,7 +60,7 @@ export default function SafetyNoteModal() {
             on the right side of the top bar to leave this page instantly.
           </p>
         </ModalBody>
-        <ModalFooter className="flex justify-center pb-8">
+        <ModalFooter className="flex justify-center pb-10 pt-4">
           <Button
             onPress={handleClose}
             className="bg-neutral-9 text-white px-16 py-6 text-lg rounded-full hover:bg-slate-800"

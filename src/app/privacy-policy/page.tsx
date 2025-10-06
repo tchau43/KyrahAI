@@ -3,6 +3,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { privacyPolicy } from '@/features/policy/data';
 import { PolicyProps } from '@/features/policy/types';
 import PolicySidebar from '@/components/policy/PolicySidebar';
+import Link from 'next/link';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -10,18 +11,20 @@ export default function PrivacyPolicyPage() {
       {/* Logo - Outside hero section */}
       <div className="bg-primary px-6 py-6 md:px-12 lg:px-24">
         <div className="mx-auto max-w-7xl">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/kyrah-logo.svg"
-              alt="Kyrah.ai Logo"
-              width={45}
-              height={45}
-              className="h-12 w-12"
-            />
-            <span className="font-inder text-3xl font-medium text-neutral-9">
-              KYRAH.AI
-            </span>
-          </div>
+          <Link href="/">
+            <div className="flex items-center gap-2">
+              <Image
+                src="/kyrah-logo.svg"
+                alt="Kyrah.ai Logo"
+                width={45}
+                height={45}
+                className="h-12 w-12"
+              />
+              <span className="font-inder text-3xl font-medium text-neutral-9">
+                KYRAH.AI
+              </span>
+            </div>
+          </Link>
         </div>
       </div>
 

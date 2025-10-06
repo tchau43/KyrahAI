@@ -4,6 +4,7 @@ import { SearchIcon } from '@/components/icons';
 import { useState, useCallback, useMemo } from 'react';
 import { resources } from '@/features/resources/data';
 import { Resources } from '@/features/resources/types';
+import Link from 'next/link';
 
 export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,7 +53,19 @@ export default function ResourcesPage() {
             ) : (
               <li className="list-disc" key={index}>
                 <div className="flex items-center gap-2">
-                  <div className="body-18-semi">{hotline.label}:</div>
+                  <div className="body-18-semi">
+                    {hotline?.link ? (
+                      <Link
+                        href={hotline.link}
+                        target="_blank"
+                        className="underline"
+                      >
+                        {hotline.label}:
+                      </Link>
+                    ) : (
+                      <span>{hotline.label}:</span>
+                    )}
+                  </div>
                   <div className="body-18-regular">{hotline.contact}</div>
                 </div>
               </li>
@@ -94,7 +107,7 @@ export default function ResourcesPage() {
       </div>
 
       {/* Resources Section */}
-      <div className="py-30 col-span-12 w-full">
+      <div className="py-30 col-span-12 w-full border-t border-neutral-1">
         {filteredResources.length > 0 ? (
           filteredResources.map(renderResourceItem)
         ) : (

@@ -10,14 +10,16 @@ import {
 } from '@heroui/react';
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export default function BeginModal() {
   const { isModalOpen, closeModal } = useModalStore();
+  const router = useRouter();
   const isOpen = isModalOpen('begin-modal');
   const handleClose = () => closeModal('begin-modal');
   const handleContinue = () => {
     router.push('/chat');
+    closeModal('begin-modal');
   };
   const handleExit = () => handleClose();
 

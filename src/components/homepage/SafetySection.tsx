@@ -1,10 +1,15 @@
+'use client';
+
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function SafetySection() {
+  const router = useRouter();
+
   return (
-    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-60 px-60 pt-7.5 pb-60">
+    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-60 px-60 md:px-80 pt-7.5 pb-60">
       <div className="col-span-6">
-        <div className="flex flex-col gap-2.5 mb-20">
+        <div className="flex flex-col gap-2.5 mb-20 text-neutral-9">
           <div className="body-18-semi">Safety tips</div>
           <div>
             <div className="heading-54">Stay Safe,</div>
@@ -12,12 +17,12 @@ export default function SafetySection() {
           </div>
         </div>
         <div className="relative h-[300px]">
-          <div className="w-full h-[400px] absolute top-0 -left-12">
+          <div className="w-full h-[400px] absolute">
             <Image src="/reading-side.svg" fill alt="Safety Section" />
           </div>
         </div>
       </div>
-      <div className="col-span-6 col-start-7 flex flex-col gap-4">
+      <div className="col-span-6 col-start-7 flex flex-col gap-4 text-neutral-9">
         <div className="subtitle-20-regular pt-[7.5rem]">
           These quick steps can help you stay aware and protect yourself in
           everyday situations:
@@ -36,7 +41,12 @@ export default function SafetySection() {
             auto-backup for sensitive screenshots.
           </li>
         </ul>
-        <button className="body-18-semi w-max rounded-full border border-neutral-9 px-28 py-3.5 mt-14 cursor-pointer">
+        <button
+          className="body-18-semi w-max rounded-full border border-neutral-9 px-28 py-3.5 mt-14 cursor-pointer"
+          onClick={() => {
+            router.push('/safety-tips');
+          }}
+        >
           View more
         </button>
       </div>

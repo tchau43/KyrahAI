@@ -108,7 +108,7 @@ export default function Navbar() {
                 width={40}
                 height={40}
               />
-              <span className="text-3xl font-inder text-gray-800 font-normal">
+              <span className="text-3xl font-inder text-neutral-9 font-normal">
                 KYRAH.AI
               </span>
             </Link>
@@ -135,9 +135,9 @@ export default function Navbar() {
               window.location.replace('https://www.google.com');
               window.close();
             }}
-            className="flex items-center px-6 py-2 border rounded-full gap-3 hover:bg-gray-50 cursor-pointer"
+            className="exitIcon flex items-center px-6 py-2 border rounded-full gap-3 text-neutral-9 hover:bg-neutral-9 hover:border-neutral-9 hover:text-neutral cursor-pointer"
           >
-            <span className="text-neutral-9 body-16-semi font-inter text-base transition-colors bold-16-semi">
+            <span className="body-16-semi font-inter text-base bold-16-semi">
               Safe Exit
             </span>
             <ExitIcon />

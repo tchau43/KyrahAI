@@ -1,24 +1,32 @@
+'use client';
+
 import ResourceCard from '../cards/ResourceCard';
+import { useRouter } from 'next/navigation';
 
 const resourcesData = [
   {
     title: 'UNFPA GBV Dashboard',
     description: 'Country-level data and resources on gender-based violence',
+    link: 'https://www.unfpa.org/GBV-dashboard/explorer/map?utm_source=chatgpt.com',
   },
   {
     title: 'UNHCR GBV Toolkit',
     description:
       'Guidance, tools, and resource lists for survivors and responders',
+    link: 'https://www.unhcr.org/gbv-toolkit/guidance-and-tools?utm_source=chatgpt.com',
   },
   {
     title: 'Befrienders Worldwide',
     description: 'International suicide prevention hotlines at befrienders.org',
+    link: 'https://befrienders.org/',
   },
 ];
 
 export default function ResourceSection() {
+  const router = useRouter();
+
   return (
-    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-secondary-1 z-60 px-60 py-30 items-stretch">
+    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-secondary-1 z-60 px-60 md:px-80 py-30 items-stretch">
       <div className="col-span-6 flex flex-col gap-7.5">
         <div className="body-18-semi text-neutral">Resources & Hotlines</div>
         <div className="heading-54 text-neutral">Find Safety, Find Support</div>
@@ -38,7 +46,12 @@ export default function ResourceSection() {
             emergency number right away.
           </span>
         </div>
-        <button className="body-18-semi w-max rounded-full border border-neutral text-neutral px-6 py-2.5 mt-10 cursor-pointer">
+        <button
+          className="body-18-semi w-max rounded-full border border-neutral text-neutral px-6 py-2.5 mt-10 cursor-pointer"
+          onClick={() => {
+            router.push('/resource');
+          }}
+        >
           Find your local 24/7 confidential support
         </button>
       </div>
@@ -51,6 +64,7 @@ export default function ResourceSection() {
               title={resource.title}
               description={resource.description}
               isFirst={index === 0}
+              link={resource.link}
             />
           ))}
         </div>

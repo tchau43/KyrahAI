@@ -13,7 +13,7 @@ import { Input } from '@heroui/react';
 
 export default function Footer() {
   return (
-    <footer className="col-span-12 w-full bg-neutral-9 px-60 py-10">
+    <footer className="col-span-12 w-full bg-neutral-9 px-60 md:px-80 py-10">
       <div className="grid grid-cols-12">
         {/* Left Column - Brand and Info */}
         <div className="col-span-4 flex flex-col gap-6">
@@ -57,7 +57,7 @@ export default function Footer() {
         </div>
 
         {/* Right Column - Newsletter and Links */}
-        <div className="col-span-3 col-start-6 self-end relative">
+        <div className="col-span-4 col-start-6 self-end relative">
           {/* Newsletter Signup */}
           <div className="flex flex-col gap-7">
             <div>
@@ -69,7 +69,7 @@ export default function Footer() {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-3/4">
               <div className="flex-1 relative">
                 <Input
                   aria-label="Your email"
@@ -89,15 +89,17 @@ export default function Footer() {
             </div>
 
             {/* Legal Links */}
-            <div className="flex gap-6 justify-end">
+            <div className="flex gap-6 justify-end w-3/4">
               <Link
                 href="/privacy-policy"
+                target="_blank"
                 className="body-16-regular text-neutral hover:opacity-80 transition-opacity underline"
               >
                 Privacy Policy
               </Link>
               <Link
                 href="/terms-of-service"
+                target="_blank"
                 className="body-16-regular text-neutral hover:opacity-80 transition-opacity underline"
               >
                 Terms of Service
@@ -107,19 +109,13 @@ export default function Footer() {
         </div>
 
         {/* Navigation Links - Right aligned */}
-        <div className="col-span-4 col-start-12">
-          <nav className="flex flex-col gap-3.5 text-left">
+        <div className="col-span-2 col-start-12">
+          <nav className="flex flex-col gap-3.5 items-start">
             <Link
               href="/about"
               className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
             >
               About
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
-            >
-              How It Works
             </Link>
             <Link
               href="/safety-tips"
@@ -128,14 +124,15 @@ export default function Footer() {
               Safety Tips
             </Link>
             <Link
-              href="/resources"
+              href="/resource"
               className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
             >
               Resources
             </Link>
             <Link
+              onClick={e => e.preventDefault()}
               href="/blog"
-              className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
+              className="body-18-regular text-neutral hover:opacity-80 transition-opacity cursor-not-allowed"
             >
               Blog
             </Link>

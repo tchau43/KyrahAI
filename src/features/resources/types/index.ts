@@ -1,6 +1,7 @@
 type Resource = {
   label: string;
   contact: string;
+  link?: string;
 };
 
 export interface Resources {

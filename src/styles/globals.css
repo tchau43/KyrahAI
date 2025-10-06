@@ -68,7 +68,7 @@ body {
   font-weight: 600;
   font-size: 3.5rem;
   line-height: 110%;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.06rem;
 }
 
 .heading-54 {
@@ -76,7 +76,7 @@ body {
   font-weight: 600;
   font-size: 3.375rem;
   line-height: 110%;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.06rem;
 }
 
 .heading-40 {
@@ -84,7 +84,7 @@ body {
   font-weight: 500;
   font-size: 2.5rem;
   line-height: 110%;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.06rem;
 }
 
 .heading-32 {
@@ -92,7 +92,7 @@ body {
   font-weight: 600;
   font-size: 2rem;
   line-height: 110%;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.04rem;
 }
 
 .heading-28 {
@@ -100,7 +100,7 @@ body {
   font-weight: 600;
   font-size: 1.75rem;
   line-height: 110%;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.04rem;
 }
 
 .subtitle-22 {
@@ -187,7 +187,7 @@ body {
   font-size: 4.5rem;
   font-weight: 600;
   line-height: 110%;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.06rem;
 }
 
 /* Font family utility classes */
@@ -201,4 +201,9 @@ body {
 
 .font-inder {
   font-family: var(--font-inder), sans-serif;
+}
+
+.exitIcon:hover path {
+  stroke: var(--color-neutral);
+  transition: color 0.3s ease-in-out;
 }

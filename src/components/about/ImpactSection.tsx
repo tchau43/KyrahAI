@@ -4,14 +4,14 @@ export default function ImpactSection() {
   return (
     <section className="col-span-12 w-full md:px-80 px-60 bg-neutral-1 py-25">
       <div className="flex flex-col gap-0.5">
-        <div className="heading-54">Our Impact</div>
+        <div className="heading-54 text-neutral-9">Our Impact</div>
         <div className="grid grid-cols-12 gap-12">
           <div className="col-span-4 flex flex-col justify-between">
-            <div className="font-inter font-medium text-lg leading-[1.6] pt-5">
+            <div className="font-inter font-medium text-lg leading-[1.6] pt-5 text-neutral-9">
               Kyrah.ai is aligned with the United Nations Sustainable
               Development Goals, including:
             </div>
-            <div className="rounded-2xl bg-secondary-3 p-7.5 flex flex-col gap-12.5">
+            <div className="rounded-2xl bg-secondary-3 p-7.5 flex flex-col gap-12.5 text-neutral-10">
               <div className="flex flex-col gap-1.5">
                 <div className="display">SDG 3</div>
                 <div className="body-18-semi">Good Health & Well-Being</div>
@@ -26,7 +26,7 @@ export default function ImpactSection() {
               </div>
             </div>
           </div>
-          <div className="col-span-4 rounded-2xl bg-primary p-7.5 flex flex-col gap-52.5 justify-between h-[70%] self-end">
+          <div className="col-span-4 rounded-2xl bg-primary p-7.5 flex flex-col gap-52.5 justify-between h-[70%] self-end text-neutral-10">
             <div className="flex flex-col gap-1.5">
               <div className="display">SDG 5</div>
               <div className="body-18-semi">Gender Equality</div>

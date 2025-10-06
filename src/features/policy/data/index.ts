@@ -19,7 +19,7 @@ export const termsPolicy: PolicyProps[] = [
     policyContent: [
       'You decide what information to share with us.',
       'We will only contact you if you have explicitly opted in (for example, signing up for Early Access or our newsletter).',
-      'You can withdraw your consent or delete your data at any time by contacting [Ask@Kyrah.AI].',
+      'You can withdraw your consent or delete your data at any time by contacting <span class="font-semibold">[Ask@Kyrah.AI]</span>.',
     ],
   },
   {

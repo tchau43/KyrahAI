@@ -32,8 +32,11 @@ const cardsData = [
 
 export default function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral rounded-t-3xl z-60 px-60 py-40">
-      <div className="flex flex-col gap-8 col-span-6">
+    <section
+      id="how-it-works"
+      className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral rounded-t-3xl z-60 px-60 md:px-80 py-40"
+    >
+      <div className="flex flex-col gap-8 col-span-6 text-neutral-9">
         <div className="body-18-semi">How It Works</div>
         <div className="heading-54">Healing shouldn&apos;t be confusing</div>
       </div>
