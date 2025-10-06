@@ -42,11 +42,11 @@ export default function NewsLetterSection() {
   );
 
   return (
-    <section className="col-span-12 w-full bg-secondary-2 px-60 pt-30 pb-40">
+    <section className="col-span-12 w-full bg-secondary-2 px-60 md:px-80 pt-30 pb-40">
       <div className="grid grid-cols-12 gap-13 items-center justify-center">
-        <div className="col-start-1 col-span-5 bg-neutral rounded-2xl px-8 py-10">
+        <div className="col-start-1 col-span-6 bg-neutral rounded-2xl px-8 py-10">
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-            <h2 className="font-spectral font-medium text-neutral-11 text-[2.5rem] leading-[1.1] tracking-[-0.07] text-center w-full">
+            <h2 className="font-spectral font-medium text-neutral-11 text-[2.5rem] leading-[1.1] tracking-[-0.07rem] text-center w-full">
               Help Shape the Future of Kyrah
             </h2>
 
@@ -149,7 +149,7 @@ export default function NewsLetterSection() {
                     handleInputChange('agreeToTerms', checked)
                   }
                   classNames={{
-                    label: 'caption-14-regular text-neutral-11',
+                    label: 'caption-14-regular text-neutral-8',
                   }}
                 >
                   I agree to the{' '}

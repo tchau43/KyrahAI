@@ -1,18 +1,24 @@
+'use client';
+
 import Image from 'next/image';
 import { CheckIcon } from '@/components/icons';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function MissionSection() {
+  const router = useRouter();
+
   return (
-    <section className="px-60 col-span-12 w-full bg-neutral relative pb-40">
+    <section className="px-60 md:px-80 col-span-12 w-full bg-neutral relative pb-40">
       <div className="flex flex-col gap-8">
         <div className="body-18-semi text-neutral-9">
           Care shouldn&apos;t be a battle
         </div>
         <div className="flex-col gap-8 grid grid-cols-12">
-          <div className="col-span-7 heading-54 text-neutral-9">
+          <div className="col-span-8 heading-54 text-neutral-9 pb-4">
             Our mission is to make care simple, safe, and human.
           </div>
-          <div className="col-span-5 col-start-1 subtitle-20-regular text-neutral-9">
+          <div className="col-span-6 col-start-1 subtitle-20-regular text-neutral-9">
             Kyrah.ai exists to confront one of the world&apos;s most hidden and
             urgent crises: the often overlooked early signs of emotional abuse,
             manipulation, and violence.
@@ -47,11 +53,14 @@ export default function MissionSection() {
             </li>
           </ul>
         </div>
-        <button className="body-18-semi w-max rounded-full border border-neutral-9 px-28 py-3.5 mt-5 cursor-pointer">
+        <Link
+          href="/about"
+          className="body-18-semi w-max rounded-full border border-neutral-9 px-28 py-3.5 mt-5 cursor-pointer"
+        >
           View more
-        </button>
+        </Link>
       </div>
-      <div className="absolute right-60 top-16 w-[520px] h-[510px]">
+      <div className="absolute right-50 bottom-40 w-[569px] h-[559px]">
         <div className="relative w-full h-full">
           <Image
             src="/plant.svg"

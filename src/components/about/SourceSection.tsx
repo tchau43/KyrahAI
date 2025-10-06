@@ -4,7 +4,7 @@ export default function SourceSection() {
       <div className="md:px-80 px-60 py-30 bg-neutral rounded-t-3xl">
         <div className="flex flex-col">
           <div className="flex justify-between">
-            <div className="flex flex-col gap-2.5 w-1/3">
+            <div className="flex flex-col gap-2.5 w-1/3 text-neutral-10">
               <div className="body-18-semi">Sources We Rely On</div>
               <div className="heading-54">Grounded in Global Evidence</div>
             </div>

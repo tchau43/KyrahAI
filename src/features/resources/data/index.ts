@@ -40,15 +40,18 @@ export const resources: Resources[] = [
       {
         label: 'UNFPA GBV Dashboard',
         contact: 'Country-level data and resources on gender-based violence',
+        link: 'https://www.unfpa.org/GBV-dashboard/explorer/map?utm_source=chatgpt.com',
       },
       {
         label: 'UNHCR GBV Toolkit',
         contact:
           'Guidance, tools, and resource lists for survivors and responders',
+        link: 'https://www.unhcr.org/gbv-toolkit/guidance-and-tools?utm_source=chatgpt.com',
       },
       {
         label: 'Befrienders Worldwide',
         contact: 'International suicide prevention hotlines at befrienders.org',
+        link: 'https://befrienders.org/',
       },
     ],
   },

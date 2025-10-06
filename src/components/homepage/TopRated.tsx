@@ -1,6 +1,6 @@
 export default function TopRated() {
   return (
-    <section className="col-span-12 w-full z-50 px-60 py-[7.5rem] bg-neutral rounded-t-3xl mt-16">
+    <section className="col-span-12 w-full z-50 md:px-80 px-60 py-[7.5rem] bg-neutral rounded-t-3xl mt-16">
       <div className="col-span-12 w-full relative rounded-2xl bg-secondary-3">
         <div className="grid grid-cols-12 gap-8 items-center">
           {/* Left block */}
@@ -12,13 +12,13 @@ export default function TopRated() {
 
             {/* Award text */}
             <div className="flex flex-col text-neutral-9 gap-2 relative">
-              <div className="text-5xl font-extrabold font-spectral leading-[0.8] tracking-[-0.04]">
+              <div className="text-5xl font-extrabold font-spectral leading-[0.8] tracking-[-0.04rem]">
                 BEST <br />
                 OF <br />
                 OUR <br />
                 STATE
               </div>
-              <p className="absolute top-40 -right-4 font-spectral font-extrabold tracking-[-4%] uppercase text-right">
+              <p className="absolute top-40 -right-4 font-spectral font-extrabold tracking-[-0.04rem] uppercase text-right">
                 2024 winner
               </p>
             </div>

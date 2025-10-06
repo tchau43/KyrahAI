@@ -32,31 +32,33 @@ export default function DiscoverSection() {
           <ul className="space-y-5">
             <li className="flex items-start gap-3">
               <CheckIcon fill="white" size={24} />
-              <span className="text-neutral font-inter font-bold leading-[1.6]">
-                24/7 availability — gently notices and understands subtle shifts
-                in your mood and feelings.
+              <span className="text-neutral font-inter leading-[1.6]">
+                <span className="font-bold">24/7 availability</span> — gently
+                notices and understands subtle shifts in your mood and feelings.
               </span>
             </li>
 
             <li className="flex items-start gap-3">
               <CheckIcon fill="white" size={24} />
-              <span className="text-neutral font-inter font-bold leading-[1.6]">
-                Emotion recognition — gently notices and understands subtle
-                shifts in your mood and feelings.
+              <span className="text-neutral font-inter leading-[1.6]">
+                <span className="font-bold">Emotion recognition</span> — gently
+                notices and understands subtle shifts in your mood and feelings.
               </span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon fill="white" size={24} />
-              <span className="text-neutral font-inter font-bold leading-[1.6]">
-                Personalized responses — adapts naturally to your unique style
-                of communication and expression.
+              <span className="text-neutral font-inter leading-[1.6]">
+                <span className="font-bold">Personalized responses</span> —
+                adapts naturally to your unique style of communication and
+                expression.
               </span>
             </li>
             <li className="flex items-start gap-3">
               <CheckIcon fill="white" size={24} />
-              <span className="text-neutral font-inter font-bold leading-[1.6]">
-                Safe space design — private, secure, and thoughtfully built to
-                keep you comfortable at all times.
+              <span className="text-neutral font-inter leading-[1.6]">
+                <span className="font-bold">Safe space design</span> — private,
+                secure, and thoughtfully built to keep you comfortable at all
+                times.
               </span>
             </li>
           </ul>
