@@ -13,8 +13,8 @@ import { Input } from '@heroui/react';
 
 export default function Footer() {
   return (
-    <footer className="col-span-12 w-full bg-neutral-9 px-60 md:px-80 py-10">
-      <div className="grid grid-cols-12">
+    <footer className="col-span-12 mx-auto w-full bg-neutral-9 py-10">
+      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12">
         {/* Left Column - Brand and Info */}
         <div className="col-span-4 flex flex-col gap-6">
           <div className="flex flex-col gap-2">

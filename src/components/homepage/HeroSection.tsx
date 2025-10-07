@@ -6,8 +6,8 @@ import { useModalStore } from '@/store/useModalStore';
 export default function HeroSection() {
   const { openModal } = useModalStore();
   return (
-    <section className="col-span-12 w-full min-h-[600px] relative mt-3">
-      <div className="w-full grid grid-cols-12 gap-8 items-center px-60 md:px-80 py-40 relative">
+    <section className="col-span-12 w-[87.5%] xl:w-[80%] max-w-21xl min-h-[600px] relative mt-3">
+      <div className="w-full grid grid-cols-12 gap-8 items-center py-40 relative">
         {/* Left Content */}
         <div className="col-span-6 col-start-1 flex flex-col gap-16 z-10">
           <div className="flex flex-col gap-4">
@@ -40,7 +40,7 @@ export default function HeroSection() {
         </div>
 
         {/* Right Image - Absolute positioned */}
-        <div className="absolute right-20 top-16 w-1/2 h-full">
+        <div className="absolute right-0 bottom-0 w-1/2 h-full">
           <div className="relative w-full h-full scale-150">
             <Image
               src="/hero-image.png"

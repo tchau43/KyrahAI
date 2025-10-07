@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased flex justify-center`}
+        className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
       >
         <div className="max-w-27xl mx-auto">
         <ThemeProviders>

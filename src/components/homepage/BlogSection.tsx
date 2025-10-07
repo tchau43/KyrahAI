@@ -59,53 +59,57 @@ export default function BlogSection() {
   };
 
   return (
-    <section className="col-span-12 w-full bg-neutral-1 px-60 md:px-80 py-30">
-      <div className="grid grid-cols-12 gap-8 items-start">
-        {/* Header */}
-        <div className="flex flex-col gap-6 col-start-1 col-span-5 text-neutral-9">
-          <div className="body-18-semi">Blog</div>
-          <div className="heading-54">Voices & Perspectives</div>
+    <section className="col-span-12 w-full bg-neutral-1 py-30">
+      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-12 gap-8 items-start">
+          {/* Header */}
+          <div className="flex flex-col gap-6 col-start-1 col-span-5 text-neutral-9">
+            <div className="body-18-semi">Blog</div>
+            <div className="heading-54">Voices & Perspectives</div>
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="col-span-2 col-start-11 flex gap-4 justify-end self-end">
+            <button
+              onClick={prevSlide}
+              className="w-10 h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
+              aria-label="Previous blog post"
+            >
+              <LeftIcon />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="w-10 h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
+              aria-label="Next blog post"
+            >
+              <RightIcon />
+            </button>
+          </div>
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="col-span-2 col-start-11 flex gap-4 justify-end self-end">
-          <button
-            onClick={prevSlide}
-            className="w-10 h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
-            aria-label="Previous blog post"
-          >
-            <LeftIcon />
-          </button>
-          <button
-            onClick={nextSlide}
-            className="w-10 h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
-            aria-label="Next blog post"
-          >
-            <RightIcon />
-          </button>
-        </div>
-      </div>
-
-      {/* Carousel */}
-      <div className="mt-16 overflow-hidden relative">
-        <div className="absolute z-10 right-0 bottom-0 w-[50px] h-full bg-gradient-to-r from-transparent to-neutral-1"></div>
-        <div
-          className={`flex gap-8 ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`}
-          style={{
-            transform: `translateX(calc(-${currentIndex} * (100% / 3 + 2rem)))`,
-          }}
-          onTransitionEnd={handleTransitionEnd}
-        >
-          {infiniteBlogs.map((blog, index) => (
-            <div key={index} className="w-1/3 flex-shrink-0">
-              <BlogCard
-                imageSrc={blog.imageSrc}
-                category={blog.category}
-                title={blog.title}
-                description={blog.description}
-              />
+        {/* Carousel */}
+        <div className="col-span-12">
+          <div className="mt-16 overflow-hidden relative">
+            <div className="absolute z-10 right-0 bottom-0 w-[50px] h-full bg-gradient-to-r from-transparent to-neutral-1"></div>
+            <div
+              className={`flex gap-8 ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`}
+              style={{
+                transform: `translateX(calc(-${currentIndex} * (100% / 3 + 2rem)))`,
+              }}
+              onTransitionEnd={handleTransitionEnd}
+            >
+              {infiniteBlogs.map((blog, index) => (
+                <div key={index} className="w-1/3 flex-shrink-0">
+                  <BlogCard
+                    imageSrc={blog.imageSrc}
+                    category={blog.category}
+                    title={blog.title}
+                    description={blog.description}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>
