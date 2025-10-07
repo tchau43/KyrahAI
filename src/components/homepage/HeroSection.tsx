@@ -79,7 +79,7 @@ export default function HeroSection() {
               src="/hero-image.png"
               alt="Hero Image"
               fill
-              className="object-cover scale-100 xl:scale-160"
+              className="object-contain scale-100 xl:scale-160"
             />
           </div>
         </div>
