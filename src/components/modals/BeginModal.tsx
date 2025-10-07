@@ -31,7 +31,7 @@ export default function BeginModal() {
       onClose={handleClose}
       size="2xl"
       classNames={{
-        base: 'bg-neutral rounded-3xl',
+        base: 'bg-neutral rounded-3xl text-neutral-9',
         header: 'border-b-0',
         body: 'py-6',
         footer: 'border-t-0',

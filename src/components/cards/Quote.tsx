@@ -9,7 +9,7 @@ export default function Quote() {
       <div className="absolute bottom-0 right-0 transform translate-y-1/2 translate-x-1/2">
         <CloseQuoteIcon />
       </div>
-      <div className="font-spectral font-medium italic text-2xl leading-[1.3] tracking-tighter text-center">
+      <div className="font-spectral font-medium italic text-2xl leading-[1.3] tracking-tighter text-center text-neutral-9">
         Our vision is a safer digital world where technology doesn&apos;t just
         connect us, it protects us.
       </div>
