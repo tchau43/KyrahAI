@@ -19,14 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
+        className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased flex justify-center`}
       >
+        <div className="max-w-27xl mx-auto">
         <ThemeProviders>
           <ConditionalNavbar />
           {children}
           <ConditionalFooter />
           <ModalProvider />
         </ThemeProviders>
+        </div>
       </body>
     </html>
   );
