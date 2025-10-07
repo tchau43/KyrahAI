@@ -6,10 +6,10 @@ import { useModalStore } from '@/store/useModalStore';
 export default function HeroSection() {
   const { openModal } = useModalStore();
   return (
-    <section className="col-span-12 w-[87.5%] xl:w-[80%] max-w-21xl min-h-[600px] relative mt-3">
-      <div className="w-full grid grid-cols-12 gap-8 items-center py-40 relative">
+    <section className="col-span-12 w-[87.5%] xl:w-[80%] xl:h-[600px] max-w-21xl mt-3">
+      <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center pt-40">
         {/* Left Content */}
-        <div className="col-span-6 col-start-1 flex flex-col gap-16 z-10">
+        <div className="md:col-start-1 md:col-span-6 flex flex-col gap-16 z-10">
           <div className="flex flex-col gap-4">
             <p className="text-neutral-9 body-18-semi font-inter">
               Your Quiet Ally in Emotional Awareness
@@ -26,27 +26,60 @@ export default function HeroSection() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="gap-4 grid grid-cols-12 h-14">
+          <div className="gap-4 grid grid-cols-7">
             <button
               onClick={() => openModal('begin-modal')}
-              className="col-span-4 px-8 py-3.5 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-colors cursor-pointer"
+              className="px-8 py-3 col-span-3 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-colors cursor-pointer"
             >
               Chat with Kyrah (Alpha test)
             </button>
-            <button className="col-span-4 px-8 py-3.5 bg-transparent border border-neutral-6 text-neutral-10 rounded-full font-inter body-16-semi hover:bg-neutral-1 transition-colors cursor-pointer">
+            <button className="px-8 py-3 col-span-3 bg-transparent border border-neutral-6 text-neutral-10 rounded-full font-inter body-16-semi hover:bg-neutral-1 transition-colors cursor-pointer">
               Watch Demo
             </button>
           </div>
         </div>
 
         {/* Right Image - Absolute positioned */}
-        <div className="absolute right-0 bottom-0 w-1/2 h-full">
-          <div className="relative w-full h-full scale-150">
+        {/* <div className="absolute right-0 bottom-[0] w-1/2 h-full">
+          <div className="relative w-full h-full scale-130">
             <Image
               src="/hero-image.png"
               alt="Hero Image"
               fill
               className="object-cover object-left"
+            />
+          </div>
+        </div> */}
+
+        {/* <div className="absolute right-0 bottom-[0] w-1/2 h-full">
+          <div className="relative w-full h-full scale-130">
+            <Image
+              src="/hero-image.png"
+              alt="Hero Image"
+              fill
+              className="object-cover object-left"
+            />
+          </div>
+        </div> */}
+
+        {/* <div className="md:col-start-7 md:col-span-6 absolute right-0 bottom-0">
+          <div className="relative w-full h-[360px] sm:h-[420px] md:h-[520px] lg:h-[560px] overflow-hidden">
+            <Image
+              src="/hero-image.png"
+              alt="Hero Image"
+              fill
+              className="object-cover object-left"
+            />
+          </div>
+        </div> */}
+
+        <div className="col-span-6 col-start-7 h-full relative">
+          <div className="absolute bottom-0 right-0 w-full h-full">
+            <Image
+              src="/hero-image.png"
+              alt="Hero Image"
+              fill
+              className="object-cover scale-100 xl:scale-160"
             />
           </div>
         </div>
