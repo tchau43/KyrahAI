@@ -215,12 +215,13 @@ export default function NewsLetterSection() {
           </div>
 
           {/* Right: Image */}
-          <div className="col-start-7 col-span-6 h-full relative">
+          <div className="xl:col-start-7 xl:col-span-6 h-full relative">
             <div className="absolute bottom-0 right-0 w-full h-full">
               <Image
                 src="/roller-skating.png"
                 alt="Roller Skating"
                 fill
+                // sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-contain"
               />
             </div>

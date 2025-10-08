@@ -5,7 +5,7 @@ export default function TopRated() {
         <div className="col-span-12 relative rounded-2xl bg-secondary-3">
           <div className="grid grid-cols-12 gap-8 items-center">
             {/* Left block */}
-            <div className="col-span-3 px-20 flex items-center gap-1">
+            <div className="col-span-12 md:col-span-4 lg:col-span-3 px-6 md:px-12 lg:px-20 flex items-center gap-1">
               {/* Vertical email */}
               <span className="text-xl text-neutral-9 self-start font-inter font-semibold tracking-widest [writing-mode:sideways-lr] pt-2">
                 Ask@Kyrah.AI
@@ -26,7 +26,7 @@ export default function TopRated() {
             </div>
 
             {/* Right block */}
-            <div className="col-span-9 py-[3.75rem] px-20">
+            <div className="col-span-12 md:col-span-8 lg:col-span-9 py-8 md:py-12 lg:py-[3.75rem] px-6 md:px-12 lg:px-20">
               <h3 className="heading-56 text-[3.375rem] text-neutral-9 text-right">
                 Rated &quot;Best AI Companion&quot;
               </h3>

@@ -39,39 +39,6 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Right Image - Absolute positioned */}
-        {/* <div className="absolute right-0 bottom-[0] w-1/2 h-full">
-          <div className="relative w-full h-full scale-130">
-            <Image
-              src="/hero-image.png"
-              alt="Hero Image"
-              fill
-              className="object-cover object-left"
-            />
-          </div>
-        </div> */}
-
-        {/* <div className="absolute right-0 bottom-[0] w-1/2 h-full">
-          <div className="relative w-full h-full scale-130">
-            <Image
-              src="/hero-image.png"
-              alt="Hero Image"
-              fill
-              className="object-cover object-left"
-            />
-          </div>
-        </div> */}
-
-        {/* <div className="md:col-start-7 md:col-span-6 absolute right-0 bottom-0">
-          <div className="relative w-full h-[360px] sm:h-[420px] md:h-[520px] lg:h-[560px] overflow-hidden">
-            <Image
-              src="/hero-image.png"
-              alt="Hero Image"
-              fill
-              className="object-cover object-left"
-            />
-          </div>
-        </div> */}
 
         <div className="col-span-6 col-start-7 h-full relative">
           <div className="absolute bottom-0 right-0 w-full h-full">

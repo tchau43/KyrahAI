@@ -94,10 +94,10 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 z-99 left-1/2 transform -translate-x-1/2 w-[87.5%] xl:w-[80%] max-w-21xl mx-auto mt-8
+      className="fixed top-0 z-[99] left-1/2 transform -translate-x-1/2 w-[87.5%] xl:w-[80%] max-w-21xl mt-8
                  backdrop-blur-[30px] bg-[#FFFFFF3D] rounded-full"
     >
-      <div className="max-w-21xl mx-auto px-8 py-5">
+      <div className="px-8 py-5">
         <div className="flex items-center justify-between">
           {/* Logo and Brand */}
           <div className="flex items-center gap-3">

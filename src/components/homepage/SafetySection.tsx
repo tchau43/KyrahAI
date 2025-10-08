@@ -9,7 +9,7 @@ export default function SafetySection() {
   return (
     <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-60 pt-7.5 pb-60">
       <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12 gap-8">
-        <div className="col-span-6">
+        <div className="col-span-12 xl:col-span-6">
           <div className="flex flex-col gap-2.5 mb-20 text-neutral-9">
             <div className="body-18-semi">Safety tips</div>
             <div>
@@ -23,7 +23,7 @@ export default function SafetySection() {
             </div>
           </div>
         </div>
-        <div className="col-span-6 col-start-7 flex flex-col gap-4 text-neutral-9">
+        <div className="col-span-12 xl:col-span-6 xl:col-start-7 flex flex-col gap-4 text-neutral-9">
           <div className="subtitle-20-regular pt-[7.5rem]">
             These quick steps can help you stay aware and protect yourself in
             everyday situations:
