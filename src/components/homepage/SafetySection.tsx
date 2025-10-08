@@ -7,8 +7,8 @@ export default function SafetySection() {
   const router = useRouter();
 
   return (
-    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-60 pt-7.5 pb-60">
-      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12 gap-8">
+    <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral z-[60] pt-7.5 pb-60">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-12 gap-8">
         <div className="col-span-12 xl:col-span-6">
           <div className="flex flex-col gap-2.5 mb-20 text-neutral-9">
             <div className="body-18-semi">Safety tips</div>
@@ -18,7 +18,7 @@ export default function SafetySection() {
             </div>
           </div>
           <div className="relative h-[300px]">
-            <div className="w-full h-[400px] absolute">
+            <div className="w-full h-[400px] 2xl:h-[500px] absolute">
               <Image src="/reading-side.svg" fill alt="Safety Section" />
             </div>
           </div>

@@ -60,10 +60,10 @@ export default function BlogSection() {
 
   return (
     <section className="col-span-12 w-full bg-neutral-1 py-30">
-      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12 gap-8">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-12 gap-8">
         <div className="grid grid-cols-12 gap-8 items-start col-span-12">
           {/* Header */}
-          <div className="flex flex-col gap-6 col-start-1 col-span-5 text-neutral-9">
+          <div className="flex flex-col gap-6 col-start-1 col-span-8 text-neutral-9">
             <div className="body-18-semi">Blog</div>
             <div className="heading-54">Voices & Perspectives</div>
           </div>
@@ -99,7 +99,7 @@ export default function BlogSection() {
               onTransitionEnd={handleTransitionEnd}
             >
               {infiniteBlogs.map((blog, index) => (
-                <div key={index} className="w-1/3 flex-shrink-0">
+                <div key={`blog-${index}-${blog.title}`} className="w-1/3 flex-shrink-0">
                   <BlogCard
                     imageSrc={blog.imageSrc}
                     category={blog.category}

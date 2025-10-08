@@ -17,6 +17,8 @@ export default function NewsLetterSection() {
     receiveUpdates: false,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const { data: countries, isLoading } = useGetAllCountries();
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -26,8 +28,28 @@ export default function NewsLetterSection() {
     }));
   };
 
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+
+    if (!formData.country) newErrors.country = 'Country is required';
+    if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     console.log('Form submitted:', formData);
   };
 
@@ -44,13 +66,13 @@ export default function NewsLetterSection() {
 
   return (
     <section className="col-span-12 w-full bg-secondary-2">
-      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto">
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center gap-13 pt-20 pb-40">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center gap-12 pt-20 pb-40">
           {/* Left: Form content */}
-          <div className="md:col-start-1 md:col-span-6">
+          <div className="xl:col-start-1 xl:col-span-6">
             <div className="bg-neutral rounded-2xl px-8 py-10">
               <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-                <h2 className="font-spectral font-medium text-neutral-11 text-[2.5rem] leading-[1.1] tracking-[-0.07rem] text-center w-full">
+                <h2 className="font-spectral font-medium text-neutral-11 text-[2.5rem] leading-[1.1] tracking-[-0.15rem] text-center w-full xl:whitespace-nowrap">
                   Help Shape the Future of Kyrah
                 </h2>
 
@@ -71,9 +93,11 @@ export default function NewsLetterSection() {
                       variant="bordered"
                       onChange={e => handleInputChange('firstName', e.target.value)}
                       classNames={{
-                        input: 'placeholder:text-neutral-5 font-inter',
+                        input: 'placeholder:text-neutral-5 text-neutral-11 font-inter',
                         inputWrapper: 'border border-neutral-2',
                       }}
+                      isInvalid={!!errors.firstName}
+                      errorMessage={errors.firstName}
                     />
                     <Input
                       aria-label="Last Name"
@@ -82,9 +106,11 @@ export default function NewsLetterSection() {
                       variant="bordered"
                       onChange={e => handleInputChange('lastName', e.target.value)}
                       classNames={{
-                        input: 'placeholder:text-neutral-5 font-inter',
+                        input: 'placeholder:text-neutral-5 text-neutral-11 font-inter',
                         inputWrapper: 'border border-neutral-2',
                       }}
+                      isInvalid={!!errors.lastName}
+                      errorMessage={errors.lastName}
                     />
                   </div>
 
@@ -97,9 +123,11 @@ export default function NewsLetterSection() {
                     value={formData.email}
                     onChange={e => handleInputChange('email', e.target.value)}
                     classNames={{
-                      input: 'placeholder:text-neutral-5 font-inter',
+                      input: 'placeholder:text-neutral-5 text-neutral-11 font-inter',
                       inputWrapper: 'border border-neutral-2',
                     }}
+                    isInvalid={!!errors.email}
+                    errorMessage={errors.email}
                   />
 
                   {/* Country select */}
@@ -118,10 +146,15 @@ export default function NewsLetterSection() {
                       trigger:
                         'border border-neutral-2 bg-neutral data-[hover=true]:bg-neutral data-[hover=true]:border-neutral-4 transition-colors',
                       value: 'text-neutral-5 font-inter',
+                      selectorIcon: 'text-neutral-5',
                     }}
+                    isInvalid={!!errors.country}
+                    errorMessage={errors.country}
+
                   >
                     {sortedCountries.map(country => (
                       <SelectItem
+                        className='text-neutral-5 font-inter'
                         key={country.cca2}
                         textValue={country.flag + ' ' + country.name.common}
                       >
@@ -138,7 +171,7 @@ export default function NewsLetterSection() {
                     variant="bordered"
                     onChange={e => handleInputChange('message', e.target.value)}
                     classNames={{
-                      input: 'placeholder:text-neutral-5 min-h-[100px] font-inter',
+                      input: 'placeholder:text-neutral-5 text-neutral-11 min-h-[100px] font-inter',
                       inputWrapper: 'border border-neutral-2',
                     }}
                   />
@@ -186,6 +219,11 @@ export default function NewsLetterSection() {
                         service
                       </span>
                     </Checkbox>
+                    {errors.agreeToTerms && (
+                      <span className="caption-14-regular text-error-2 mt-1">
+                        {errors.agreeToTerms}
+                      </span>
+                    )}
 
                     <Checkbox
                       aria-label="Yes, I would like to receive email updates about Kyrah.ai"
@@ -198,7 +236,7 @@ export default function NewsLetterSection() {
                         label: 'caption-14-regular text-neutral-11',
                       }}
                     >
-                      Yes, I would like to receive email updates about Kyrah.ai.*
+                      Yes, I would like to receive email updates about Kyrah.ai.
                     </Checkbox>
                   </div>
 

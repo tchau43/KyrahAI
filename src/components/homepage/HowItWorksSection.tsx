@@ -36,7 +36,7 @@ export default function HowItWorksSection() {
       id="how-it-works"
       className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral rounded-t-3xl z-[60] py-40"
     >
-      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12">
         <div className="flex flex-col gap-8 col-span-6 text-neutral-9">
           <div className="body-18-semi">How It Works</div>
           <div className="heading-54">Healing shouldn&apos;t be confusing</div>

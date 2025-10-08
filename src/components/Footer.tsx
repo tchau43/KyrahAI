@@ -14,7 +14,7 @@ import { Input } from '@heroui/react';
 export default function Footer() {
   return (
     <footer className="col-span-12 mx-auto w-full bg-neutral-9 py-10">
-      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-12">
         {/* Left Column - Brand and Info */}
         <div className="col-span-4 flex flex-col gap-6">
           <div className="flex flex-col gap-2">
@@ -115,26 +115,26 @@ export default function Footer() {
           <nav className="flex flex-col gap-3.5 items-start">
             <Link
               href="/about"
-              className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
+              className="body-18-regular text-neutral hover:opacity-80 transition-opacity !text-[1.12rem]"
             >
               About
             </Link>
             <Link
               href="/safety-tips"
-              className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
+              className="body-18-regular text-neutral hover:opacity-80 transition-opacity !text-[1.12rem]"
             >
               Safety Tips
             </Link>
             <Link
               href="/resource"
-              className="body-18-regular text-neutral hover:opacity-80 transition-opacity"
+              className="body-18-regular text-neutral hover:opacity-80 transition-opacity !text-[1.12rem]"
             >
               Resources
             </Link>
             <Link
               onClick={e => e.preventDefault()}
               href="/blog"
-              className="body-18-regular text-neutral transition-opacity cursor-not-allowed"
+              className="body-18-regular text-neutral transition-opacity cursor-not-allowed !text-[1.12rem]"
             >
               Blog
             </Link>

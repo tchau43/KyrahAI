@@ -27,12 +27,12 @@ export default function ResourceSection() {
 
   return (
     <section className="col-span-12 w-full grid grid-cols-12 gap-10 bg-secondary-1 z-60 py-30 items-stretch">
-      <div className="w-[87.5%] xl:w-[80%] max-w-21xl mx-auto col-span-12 grid grid-cols-12 gap-8">
-        <div className="col-span-6 flex flex-col gap-7.5">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-12 ">
+        <div className="col-span-7 flex flex-col gap-7.5">
           <div className="body-18-semi text-neutral">Resources & Hotlines</div>
           <div className="heading-54 text-neutral">Find Safety, Find Support</div>
         </div>
-        <div className="col-span-6 pl-10 pt-5 flex flex-col justify-between">
+        <div className="col-span-5 pt-5 flex flex-col justify-between">
           <div className="subtitle-20-regular text-neutral">
             <span className="font-spectral font-bold text-2xl">
               <i>Kyrah.ai</i>
