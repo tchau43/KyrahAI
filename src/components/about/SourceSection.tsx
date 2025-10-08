@@ -1,6 +1,6 @@
 export default function SourceSection() {
   return (
-    <section className="bg-neutral-1 col-span-12 w-full">
+    <section className="bg-neutral-1 col-span-12 w-full relative z-3 -mt-2 md:-mt-4 lg:-mt-6">
       <div className="py-12 md:py-20 lg:py-30 bg-neutral rounded-t-2xl md:rounded-t-3xl flex justify-center">
         <div className="w-full xl:w-[80%] max-w-21xl">
           {/* Header with padding */}

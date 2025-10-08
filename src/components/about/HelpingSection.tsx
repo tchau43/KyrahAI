@@ -3,7 +3,7 @@ import { CheckIcon } from '../icons';
 
 export default function HelpingSection() {
   return (
-    <section className="col-span-12 w-full bg-primary pt-16 md:pt-20 lg:pt-30 rounded-t-2xl md:rounded-t-3xl pb-16 md:pb-24 lg:pb-[8.5rem] flex justify-center">
+    <section className="col-span-12 w-full bg-primary pt-16 md:pt-20 lg:pt-30 rounded-t-2xl md:rounded-t-3xl pb-16 md:pb-24 lg:pb-[8.5rem] flex justify-center overflow-hidden relative z-3 -mt-2 md:-mt-4 lg:-mt-6">
       <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl px-4 md:px-0">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 md:gap-8">
           <div className="xl:col-span-7">

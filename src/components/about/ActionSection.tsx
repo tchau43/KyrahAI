@@ -3,7 +3,7 @@ import { DashLineIcon } from '../icons';
 
 export default function ActionSection() {
   return (
-    <section className="col-span-12 w-full bg-neutral pt-16 md:pt-20 lg:pt-30 pb-10 md:pb-14 lg:pb-20 flex justify-center">
+    <section className="col-span-12 w-full bg-neutral pt-16 md:pt-20 lg:pt-30 rounded-t-2xl md:rounded-t-3xl pb-16 md:pb-24 lg:pb-[8.5rem] flex justify-center overflow-hidden relative z-3 -mt-2 md:-mt-4 lg:-mt-6">
       <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl px-4 md:px-0">
         <div className="flex flex-col gap-12 md:gap-20 lg:gap-30">
           <div className="flex flex-col xl:flex-row justify-between gap-8 md:gap-12 xl:gap-20">
