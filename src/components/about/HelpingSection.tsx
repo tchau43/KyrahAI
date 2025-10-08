@@ -17,7 +17,7 @@ export default function HelpingSection() {
                   what urgently needs attention.
                 </div>
               </div>
-              <div className="bg-[#FFFCF766] rounded-xl md:rounded-2xl flex flex-col gap-2 md:gap-2.5 justify-between items-start px-6 md:px-12 lg:pl-20 body-18-regular text-neutral-9 py-5 md:py-5.5 lg:py-6">
+              <div className="bg-[#FFFCF766] rounded-xl md:rounded-2xl flex flex-col gap-2 md:gap-2.5 justify-between items-start px-6 md:px-12 lg:pl-20 body-18-regular text-neutral-9 py-5 md:py-[1.375rem] lg:py-6">
                 <div className="flex items-start md:items-center gap-2 md:gap-3">
                   <div className="mt-1 md:mt-0 flex-shrink-0">
                     <CheckIcon />
