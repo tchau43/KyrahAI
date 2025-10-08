@@ -6,10 +6,10 @@ import { useModalStore } from '@/store/useModalStore';
 export default function HeroSection() {
   const { openModal } = useModalStore();
   return (
-    <section className="col-span-12 w-[87.5%] xl:w-[80%] xl:h-[600px] max-w-21xl mt-3">
-      <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center pt-40">
+    <section className="col-span-12 w-[87.5%] xl:w-[80%] xl:h-[600px] max-w-21xl mt-3 flex flex-col">
+      <div className="w-full flex flex-col items-center xl:grid xl:grid-cols-12 xl:pt-40 gap-16">
         {/* Left Content */}
-        <div className="md:col-start-1 md:col-span-6 flex flex-col gap-16 z-10">
+        <div className="xl:col-start-1 xl:col-span-6 flex flex-col gap-16 z-10">
           <div className="flex flex-col gap-4">
             <p className="text-neutral-9 body-18-semi font-inter">
               Your Quiet Ally in Emotional Awareness
@@ -40,13 +40,13 @@ export default function HeroSection() {
         </div>
 
 
-        <div className="col-span-6 col-start-7 h-full relative">
-          <div className="absolute bottom-0 right-0 w-full h-full">
+        <div className="xl:col-span-6 xl:col-start-7 xl:h-full relative h-100 w-full">
+          <div className="absolute bottom-[-2http://localhost:3000/0] md:bottom-[-10] xl:bottom-0 right-0 w-full h-full">
             <Image
               src="/hero-image.png"
               alt="Hero Image"
               fill
-              className="object-contain scale-100 xl:scale-170"
+              className="object-contain scale-200 md:scale-150 xl:scale-170"
             />
           </div>
         </div>
