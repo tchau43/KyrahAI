@@ -18,7 +18,7 @@ export default function SafetySteps() {
       </div>
 
       {/* Steps Section */}
-      <div className="lg:col-span-6 order-2 overflow-auto h-auto lg:h-[800px] xl:h-[1100px] scrollbar-hide">
+      <div className="lg:col-span-6 order-2 overflow-auto h-auto md:h-[1011px] lg:h-[800px] xl:h-[1100px] scrollbar-hide">
         <div className="py-12 md:py-16 lg:py-20 xl:py-26 px-6 md:px-12 lg:px-16 xl:px-20">
           <div className="flex flex-col gap-12 md:gap-16 lg:gap-20 xl:gap-[5.804rem]">
             {stepData.map(step => (
