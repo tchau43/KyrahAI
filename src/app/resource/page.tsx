@@ -33,41 +33,48 @@ export default function ResourcesPage() {
   const renderResourceItem = (resource: Resources) => (
     <div
       key={resource.id}
-      className="grid grid-cols-12 gap-6 mb-16 col-span-12 w-full"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-8 md:mb-12 lg:mb-16 col-span-12 w-full"
     >
-      <div className="col-span-4">
-        <h2 className="heading-40">{resource.country}</h2>
+      <div className="lg:col-span-4">
+        <h2 className="text-2xl md:text-3xl lg:heading-40 font-spectral font-medium text-black">
+          {resource.country}
+        </h2>
       </div>
-      <div className="col-span-9 col-start-5">
-        <ul className="space-y-4">
+      <div className="lg:col-span-9 lg:col-start-5">
+        <ul className="space-y-3 md:space-y-4">
           {resource.hotlines.map((hotline, index) =>
             resource.country === 'Coming soon' ? (
               <li key={index}>
                 <div className="flex items-center gap-2">
-                  <div className="body-18-semi">
+                  <div className="text-base md:text-lg lg:body-18-semi font-semibold text-black">
                     {hotline.label}:{' '}
-                    <span className="body-18-regular">{hotline.contact}</span>
+                    <span className="font-normal md:body-18-regular">
+                      {hotline.contact}
+                    </span>
                   </div>
                 </div>
               </li>
             ) : (
-              <li className="list-disc" key={index}>
-                <div className="flex items-center gap-2">
-                  <div className="body-18-semi">
+              <li
+                className={`list-disc ml-4 md:ml-5 ${hotline?.link ? 'text-secondary-2' : 'text-black'}`}
+                key={index}
+              >
+                <div className="text-base md:text-lg lg:body-18-regular text-black">
+                  <span className="font-semibold lg:body-18-semi">
                     {hotline?.link ? (
                       <Link
                         href={hotline.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline"
+                        className="underline text-secondary-2 transition-colors"
                       >
                         {hotline.label}:
                       </Link>
                     ) : (
                       <span>{hotline.label}:</span>
                     )}
-                  </div>
-                  <div className="body-18-regular">{hotline.contact}</div>
+                  </span>{' '}
+                  {hotline.contact}
                 </div>
               </li>
             )
@@ -80,25 +87,28 @@ export default function ResourcesPage() {
   return (
     <div className="font-spectral min-h-screen grid grid-cols-12">
       {/* Header Section */}
-      <div className="pt-40 pb-10 text-center col-span-12">
-        <div className="body-18-semi text-secondary-1 mb-4">
-          Resources & Hotlines
-        </div>
-        <div className="heading-54 text-neutral-10 max-w-5xl mx-auto">
-          These hotlines and resources provide 24/7 confidential support
+      <div className="pt-20 md:pt-32 lg:pt-40 pb-8 md:pb-10 text-center col-span-12 px-4">
+        <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl mx-auto">
+          <div className="text-sm md:text-base lg:body-18-semi text-secondary-1 mb-3 md:mb-4">
+            Resources & Hotlines
+          </div>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-[3.375rem] xl:leading-[110%] xl:tracking-[-0.06em] text-neutral-10 max-w-[45rem] mx-auto font-spectral font-semibold">
+            These hotlines and resources provide 24/7 confidential support
+          </h1>
         </div>
       </div>
 
       {/* Search Section */}
-      <div className="flex justify-center pb-16 col-span-12">
-        <div className="w-full max-w-xl">
+      <div className="flex justify-center pb-10 md:pb-12 lg:pb-16 col-span-12 px-4">
+        <div className="w-full max-w-[34.25rem]">
           <Input
             classNames={{
               inputWrapper:
-                'rounded-full border-1 border-neutral-4 body-16-regular py-[1rem] data-[hover=true]:border-neutral-4 group-data-[focus=true]:border-neutral-4',
-              input: 'ml-[0.625rem]',
+                'rounded-full border-1 border-neutral-4 bg-neutral-1 h-[3.25rem] data-[hover=true]:border-neutral-4 group-data-[focus=true]:border-neutral-4',
+              input: 'text-sm md:text-base text-black',
+              innerWrapper: 'gap-4',
             }}
-            startContent={<SearchIcon />}
+            startContent={<SearchIcon className="w-5 h-5 flex-shrink-0" />}
             variant="bordered"
             placeholder="Search for your local emergency number"
             value={searchQuery}
@@ -108,16 +118,20 @@ export default function ResourcesPage() {
       </div>
 
       {/* Resources Section */}
-      <div className="py-30 col-span-12 w-full border-t border-neutral-1">
-        {filteredResources.length > 0 ? (
-          filteredResources.map(renderResourceItem)
-        ) : (
-          <div className="text-center py-20">
-            <div className="body-18-regular text-neutral-7">
-              No resources found matching your search.
+      <div className="py-12 md:py-20 lg:py-30 col-span-12 w-full border-t border-neutral-1 flex justify-center">
+        <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl px-4 md:px-0">
+          {filteredResources.length > 0 ? (
+            <div className="grid grid-cols-12">
+              {filteredResources.map(renderResourceItem)}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-12 md:py-16 lg:py-20">
+              <div className="text-base md:text-lg lg:body-18-regular text-black">
+                No resources found matching your search.
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

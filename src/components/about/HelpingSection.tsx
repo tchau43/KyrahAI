@@ -63,7 +63,7 @@ export default function HelpingSection() {
               </div>
             </div>
           </div>
-          <div className="xl:col-span-5 flex justify-center xl:justify-end">
+          <div className="xl:col-span-5 flex justify-center xl:justify-end px-6 md:px-0 py-8 md:py-0">
             <InstaCard />
           </div>
         </div>
