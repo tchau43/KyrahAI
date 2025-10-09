@@ -56,7 +56,7 @@ export default function Footer() {
                     }}
                     type="email"
                   />
-                  <button className="p-3 bg-neutral-9 border-white border rounded-full hover:bg-neutral-2 transition-colors cursor-pointer">
+                  <button className="p-3 bg-neutral-9 border-white border rounded-full hover:bg-neutral-2 transition-colors cursor-pointer" aria-label="Subscribe to the newsletter">
                     <TurnRightIcon />
                   </button>
                 </div>
@@ -111,7 +111,7 @@ export default function Footer() {
                   }}
                   type="email"
                 />
-                <button className="absolute -right-15 -top-0.5 p-3 bg-neutral-9 border-white border rounded-full hover:bg-neutral-2 transition-colors cursor-pointer">
+                <button className="absolute -right-15 -top-0.5 p-3 bg-neutral-9 border-white border rounded-full hover:bg-neutral-2 transition-colors cursor-pointer" aria-label="Subscribe to the newsletter">
                   <TurnRightIcon />
                 </button>
               </div>
@@ -195,7 +195,6 @@ export default function Footer() {
             </Link>
           </div>
         </div>
-        
       </div>
 
       {/* Bottom Section */}

@@ -42,13 +42,13 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
         <div
             className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-[2px]"
             onClick={() => setIsMenuOpen(false)}
-            aria-hidden={!isMenuOpen}
         >
             <div
                 className="bg-neutral w-60 md:w-90 h-full px-6 py-10 shadow-lg"
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
+                aria-label="Mobile navigation menu"
             >
                 {/* Content */}
                 <div className="flex flex-col justify-between h-full">
@@ -82,7 +82,11 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
                                             Soon
                                         </span>
                                     )}
-                                    <Link href={item.href} className={`body-16-semi font-inter text-neutral-9 ${item.comingSoon ? 'text-secondary-2 cursor-not-allowed' : ''}`}>
+                                    <Link
+                                        href={item.href}
+                                        className={`body-16-semi font-inter text-neutral-9 ${item.comingSoon ? 'text-secondary-2 cursor-not-allowed' : ''}`}
+                                        onClick={(e) => item.comingSoon ? e.preventDefault() : undefined}
+                                    >
                                         {item.label}
                                     </Link>
                                 </div>

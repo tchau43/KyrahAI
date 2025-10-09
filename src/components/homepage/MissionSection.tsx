@@ -4,6 +4,15 @@ import Image from 'next/image';
 import { CheckIcon } from '@/components/icons';
 import Link from 'next/link';
 
+const ViewMoreButton = () => (
+  <Link
+    href="/about"
+    className="body-18-semi text-neutral-9 w-max rounded-full border border-neutral-9 px-28 py-3.5 cursor-pointer"
+  >
+    View more
+  </Link>
+);
+
 export default function MissionSection() {
   return (
     <section className="col-span-12 w-full bg-neutral">
@@ -52,12 +61,7 @@ export default function MissionSection() {
               </div>
               {/* Button for xl+ screens */}
               <div className="hidden xl:block">
-                <Link
-                  href="/about"
-                  className="body-18-semi text-neutral-9 w-max rounded-full border border-neutral-9 px-28 py-3.5 cursor-pointer"
-                >
-                  View more
-                </Link>
+                <ViewMoreButton />
               </div>
             </div>
           </div>
@@ -77,12 +81,7 @@ export default function MissionSection() {
 
           {/* Button - only show on mobile/tablet, hidden on xl+ */}
           <div className="xl:hidden flex justify-center">
-            <Link
-              href="/about"
-              className="body-18-semi text-neutral-9 w-max rounded-full border border-neutral-9 px-28 py-3.5 cursor-pointer"
-            >
-              View more
-            </Link>
+            <ViewMoreButton />
           </div>
         </div>
       </div>

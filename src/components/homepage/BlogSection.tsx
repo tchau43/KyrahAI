@@ -38,11 +38,11 @@ export default function BlogSection() {
   useEffect(() => {
     const updateCardsPerView = () => {
       if (window.innerWidth >= 1280) {
-        setCardsPerView(3); 
+        setCardsPerView(3);
       } else if (window.innerWidth >= 768) {
-        setCardsPerView(2); 
+        setCardsPerView(2);
       } else {
-        setCardsPerView(1); 
+        setCardsPerView(1);
       }
     };
 
@@ -105,7 +105,7 @@ export default function BlogSection() {
         {/* Carousel */}
         <div className="col-span-6 md:col-span-10">
           <div className="mt-16 overflow-hidden relative">
-            <div className="absolute z-10 right-0 bottom-0 w-[50px] h-full bg-gradient-to-r from-transparent to-neutral-1"></div>
+            <div className="absolute z-10 right-0 bottom-0 w-[50px] h-full pointer-events-none bg-gradient-to-r from-transparent to-neutral-1"></div>
             <div
               className={`flex gap-8 ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`}
               style={{
