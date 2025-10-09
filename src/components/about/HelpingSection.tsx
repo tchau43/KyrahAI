@@ -9,7 +9,7 @@ export default function HelpingSection() {
           <div className="xl:col-span-7">
             <div className="py-4 md:py-5 lg:py-6 flex flex-col gap-8 md:gap-12 lg:gap-16">
               <div className="flex flex-col gap-4 md:gap-5 lg:gap-6">
-                <div className="body-16-semibold text-neutral-9">
+                <div className="body-16-semi text-neutral-9">
                   With the help of AI, psychology, and global safety research
                 </div>
                 <div className="heading-28 md:!text-[40px] lg:!text-[40px] xl:!text-[54px] text-neutral-9">

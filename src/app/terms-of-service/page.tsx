@@ -106,7 +106,9 @@ export default function TermsOfServicePage() {
             </div>
 
             {/* Sidebar Navigation */}
-            <PolicySidebar policies={termsPolicy} />
+            <div className="hidden xl:block">
+              <PolicySidebar policies={termsPolicy} />
+            </div>
           </div>
         </div>
       </section>

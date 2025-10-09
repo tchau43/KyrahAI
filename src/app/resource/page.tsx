@@ -58,7 +58,7 @@ export default function ResourcesPage() {
               </li>
             ) : (
               <li
-                className={`list-disc ml-4 md:ml-5 ${hotline?.link ? 'text-secondary-2' : 'text-neutral-9'}`}
+                className={`list-disc ml-4 md:ml-5 ${hotline?.link ? 'text-secondary-1' : 'text-neutral-9'}`}
                 key={index}
               >
                 <div className="body-16-regular md:!text-[18px] lg:!text-[18px] xl:!text-[18px] text-neutral-9">
@@ -68,7 +68,7 @@ export default function ResourcesPage() {
                         href={hotline.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline text-secondary-2 transition-colors"
+                        className="underline text-secondary-1 transition-colors"
                       >
                         {hotline.label}:
                       </Link>
@@ -103,7 +103,37 @@ export default function ResourcesPage() {
       {/* Search Section */}
       <div className="flex justify-center pb-10 md:pb-12 lg:pb-16 col-span-12 px-4">
         <div className="w-full max-w-[34.25rem]">
+          {/* Mobile Input */}
           <Input
+            className="md:hidden"
+            classNames={{
+              inputWrapper:
+                'rounded-full border-1 border-neutral-4 bg-neutral-1 h-[3.25rem] data-[hover=true]:border-neutral-4 group-data-[focus=true]:border-neutral-4',
+              input: 'body-16-regular text-neutral-9',
+              innerWrapper: 'gap-4',
+            }}
+            startContent={<SearchIcon className="w-5 h-5 flex-shrink-0" />}
+            endContent={
+              searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="flex items-center justify-center hover:opacity-70 transition-opacity pr-3"
+                  aria-label="Clear search"
+                  type="button"
+                >
+                  <XIcon />
+                </button>
+              )
+            }
+            variant="bordered"
+            placeholder="Search"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+
+          {/* Desktop Input */}
+          <Input
+            className="hidden md:block"
             classNames={{
               inputWrapper:
                 'rounded-full border-1 border-neutral-4 bg-neutral-1 h-[3.25rem] data-[hover=true]:border-neutral-4 group-data-[focus=true]:border-neutral-4',
