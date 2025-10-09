@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function Introduce() {
   return (
-    <section className="col-span-12 w-full bg-secondary-1 pt-20 md:!pt-28 lg:!pt-40 flex justify-center">
+    <section className="col-span-12 w-full bg-secondary-1 pt-35 md:!pt-35 xl:!pt-40 flex justify-center">
       <div className="w-full md:!w-[87.5%] xl:!w-[80%] max-w-21xl px-4 md:!px-0">
         <div className="pt-6">
           <div className="flex flex-col gap-3 md:!gap-4 items-center">

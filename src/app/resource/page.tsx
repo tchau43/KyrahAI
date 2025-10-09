@@ -89,7 +89,7 @@ export default function ResourcesPage() {
   return (
     <div className="font-spectral min-h-screen grid grid-cols-12">
       {/* Header Section */}
-      <div className="pt-20 md:pt-32 lg:pt-40 pb-8 md:pb-10 text-center col-span-12 px-4">
+      <div className="pt-35 md:pt-35 xl:pt-40 pb-8 md:pb-10 text-center col-span-12 px-4">
         <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl mx-auto">
           <div className="body-18-semi text-secondary-1 mb-3 md:mb-4">
             Resources & Hotlines
