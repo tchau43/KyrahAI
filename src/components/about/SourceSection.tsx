@@ -25,7 +25,6 @@ export default function SourceSection() {
             </div>
           </div>
 
-          {/* Rows - full width on mobile/tablet, with padding on desktop */}
           <div className="flex flex-col gap-3 md:gap-4 px-4 md:px-0">
             {/* Row 1 */}
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 lg:gap-5">
@@ -59,7 +58,7 @@ export default function SourceSection() {
             {/* Row 2 */}
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 lg:gap-5">
               <div className="hidden md:block bg-[#F0B64029] rounded-tr-2xl rounded-br-2xl p-6 flex-1"></div>
-              <div className="flex flex-col gap-2 bg-[#F0B6407A] rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 text-neutral-10">
+              <div className="flex flex-col gap-2 bg-[#F0B6407A] rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 text-neutral-10 md:!h-[165.59px] lg:!h-[165.59px] xl:!h-auto lg:!justify-center">
                 <div className="text-[20px] md:!text-[28px] lg:!text-[28px] xl:!text-[28px] font-spectral font-semibold">
                   OECD
                 </div>
@@ -67,7 +66,7 @@ export default function SourceSection() {
                   Policy frameworks on GBV
                 </div>
               </div>
-              <div className="flex flex-col gap-2 bg-[#F0B6407A] rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 text-neutral-10">
+              <div className="flex flex-col gap-2 bg-[#F0B6407A] rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 text-neutral-10 md:!h-[165.59px] lg:!h-[165.59px] xl:!h-auto lg:!justify-center">
                 <div className="text-[20px] md:!text-[28px] lg:!text-[28px] xl:!text-[28px] font-spectral font-semibold">
                   Safe & Together Institute
                 </div>
@@ -75,7 +74,7 @@ export default function SourceSection() {
                   Family violence & safety insights
                 </div>
               </div>
-              <div className="flex flex-col gap-2 bg-[#F0B6407A] rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 text-neutral-10">
+              <div className="flex flex-col gap-2 bg-[#F0B6407A] rounded-xl md:rounded-2xl p-4 md:p-5 lg:p-6 text-neutral-10 md:!h-[165.59px] lg:!h-[165.59px] xl:!h-auto lg:!justify-center">
                 <div className="text-[20px] md:!text-[28px] lg:!text-[28px] xl:!text-[28px] font-spectral font-semibold">
                   UNESCO
                 </div>
