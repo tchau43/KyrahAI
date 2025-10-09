@@ -9,19 +9,19 @@ export default function HeroSection() {
     <section className="col-span-12 w-[87.5%] xl:w-[80%] 2xl:w-[70%] xl:h-[500px] 2xl:h-[600px] max-w-7xl mt-3 flex flex-col">
       <div className="w-full flex flex-col gap-16 h-full xl:grid xl:grid-cols-12 items-center xl:pt-10 2xl:pt-0">
         {/* Left Content */}
-        <div className="xl:col-start-1 xl:col-span-6 flex flex-col gap-16 z-10">
+        <div className="xl:col-start-1 xl:col-span-6 flex flex-col gap-8 md:gap-16 z-10">
           <div className="flex flex-col gap-4">
             <p className="text-neutral-9 body-18-semi font-inter text-center xl:text-left">
               Your Quiet Ally in Emotional Awareness
             </p>
-            <h1 className="text-neutral-9 heading-32 xl:!text-[4.5rem] xl:!tracking-[-0.06rem] text-center xl:text-left">
+            <h1 className="text-neutral-9 heading-32 md:!text-[3.375rem] xl:!text-[4.5rem] xl:!tracking-[-0.06rem] text-center xl:text-left">
               We make <span className="text-neutral-10">AI safer</span>
               <br />
               for humanity
             </h1>
             <p className="text-neutral-9 body-18-regular max-w-lg text-center xl:text-left">
               Kyrah.ai offers compassionate and confidential support for anyone
-              facing abuse or emotional harm. You are not alone.
+              facing abuse or emotional harm. <br className='md:hidden' /> <br className='md:hidden' /> You are not alone.
             </p>
           </div>
 

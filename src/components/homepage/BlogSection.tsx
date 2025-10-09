@@ -74,8 +74,8 @@ export default function BlogSection() {
   };
 
   return (
-    <section className="col-span-12 w-full bg-neutral-1 py-16 md:py-24 xl:py-30">
-      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-6 md:grid-cols-10 gap-8">
+    <section className="col-span-12 w-full bg-neutral-1 py-10 md:py-20 xl:py-30">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-6 md:grid-cols-10 gap-4 md:gap-8">
         <div className="grid grid-cols-6 md:grid-cols-10 gap-8 items-start col-span-6 md:col-span-10">
           {/* Header */}
           <div className="flex flex-col gap-6 col-start-1 col-span-4 md:col-span-8 text-neutral-9">
@@ -104,7 +104,7 @@ export default function BlogSection() {
 
         {/* Carousel */}
         <div className="col-span-6 md:col-span-10">
-          <div className="mt-16 overflow-hidden relative">
+          <div className="mt-8 md:mt-12 overflow-hidden relative">
             <div className="absolute z-10 right-0 bottom-0 w-[50px] h-full pointer-events-none bg-gradient-to-r from-transparent to-neutral-1"></div>
             <div
               className={`flex gap-8 ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`}

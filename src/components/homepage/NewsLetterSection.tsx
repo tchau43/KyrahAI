@@ -72,8 +72,8 @@ export default function NewsLetterSection() {
           <div className="col-span-1 md:col-span-12 xl:col-start-1 xl:col-span-6">
             <div className="bg-neutral rounded-2xl px-6 py-8 md:px-8 md:py-10">
               <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-                <h2 className="heading-28 text-center md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.07rem] w-full xl:whitespace-nowrap text-neutral-11">
-                  Help Shape <br className="md:hidden"/> the Future of Kyrah
+                <h2 className="heading-28 text-center md:!text-[2.5rem] md:!tracking-[-0.07rem] w-full text-neutral-11">
+                  Help Shape <br /> the Future of Kyrah
                 </h2>
 
                 <div className="text-center text-neutral-11 body-16-regular">
@@ -179,6 +179,7 @@ export default function NewsLetterSection() {
                   {/* Checkboxes */}
                   <div className="flex flex-col gap-3">
                     <Checkbox
+                      className="items-start"
                       aria-label="I agree to the Terms of Service and Privacy Policy"
                       color="secondary"
                       isSelected={formData.agreeToTerms}
@@ -226,6 +227,7 @@ export default function NewsLetterSection() {
                     )}
 
                     <Checkbox
+                      className="items-start"
                       aria-label="Yes, I would like to receive email updates about Kyrah.ai"
                       color="secondary"
                       isSelected={formData.receiveUpdates}

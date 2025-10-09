@@ -1,11 +1,11 @@
 export default function TopRated() {
   return (
-    <section className="col-span-12 w-full z-50 py-[7.5rem] bg-neutral rounded-t-3xl mt-16">
+    <section className="col-span-12 w-full z-50 pt-10 pb-20 md:py-[4rem] bg-neutral rounded-t-3xl mt-16 md:pb-24">
       <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto">
         <div className="relative rounded-2xl bg-secondary-3">
           <div className="grid grid-cols-12 gap-8 items-center">
             {/* Left block */}
-            <div className="col-span-12 md:col-span-3 px-6 md:px-8 xl:px-20 flex items-center gap-1 pt-8 md:pt-0">
+            <div className="col-span-12 md:col-span-3 px-6 md:px-8 xl:px-20 flex items-center gap-1 pb-4 pt-4 md:pt-0">
               {/* Vertical email */}
               <span className="text-[0.75rem] xl:!text-xl text-neutral-9 self-start font-inter font-semibold tracking-[0] xl:tracking-[-0.07] [writing-mode:sideways-lr] xl:pt-2">
                 safe@kyrah.ai
@@ -26,7 +26,7 @@ export default function TopRated() {
             </div>
 
             {/* Right block */}
-            <div className="col-span-12 md:col-span-9 xl:col-span-9 py-8 md:py-12 lg:py-[3.75rem] px-6 md:px-8 xl:px-20">
+            <div className="col-span-12 md:col-span-9 xl:col-span-9 py-4 md:py-6 xl:py-12 px-6 md:px-8 xl:px-20">
               <h3 className="heading-28 md:!text-[2rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem] xl:!leading-[1.1] text-neutral-9 text-right">
                 Rated <br className="md:hidden" />&quot;Best AI Companion&quot;
                 <br /> by our growing <br className="md:hidden" /> community

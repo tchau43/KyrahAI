@@ -3,11 +3,12 @@ import Image from 'next/image';
 interface HowItWorksCardProps {
   step: string;
   title: string;
-  description: string;
+  description: React.ReactNode;
   imageSrc: string;
   imageAlt: string;
   backgroundColor: string;
   isFirst?: boolean;
+  isLast?: boolean;
 }
 
 export default function HowItWorksCard({
@@ -18,6 +19,7 @@ export default function HowItWorksCard({
   imageAlt,
   backgroundColor,
   isFirst = false,
+  isLast = false,
 }: HowItWorksCardProps) {
   return (
     <div
@@ -26,10 +28,10 @@ export default function HowItWorksCard({
       <div className="flex flex-col md:flex-row xl:flex-col gap-6 md:h-[250px] xl:h-full">
         {/* Text content */}
         <div className="flex flex-col gap-6 md:flex-1 xl:flex-none">
-          <div className="heading-28-semi md:!text-[2rem] xl:!text-[2.5rem] xl:!font-medium xl:!tracking-[-0.06rem] text-neutral-9">
+          <div className={`md:pt-4 xl:pt-0 heading-28 md:!text-[2rem] xl:!text-[2.5rem] xl:!tracking-[-0.06rem] ${isLast ? 'text-white' : 'text-neutral-9'}`}>
             <i>{step}/</i> {title}
           </div>
-          <div className="body-16-regular text-neutral-9">
+          <div className={`body-16-regular ${isLast ? 'text-white' : 'text-neutral-9'}`}>
             {description}
           </div>
         </div>

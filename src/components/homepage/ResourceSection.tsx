@@ -26,13 +26,13 @@ export default function ResourceSection() {
   const router = useRouter();
 
   return (
-    <section className="col-span-12 w-full bg-secondary-1 z-60 py-30">
+    <section className="col-span-12 w-full bg-secondary-1 z-60 py-20">
       <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto flex flex-col gap-8">
         {/* Header Section */}
         <div className="flex flex-col gap-7.5 xl:grid xl:grid-cols-12">
           <div className="xl:col-span-7 flex flex-col gap-7.5">
             <div className="body-16-medium md:!text-[1.125rem] md:!font-semibold text-neutral">Resources & Hotlines</div>
-            <div className="heading-28 md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem] text-neutral">Find Safety, Find Support</div>
+            <div className="heading-28 md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem] text-neutral">Find Safety, Find Support</div>
           </div>
           <div className="xl:col-span-5 xl:pt-5 flex flex-col justify-between">
             <div className="body-18-regular text-neutral">
@@ -65,7 +65,7 @@ export default function ResourceSection() {
 
         {/* Global Resources Section */}
         <div className="flex flex-col gap-6">
-          <div className="body-18-semi md:!text-[1.375rem] md:!font-bold md:!leading-[160%] pt-15 text-neutral">Global Resources</div>
+          <div className="body-18-semi md:!text-[1.375rem] md:!font-bold md:!leading-[160%] pt-8 xl:!pt-15 text-neutral">Global Resources</div>
           <div className="flex flex-col xl:grid xl:grid-cols-9 gap-10">
             {resourcesData.map((resource, index) => (
               <ResourceCard

@@ -99,7 +99,7 @@ export default function Navbar() {
       className="fixed top-0 z-[99] left-1/2 transform -translate-x-1/2 w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mt-8
                  backdrop-blur-[30px] bg-[#FFFFFF3D] rounded-full"
     >
-      <div className="px-8 py-5">
+      <div className="px-8 py-3 xl:py-5">
         <div className="flex items-center justify-between">
           {/* Menu Button - Show on screens smaller than xl */}
           <div className="xl:hidden flex items-center gap-2">
@@ -163,7 +163,7 @@ export default function Navbar() {
             <span className="hidden md:block body-16-semi font-inter text-base bold-16-semi">
               Safe Exit
             </span>
-            <ExitIcon className='size-6' />
+            <ExitIcon className='size-4' />
           </button>
         </div>
       </div>

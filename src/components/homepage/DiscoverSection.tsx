@@ -12,19 +12,19 @@ export default function DiscoverSection() {
           alt="coach"
           width={720}
           height={880}
-          className="w-full h-[380px] md:h-[680px] lg:h-[880px] xl:h-full object-cover object-top xl:object-contain"
+          className="w-full h-[380px] md:h-[700px] lg:h-[880px] xl:h-full object-cover object-top xl:object-contain scale-110 xl:scale-100"
           priority
         />
       </div>
 
       {/* Right content */}
       <div className="col-span-12 xl:col-span-6 bg-neutral-9 text-white flex items-start px-6 py-12 md:px-10 md:py-16 xl:pt-[11.5rem] xl:pl-[7.5rem] xl:pr-0 xl:pb-0 ">
-        <div className="w-[87.5%] xl:w-full mx-auto">
+        <div className=" xl:w-full mx-auto">
           <p className="body-16-semi xl:text-[1.125rem] mb-6 xl:mb-8">
             Care should feel natural, not complicated.
           </p>
 
-          <h2 className="heading-28 md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.07rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem] mb-10 xl:mb-20">
+          <h2 className="heading-28 md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.07rem] xl:!font-semibold xl:!text-[3.375rem] xl:!tracking-[-0.06rem] mb-10 xl:mb-20">
             Discover the support <br className='hidden xl:block' />
             Kyrah brings to you
           </h2>
