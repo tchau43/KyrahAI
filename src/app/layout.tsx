@@ -21,12 +21,14 @@ export default function RootLayout({
       <body
         className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
       >
+        {/* <div className="max-w-9xl mx-auto"> */}
         <ThemeProviders>
           <ConditionalNavbar />
           {children}
           <ConditionalFooter />
           <ModalProvider />
         </ThemeProviders>
+        {/* </div> */}
       </body>
     </html>
   );
