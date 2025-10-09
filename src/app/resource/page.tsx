@@ -91,7 +91,7 @@ export default function ResourcesPage() {
       {/* Header Section */}
       <div className="pt-35 md:pt-35 xl:pt-40 pb-8 md:pb-10 text-center col-span-12 px-4">
         <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl mx-auto">
-          <div className="body-18-semi text-secondary-1 mb-3 md:mb-4">
+          <div className="body-18-semi text-secondary-1 mb-3 md:mb-4 xl:pt-10">
             Resources & Hotlines
           </div>
           <h1 className="heading-28 md:!text-[40px] lg:!text-[40px] xl:!text-[54px] text-neutral-10 mx-auto">
