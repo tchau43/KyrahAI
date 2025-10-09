@@ -15,7 +15,7 @@ export default function InstaCard() {
       <div className="flex justify-between items-center">
         <div className="flex gap-2 items-center">
           <InstaKyrahIcon />
-          <div className="text-sm md:text-base lg:body-18-regular">
+          <div className="caption-14-regular md:!text-[18px] lg:!text-[18px] xl:!text-[18px]">
             kyrah.ai
           </div>
         </div>
@@ -52,15 +52,15 @@ export default function InstaCard() {
           <div className="py-[0.171rem] px-[0.104rem]">
             <BlackHeartIcon />
           </div>
-          <div className="text-sm md:text-base lg:body-16-regular">
+          <div className="text-neutral-10 text-[12.24px] font-inter regular leading-[160%] md:!text-[16px] lg:!text-[16px] xl:!text-[16px]">
             361 likes
           </div>
         </div>
-        <div className="text-sm md:text-base lg:body-16-regular">
+        <div className="text-neutral-10 text-[12.24px] font-inter regular leading-[160%] md:!text-[16px] lg:!text-[16px] xl:!text-[16px]">
           Kyrah.ai exists to confront a hidden crisis — the early signs of abuse
           and manipulation too often overlooked.
         </div>
-        <div className="text-xs md:caption-14-regular flex flex-wrap gap-2 items-center text-[#2587C4]">
+        <div className="text-[10.71px] font-inter regular leading-[160%] md:!text-[14px] lg:!text-[14px] xl:!text-[14px] flex flex-wrap gap-2 items-center text-[#2587C4]">
           <div>#KyrahAI</div>
           <div>#EndAbuse</div>
           <div>#EmotionalWellbeing</div>

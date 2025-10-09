@@ -23,13 +23,13 @@ export default function SafetySteps() {
           <div className="flex flex-col gap-12 md:gap-16 lg:gap-20 xl:gap-[5.804rem]">
             {stepData.map(step => (
               <div key={step.id} className="flex flex-col gap-2 text-neutral">
-                <div className="font-spectral font-semibold text-lg md:text-xl lg:text-[1.375rem] leading-[110%]">
+                <div className="font-spectral font-semibold text-[22px] leading-[110%]">
                   {step.id}
                 </div>
-                <div className="font-spectral font-semibold text-xl md:text-2xl lg:text-[2rem] leading-[110%] tracking-tight">
+                <div className="font-spectral font-semibold text-[32px] leading-[110%] tracking-tight">
                   {step.title}
                 </div>
-                <div className="font-inter font-normal text-sm md:text-base leading-[160%]">
+                <div className="font-inter font-normal text-[16px] leading-[160%]">
                   {step.description}
                 </div>
               </div>

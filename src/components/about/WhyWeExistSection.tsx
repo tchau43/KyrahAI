@@ -6,11 +6,11 @@ export default function WhyWeExistSection() {
       <div className="w-full sm:w-[87.5%] xl:w-[80%] max-w-21xl px-4 sm:px-0">
         <div className="grid grid-cols-12">
           <div className="flex flex-col items-center gap-4 sm:gap-5 md:gap-6 col-span-12 sm:col-start-2 sm:col-end-12 md:col-start-2 md:col-end-12">
-            <div className="text-3xl sm:text-4xl md:heading-54 text-neutral-9 font-spectral font-semibold text-center">
+            <div className="heading-28 md:!text-[40px] lg:!text-[40px] xl:!text-[54px] text-neutral-9 text-center">
               Why We Exist
             </div>
             <div className="flex flex-col gap-3 items-center text-center px-2 sm:px-4">
-              <div className="body-18-regular text-neutral-9 text-sm sm:text-base md:text-lg">
+              <div className="body-16-regular text-neutral-9 md:!text-[18px] lg:!text-[18px] xl:!text-[18px]">
                 Every day, silent cries for help are overlooked. Signs of fear,
                 manipulation, or despair often go unnoticed until it&apos;s too
                 late. Research shows that women and girls are disproportionately
@@ -19,8 +19,8 @@ export default function WhyWeExistSection() {
                 abuse are the most crucial to recognize — yet the easiest to
                 miss.
               </div>
-              <div className="body-18-regular text-neutral-9 leading-1.5 text-sm sm:text-base md:text-lg">
-                <span className="text-neutral-9 font-spectral font-bold text-xl sm:text-2xl">
+              <div className="body-18-regular text-neutral-9 leading-1.5">
+                <span className="text-[20px] md:!text-[24px] lg:!text-[24px] xl:!text-[24px] font-spectral font-bold italic leading-[160%] text-neutral-9">
                   <i>Kyrah.ai</i>
                 </span>{' '}
                 was created to change that.

@@ -1,6 +1,6 @@
 'use client';
 import { Input } from '@heroui/react';
-import { SearchIcon } from '@/components/icons';
+import { SearchIcon, XIcon } from '@/components/icons';
 import { useState, useCallback, useMemo } from 'react';
 import { resources } from '@/features/resources/data';
 import { Resources } from '@/features/resources/types';
@@ -15,6 +15,10 @@ export default function ResourcesPage() {
     },
     []
   );
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
 
   const filteredResources = useMemo(() => {
     if (!searchQuery) return resources;
@@ -36,7 +40,7 @@ export default function ResourcesPage() {
       className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-8 md:mb-12 lg:mb-16 col-span-12 w-full"
     >
       <div className="lg:col-span-4">
-        <h2 className="text-2xl md:text-3xl lg:text-[2.5rem] lg:leading-[120%] lg:tracking-[-0.06em] font-spectral font-medium text-neutral-9">
+        <h2 className="text-[20px] font-semibold font-spectral leading-[110%] text-neutral-9 md:!text-[32px] lg:!text-[32px] xl:!text-[40px]">
           {resource.country}
         </h2>
       </div>
@@ -46,11 +50,9 @@ export default function ResourcesPage() {
             resource.country === 'Coming soon' ? (
               <li key={index}>
                 <div className="flex items-center gap-2">
-                  <div className="text-base md:text-lg lg:text-[1.125rem] lg:leading-[130%] font-inter font-semibold text-neutral-9">
+                  <div className="body-18-semi text-neutral-9">
                     {hotline.label}:{' '}
-                    <span className="font-normal lg:text-[1.125rem] lg:leading-[140%]">
-                      {hotline.contact}
-                    </span>
+                    <span className="body-18-regular">{hotline.contact}</span>
                   </div>
                 </div>
               </li>
@@ -59,8 +61,8 @@ export default function ResourcesPage() {
                 className={`list-disc ml-4 md:ml-5 ${hotline?.link ? 'text-secondary-2' : 'text-neutral-9'}`}
                 key={index}
               >
-                <div className="text-base md:text-lg lg:text-[1.125rem] lg:leading-[140%] font-inter text-neutral-9">
-                  <span className="font-semibold lg:text-[1.125rem] lg:leading-[130%] font-inter">
+                <div className="body-16-regular md:!text-[18px] lg:!text-[18px] xl:!text-[18px] text-neutral-9">
+                  <span className="body-16-semi md:!text-[18px] lg:!text-[18px] xl:!text-[18px]">
                     {hotline?.link ? (
                       <Link
                         href={hotline.link}
@@ -89,10 +91,10 @@ export default function ResourcesPage() {
       {/* Header Section */}
       <div className="pt-20 md:pt-32 lg:pt-40 pb-8 md:pb-10 text-center col-span-12 px-4">
         <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl mx-auto">
-          <div className="text-sm md:body-18-semi lg:body-18-semi text-secondary-1 mb-3 md:mb-4">
+          <div className="body-18-semi text-secondary-1 mb-3 md:mb-4">
             Resources & Hotlines
           </div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-[3.375rem] xl:leading-[110%] xl:tracking-[-0.06em] text-neutral-10 max-w-[45rem] mx-auto font-spectral font-semibold">
+          <h1 className="heading-28 md:!text-[40px] lg:!text-[40px] xl:!text-[54px] text-neutral-10 mx-auto">
             These hotlines and resources provide 24/7 confidential support
           </h1>
         </div>
@@ -105,11 +107,22 @@ export default function ResourcesPage() {
             classNames={{
               inputWrapper:
                 'rounded-full border-1 border-neutral-4 bg-neutral-1 h-[3.25rem] data-[hover=true]:border-neutral-4 group-data-[focus=true]:border-neutral-4',
-              input:
-                'text-sm md:body-16-regular lg:body-16-regular text-neutral-9 font-inter',
+              input: 'body-16-regular text-neutral-9',
               innerWrapper: 'gap-4',
             }}
             startContent={<SearchIcon className="w-5 h-5 flex-shrink-0" />}
+            endContent={
+              searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="flex items-center justify-center hover:opacity-70 transition-opacity pr-3"
+                  aria-label="Clear search"
+                  type="button"
+                >
+                  <XIcon />
+                </button>
+              )
+            }
             variant="bordered"
             placeholder="Search for your local emergency number"
             value={searchQuery}
@@ -127,7 +140,7 @@ export default function ResourcesPage() {
             </div>
           ) : (
             <div className="text-center py-12 md:py-16 lg:py-20">
-              <div className="text-base md:body-18-regular lg:body-18-regular text-neutral-9 font-inter">
+              <div className="body-16-regular md:!text-[18px] lg:!text-[18px] xl:!text-[18px] text-neutral-9">
                 No resources found matching your search.
               </div>
             </div>
