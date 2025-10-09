@@ -34,14 +34,20 @@ export default function HowItWorksSection() {
   return (
     <section
       id="how-it-works"
-      className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral rounded-t-3xl z-[60] py-40"
+      className="col-span-12 w-full grid grid-cols-12 gap-10 bg-neutral rounded-t-3xl z-[60] py-10 xl:py-40"
     >
       <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12">
-        <div className="flex flex-col gap-8 col-span-6 text-neutral-9">
-          <div className="body-18-semi">How It Works</div>
-          <div className="heading-54">Healing shouldn&apos;t be confusing</div>
+        <div className="flex flex-col gap-4 xl:gap-8 col-span-6 text-neutral-9">
+          <div className="text-[1rem] font-medium leading-[1.3] 
+          md:!font-semibold md:!leading-[130%] 
+          xl:!text-[1.125rem] xl:!font-semibold xl:!leading-[130%]"
+          >How It Works</div>
+          <div className="heading-28-semi 
+          md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.06rem] 
+          xl:!text-[3.375rem] xl:!tracking-[-0.06rem]"
+          >Healing shouldn&apos;t be confusing</div>
         </div>
-        <div className="grid grid-cols-12 gap-8 mt-10">
+        <div className="flex flex-col xl:grid xl:grid-cols-12 gap-4 xl:gap-8 mt-4 xl:mt-10">
           {cardsData.map((card, index) => (
             <HowItWorksCard
               key={index}

@@ -67,13 +67,13 @@ export default function NewsLetterSection() {
   return (
     <section className="col-span-12 w-full bg-secondary-2">
       <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto">
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center gap-12 pt-20 pb-40">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center gap-12 py-16 md:py-20 xl:py-20 xl:pb-40">
           {/* Left: Form content */}
-          <div className="xl:col-start-1 xl:col-span-6">
-            <div className="bg-neutral rounded-2xl px-8 py-10">
+          <div className="col-span-1 md:col-span-12 xl:col-start-1 xl:col-span-6">
+            <div className="bg-neutral rounded-2xl px-6 py-8 md:px-8 md:py-10">
               <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-                <h2 className="font-spectral font-medium text-neutral-11 text-[2.5rem] leading-[1.1] tracking-[-0.15rem] text-center w-full xl:whitespace-nowrap">
-                  Help Shape the Future of Kyrah
+                <h2 className="heading-28 text-center md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.07rem] w-full xl:whitespace-nowrap text-neutral-11">
+                  Help Shape <br className="md:hidden"/> the Future of Kyrah
                 </h2>
 
                 <div className="text-center text-neutral-11 body-16-regular">
@@ -85,7 +85,7 @@ export default function NewsLetterSection() {
 
                 <div className="flex flex-col gap-6">
                   {/* Name inputs */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       aria-label="First Name"
                       placeholder="First Name"
@@ -252,8 +252,8 @@ export default function NewsLetterSection() {
             </div>
           </div>
 
-          {/* Right: Image */}
-          <div className="xl:col-start-7 xl:col-span-6 h-full relative">
+          {/* Right: Image - Hidden on mobile, visible on md+ */}
+          <div className="md:col-span-12 xl:col-start-7 xl:col-span-6 relative h-80 md:h-96 xl:h-full">
             <div className="absolute bottom-0 right-0 w-full h-full">
               <Image
                 src="/roller-skating.png"

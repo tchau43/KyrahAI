@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import BlogCard from '../cards/BlogCard';
 import { LeftIcon, RightIcon } from '../icons';
 
@@ -31,9 +31,25 @@ const blogData = [
 export default function BlogSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [cardsPerView, setCardsPerView] = useState(1);
 
-  // Create infinite loop by duplicating blog data
   const infiniteBlogs = [...blogData, ...blogData, ...blogData];
+
+  useEffect(() => {
+    const updateCardsPerView = () => {
+      if (window.innerWidth >= 1280) {
+        setCardsPerView(3); 
+      } else if (window.innerWidth >= 768) {
+        setCardsPerView(2); 
+      } else {
+        setCardsPerView(1); 
+      }
+    };
+
+    updateCardsPerView();
+    window.addEventListener('resize', updateCardsPerView);
+    return () => window.removeEventListener('resize', updateCardsPerView);
+  }, []);
 
   const nextSlide = () => {
     if (isTransitioning) return;
@@ -50,7 +66,6 @@ export default function BlogSection() {
   const handleTransitionEnd = () => {
     setIsTransitioning(false);
 
-    // Reset to equivalent position in the middle set for seamless infinite scroll
     if (currentIndex >= blogData.length * 2) {
       setCurrentIndex(currentIndex - blogData.length);
     } else if (currentIndex < 0) {
@@ -59,27 +74,27 @@ export default function BlogSection() {
   };
 
   return (
-    <section className="col-span-12 w-full bg-neutral-1 py-30">
-      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-12 gap-8">
-        <div className="grid grid-cols-12 gap-8 items-start col-span-12">
+    <section className="col-span-12 w-full bg-neutral-1 py-16 md:py-24 xl:py-30">
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto col-span-12 grid grid-cols-6 md:grid-cols-10 gap-8">
+        <div className="grid grid-cols-6 md:grid-cols-10 gap-8 items-start col-span-6 md:col-span-10">
           {/* Header */}
-          <div className="flex flex-col gap-6 col-start-1 col-span-8 text-neutral-9">
-            <div className="body-18-semi">Blog</div>
-            <div className="heading-54">Voices & Perspectives</div>
+          <div className="flex flex-col gap-6 col-start-1 col-span-4 md:col-span-8 text-neutral-9">
+            <div className="body-16-semi md:!text-[1.125rem] md:!font-semibold xl:!text-[1.125rem] xl:!font-semibold">Blog</div>
+            <div className="heading-28 md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem]">Voices & Perspectives</div>
           </div>
 
           {/* Navigation Buttons */}
-          <div className="col-span-2 col-start-11 flex gap-4 justify-end self-end">
+          <div className="col-span-2 col-start-5 md:col-span-2 md:col-start-9 flex gap-4 justify-end self-end">
             <button
               onClick={prevSlide}
-              className="w-10 h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
+              className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
               aria-label="Previous blog post"
             >
               <LeftIcon />
             </button>
             <button
               onClick={nextSlide}
-              className="w-10 h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
+              className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-9 flex items-center justify-center hover:bg-neutral-8 transition-colors cursor-pointer"
               aria-label="Next blog post"
             >
               <RightIcon />
@@ -88,18 +103,18 @@ export default function BlogSection() {
         </div>
 
         {/* Carousel */}
-        <div className="col-span-12">
+        <div className="col-span-6 md:col-span-10">
           <div className="mt-16 overflow-hidden relative">
             <div className="absolute z-10 right-0 bottom-0 w-[50px] h-full bg-gradient-to-r from-transparent to-neutral-1"></div>
             <div
               className={`flex gap-8 ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`}
               style={{
-                transform: `translateX(calc(-${currentIndex} * (100% / 3 + 2rem)))`,
+                transform: `translateX(calc(-${currentIndex} * (100% / ${cardsPerView} + 2rem)))`,
               }}
               onTransitionEnd={handleTransitionEnd}
             >
               {infiniteBlogs.map((blog, index) => (
-                <div key={`blog-${index}-${blog.title}`} className="w-1/3 flex-shrink-0">
+                <div key={`blog-${index}-${blog.title}`} className="w-full md:w-1/2 xl:w-1/3 flex-shrink-0">
                   <BlogCard
                     imageSrc={blog.imageSrc}
                     category={blog.category}

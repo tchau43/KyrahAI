@@ -11,25 +11,25 @@ export default function MissionSection() {
         <div className="body-18-semi text-neutral-9">
           Care shouldn&apos;t be a battle
         </div>
-        <div className="w-[80%] heading-54 text-neutral-9">
+        <div className="w-[80%] heading-28 md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!text-[3.5rem] xl:!tracking-[-0.06rem] xl:!leading-[1.1] text-neutral-9">
           Our mission is to make care simple, safe, and human.
         </div>
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 items-center pb-40">
-          {/* Left Content */}
-          <div className="md:col-start-1 md:col-span-6 flex flex-col gap-8 z-10">
+        <div className="w-full flex flex-col gap-8 xl:grid xl:grid-cols-12 items-center pb-40">
+          {/* Content */}
+          <div className="xl:col-start-1 xl:col-span-6 flex flex-col gap-8 z-10">
             <div className="flex flex-col gap-8">
-
               <div className="flex-col gap-8 grid grid-cols-12">
-
-                <div className="col-span-12 subtitle-20-regular text-neutral-9">
+                <div className="col-span-12 body-16-regular md:!text-[1.125rem] md:!leading-[140%] xl:!text-[1.25rem] xl:!leading-[130%] text-neutral-9">
                   Kyrah.ai exists to confront one of the world&apos;s most hidden and
                   urgent crises: the often overlooked early signs of emotional abuse,
                   manipulation, and violence.
                 </div>
+                <div className="col-span-12 body-16-regular md:!text-[1.125rem] md:!leading-[140%] xl:!text-[1.25rem] xl:!leading-[130%] text-neutral-9">
+                  By combining AI with insights from psychology and global safety research, we’re creating tools that make a real difference:                </div>
               </div>
             </div>
             <div className="flex flex-col gap-6 mt-2">
-              <div className="subtitle-20-regular text-neutral-9">
+              <div className="body-16-regular md:!text-[1.125rem] md:!leading-[140%] xl:!text-[1.25rem] xl:!leading-[130%] text-neutral-9">
                 <ul className="flex flex-col gap-2">
                   <li className="flex items-start gap-3.5">
                     <span className="mt-1 flex-shrink-0"><CheckIcon /></span>
@@ -50,17 +50,20 @@ export default function MissionSection() {
                   </li>
                 </ul>
               </div>
-              <Link
-                href="/about"
-                className="body-18-semi text-neutral-9 w-max rounded-full border border-neutral-9 px-28 py-3.5 mt-3 cursor-pointer"
-              >
-                View more
-              </Link>
+              {/* Button for xl+ screens */}
+              <div className="hidden xl:block">
+                <Link
+                  href="/about"
+                  className="body-18-semi text-neutral-9 w-max rounded-full border border-neutral-9 px-28 py-3.5 cursor-pointer"
+                >
+                  View more
+                </Link>
+              </div>
             </div>
           </div>
 
-          {/* Right Image */}
-          <div className="xl:col-start-7 xl:col-span-6 h-full relative">
+          {/* Image */}
+          <div className="xl:col-span-6 xl:col-start-7 xl:h-full relative h-80 md:h-100 w-full">
             <div className="absolute bottom-0 right-0 w-full h-full">
               <Image
                 src="/plant.svg"
@@ -70,6 +73,16 @@ export default function MissionSection() {
                 className="object-contain"
               />
             </div>
+          </div>
+
+          {/* Button - only show on mobile/tablet, hidden on xl+ */}
+          <div className="xl:hidden flex justify-center">
+            <Link
+              href="/about"
+              className="body-18-semi text-neutral-9 w-max rounded-full border border-neutral-9 px-28 py-3.5 cursor-pointer"
+            >
+              View more
+            </Link>
           </div>
         </div>
       </div>

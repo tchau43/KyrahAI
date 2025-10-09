@@ -23,13 +23,13 @@ export default function ResourceCard({
 
   return (
     <button
-      className={`col-span-3 ${isFirst ? 'col-start-1' : ''} bg-[#FFFCF733] rounded-2xl p-8 relative cursor-pointer text-left`}
+      className={`w-full xl:col-span-3 ${isFirst ? 'xl:col-start-1' : ''} bg-[#FFFCF733] rounded-2xl p-8 relative cursor-pointer text-left`}
       onClick={handleClick}
       disabled={link === '#'}
       aria-label={`Open ${title} in new tab`}
     >
       <div className="flex flex-col gap-2.5">
-        <div className="heading-28 text-neutral">{title}</div>
+        <div className="font-spectral font-semibold text-[1.25rem] leading-[1.1] tracking-[-0.02rem] md:text-[1.5rem] xl:text-[1.75rem] xl:tracking-[-0.04rem] text-neutral">{title}</div>
         <div className="font-inter leading-[1.6] text-neutral">
           {description}
         </div>

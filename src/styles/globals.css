@@ -103,6 +103,14 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.display {
+  font-family: var(--font-spectral), serif;
+  font-size: 4.5rem;
+  font-weight: 600;
+  line-height: 110%;
+  letter-spacing: -0.06rem;
+}
+
 .heading-56 {
   font-family: var(--font-spectral);
   font-weight: 600;
@@ -190,6 +198,14 @@ body {
   letter-spacing: 0;
 }
 
+.body-16-medium {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 130%;
+  letter-spacing: 0;
+}
+
 .body-16-regular {
   font-family: var(--font-inter);
   font-weight: 400;
@@ -220,14 +236,6 @@ body {
   font-size: 0.875rem;
   line-height: 160%;
   letter-spacing: 0;
-}
-
-.display {
-  font-family: var(--font-spectral), serif;
-  font-size: 4.5rem;
-  font-weight: 600;
-  line-height: 110%;
-  letter-spacing: -0.06rem;
 }
 
 /* Font family utility classes */
