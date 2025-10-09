@@ -103,9 +103,9 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Menu Button - Show on screens smaller than xl */}
           <div className="xl:hidden flex items-center gap-2">
-            <button className="p-2 rounded-md text-neutral-9 hover:text-neutral-7" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <button className="p-2 rounded-md text-neutral-9 hover:text-neutral-7 transition-colors" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <svg
-                className="size-8"
+                className={`size-6 transition-transform duration-200 ${isMenuOpen ? 'rotate-90' : 'rotate-0'}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -167,7 +167,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-      {isMenuOpen && <MenuBar setIsMenuOpen={setIsMenuOpen} isMenuOpen={isMenuOpen} />}
+      <MenuBar setIsMenuOpen={setIsMenuOpen} isMenuOpen={isMenuOpen} />
     </nav>
   );
 }

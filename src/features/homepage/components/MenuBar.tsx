@@ -37,14 +37,17 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
         }
     }, [isMenuOpen]);
 
+    if (!isMenuOpen && typeof document === 'undefined') return null;
+
     return createPortal(
         // Overlay (click outside to close) + Sidebar
         <div
-            className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-[2px]"
+            className={`fixed inset-0 z-[100] bg-black/50 backdrop-blur-[2px] transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
             onClick={() => setIsMenuOpen(false)}
         >
             <div
-                className="bg-neutral w-60 md:w-90 h-full px-6 py-10 shadow-lg"
+                className={`bg-neutral w-60 md:w-90 h-full px-6 py-10 shadow-lg transition-all duration-300 ease-in-out transform ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
                 onClick={(e) => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
@@ -56,9 +59,9 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
                     <div>
                         {/* Menu Button */}
                         <div className="flex items-center gap-2">
-                            <button className="p-2 rounded-md text-neutral-9 hover:text-neutral-7" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                            <button className="p-2 rounded-md text-neutral-9 hover:text-neutral-5 transition-colors flex items-center gap-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
                                 <svg
-                                    className="size-8"
+                                    className="size-6"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -70,13 +73,20 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
                                         d="M4 6h16M4 12h16M4 18h16"
                                     />
                                 </svg>
+                                <span className="body-16-semi font-inter">Menu</span>
                             </button>
-                            <span className="body-16-semi font-inter text-neutral-9">Menu</span>
                         </div>
                         {/* Items */}
                         <div className="flex flex-col gap-4 px-4 py-4">
-                            {navigationItems.map((item) => (
-                                <div key={item.href} className="relative">
+                            {navigationItems.map((item, index) => (
+                                <div
+                                    key={item.href}
+                                    className={`relative transition-all duration-300 ${isMenuOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
+                                        }`}
+                                    style={{
+                                        transitionDelay: isMenuOpen ? `${index * 80 + 150}ms` : '0ms'
+                                    }}
+                                >
                                     {item.comingSoon && (
                                         <span className="absolute -top-4 left-4 bg-secondary-3 text-xs px-2 rounded-full text-black font-inter caption-14-semi">
                                             Soon
@@ -84,7 +94,7 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
                                     )}
                                     <Link
                                         href={item.href}
-                                        className={`body-16-semi font-inter text-neutral-9 ${item.comingSoon ? 'text-secondary-2 cursor-not-allowed' : ''}`}
+                                        className={`body-16-semi font-inter text-neutral-9 transition-colors hover:text-neutral-7 ${item.comingSoon ? 'text-secondary-2 cursor-not-allowed' : ''}`}
                                         onClick={(e) => item.comingSoon ? e.preventDefault() : undefined}
                                     >
                                         {item.label}
@@ -95,14 +105,20 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
                     </div>
 
                     {/* Action Items */}
-                    <div className="flex flex-col gap-4">
+                    <div
+                        className={`flex flex-col gap-4 transition-all duration-300 ${isMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                            }`}
+                        style={{
+                            transitionDelay: isMenuOpen ? '450ms' : '0ms'
+                        }}
+                    >
                         <button
                             // onClick={() => openModal('begin-modal')}
-                            className="px-8 py-3 col-span-3 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-colors cursor-pointer"
+                            className="px-8 py-3 col-span-3 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-all duration-200 hover:scale-102 cursor-pointer"
                         >
                             Chat with Kyrah (Alpha test)
                         </button>
-                        <button className="px-8 py-3 col-span-3 bg-transparent border border-neutral-6 text-neutral-10 rounded-full font-inter body-16-semi hover:bg-neutral-1 transition-colors cursor-pointer">
+                        <button className="px-8 py-3 col-span-3 bg-transparent border border-neutral-6 text-neutral-10 rounded-full font-inter body-16-semi hover:bg-neutral-1 transition-all duration-200 hover:scale-102 cursor-pointer">
                             Watch Demo
                         </button>
                     </div>
