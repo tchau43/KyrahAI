@@ -34,7 +34,7 @@ export default function BeginModal() {
       classNames={{
         wrapper: 'items-center justify-center z-[9999]',
         backdrop: 'z-[9998]',
-        base: 'bg-neutral rounded-3xl xl:!rounded-4xl text-neutral-9 mx-4 xl:!mx-0 my-4 xl:!my-0 z-[9999]', // Thêm z-[9999]
+        base: 'bg-neutral rounded-3xl xl:!rounded-4xl text-neutral-9 mx-4 xl:!mx-0 my-4 xl:!my-0 z-[9999]',
         header: 'border-b-0',
         body: 'py-4 xl:!py-6',
         footer: 'border-t-0',

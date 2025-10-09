@@ -3,7 +3,7 @@ import { LongDashLineIcon } from '../icons';
 export default function ImpactSection() {
   return (
     <section className="col-span-12 w-full bg-neutral-1 py-12 md:py-16 lg:py-20 xl:py-25 flex justify-center">
-      <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl px-4 md:px-0">
+      <div className="w-full md:w-[87.5%] xl:w-[80%] px-4 md:px-0">
         <div className="flex flex-col gap-8 md:gap-10 lg:gap-12">
           <div className="heading-28 md:!text-[40px] lg:!text-[40px] xl:!text-[54px] text-neutral-9">
             Our Impact
