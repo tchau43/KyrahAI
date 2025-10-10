@@ -80,7 +80,7 @@ export default function BlogSection() {
           {/* Header */}
           <div className="flex flex-col gap-6 col-start-1 col-span-4 md:col-span-8 text-neutral-9">
             <div className="body-16-semi md:!text-[1.125rem] md:!font-semibold xl:!text-[1.125rem] xl:!font-semibold">Blog</div>
-            <div className="heading-28 md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem]">Voices & Perspectives</div>
+            <div className="heading-28 md:!text-[2.5rem] md:!font-medium md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem] xl:!font-semibold">Voices & Perspectives</div>
           </div>
 
           {/* Navigation Buttons */}
