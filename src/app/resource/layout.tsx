@@ -10,5 +10,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className="bg-neutral md:px-80 px-60">{children}</div>;
+  return <div className="bg-neutral">{children}</div>;
 }

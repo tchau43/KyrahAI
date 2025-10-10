@@ -3,26 +3,32 @@ import { CloseQuoteIcon, OpenQuoteIcon } from '../icons';
 
 export default function MeditatingSection() {
   return (
-    <section className="col-span-12 w-full bg-neutral">
-      <div className="pt-40 px-88 h-max grid grid-cols-12">
-        <div className="col-span-8 col-start-3 bg-secondary-3 rounded-2xl px-16 py-7  mb-10 relative">
-          <div className="absolute top-3 left-3 transform -translate-y-1/2 -translate-x-1/2">
-            <OpenQuoteIcon />
+    <section className="col-span-12 w-full bg-neutral flex justify-center">
+      <div className="w-full md:w-[87.5%] xl:w-[80%] max-w-21xl px-4 md:px-0">
+        <div className="pt-16 md:pt-28 lg:pt-28 xl:pt-40 h-max grid grid-cols-12">
+          {/* Quote Box */}
+          <div className="col-span-12 md:col-span-10 md:col-start-2 lg:col-span-10 lg:col-start-2 xl:col-span-8 xl:col-start-3 bg-secondary-3 rounded-xl md:rounded-2xl px-8 md:px-12 lg:px-12 xl:px-16 py-6 md:py-7 mb-8 md:mb-10 relative">
+            <div className="absolute top-2 left-2 md:top-3 md:left-3 transform -translate-y-1/2 -translate-x-1/2">
+              <OpenQuoteIcon />
+            </div>
+            <div className="absolute bottom-1 right-1 md:bottom-2 md:right-2 transform translate-y-1/2 translate-x-1/2">
+              <CloseQuoteIcon />
+            </div>
+            <div className="heading-[28px] md:!text-[32px] lg:!text-[32px] xl:!text-[40px] xl:leading-[120%] xl:tracking-[-0.06em] italic text-center font-spectral font-medium text-neutral-10">
+              You are not alone — your safety matters, and you are deeply
+              valued.
+            </div>
           </div>
-          <div className="absolute bottom-2 right-2 transform translate-y-1/2 translate-x-1/2">
-            <CloseQuoteIcon />
+
+          {/* Image */}
+          <div className="relative col-span-12 md:col-start-2 md:col-span-10 w-full h-[300px] md:h-[500px] lg:h-[650px] xl:h-[750px] mb-16 md:mb-28 lg:mb-40">
+            <Image
+              src="/meditating.svg"
+              fill
+              alt="meditating"
+              className="object-contain"
+            />
           </div>
-          <div className="heading-40 italic text-center !tracking-tighter">
-            You are not alone — your safety matters, and you are deeply valued.
-          </div>
-        </div>
-        <div className="relative col-start-2 col-span-10 w-full h-[750px] mb-40">
-          <Image
-            src="/meditating.svg"
-            fill
-            alt="meditating"
-            className="object-contain"
-          />
         </div>
       </div>
     </section>
