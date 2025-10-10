@@ -15,7 +15,7 @@ export default function ActionSection() {
                 Into Action
               </div>
             </div>
-            <div className="xl:min-w-[300px] px-4">
+            <div className="xl:min-w-[300px] px-4 xl:px-2">
               <Quote />
             </div>
           </div>
