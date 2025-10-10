@@ -8,29 +8,31 @@ export default function SafetySection() {
 
   return (
     <section className="col-span-12 w-full bg-neutral z-[60] pt-7.5 pb-16 md:pb-20">
-      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto flex flex-col gap-4 md:gap-8">
-        <div className="flex flex-col gap-2.5 text-neutral-9">
-          <div className="body-16-medium md:!font-semibold xl:!text-[1.125rem] xl:!font-semibold">Safety tips</div>
-          <div>
-            <div className="heading-28 md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem]">Stay Safe,</div>
-            <div className="heading-28 md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem]">Stay in Control</div>
+      <div className="w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 xl:grid xl:grid-cols-12 xl:items-center">
+        <div className='flex flex-col xl:col-span-6 xl:col-start-1'>
+          <div className="flex flex-col gap-2.5 text-neutral-9">
+            <div className="body-16-medium md:!font-semibold xl:!text-[1.125rem] xl:!font-semibold">Safety tips</div>
+            <div>
+              <div className="heading-28 md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem]">Stay Safe,</div>
+              <div className="heading-28 md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!text-[3.375rem] xl:!tracking-[-0.06rem]">Stay in Control</div>
+            </div>
           </div>
-        </div>
-        <div className="w-full flex flex-col gap-4 md:gap-8 xl:grid xl:grid-cols-12 items-center">
+
           {/* Image */}
-          <div className="xl:col-span-6 xl:col-start-1 xl:h-full relative h-80 md:h-100 w-full">
-            <div className="absolute bottom-0 right-0 w-full h-full">
+          <div className="relative w-full py-8 xl:py-0">
+            <div className="relative w-full h-[220px] md:h-[300px] xl:h-[400px]">
               <Image
                 src="/reading-side.svg"
                 alt="Safety Section"
                 fill
-                className="object-contain"
+                className="object-contain object-left xl:object-center"
               />
             </div>
           </div>
-
+        </div>
+        <div className="w-full flex flex-col gap-4 md:gap-8 items-center xl:col-span-6 xl:col-start-7 ">
           {/* Content */}
-          <div className="xl:col-span-6 xl:col-start-7 flex flex-col gap-4 text-neutral-9">
+          <div className="flex flex-col gap-4 text-neutral-9">
             <div className="body-16-regular md:!text-[1.25rem] md:!leading-[130%]">
               These quick steps can help you stay aware and protect yourself in
               everyday situations:

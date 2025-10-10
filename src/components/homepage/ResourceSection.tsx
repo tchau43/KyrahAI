@@ -80,14 +80,22 @@ export default function ResourceSection() {
         </div>
 
         {/* Second button for mobile/tablet - only show on xl and below */}
-        <div className="block xl:hidden">
+        <div className="xl:hidden pt-4">
           <button
-            className="body-18-semi w-full rounded-full border border-neutral text-neutral px-6 py-2.5 cursor-pointer"
+            className="body-18-semi w-full rounded-full border border-neutral text-neutral px-6 py-2.5 cursor-pointer hidden md:block"
             onClick={() => {
               router.push('/resource');
             }}
           >
             Find your local 24/7 confidential support
+          </button>
+          <button
+            className="body-18-semi w-full rounded-full border border-neutral text-neutral px-6 py-2.5 cursor-pointer md:hidden"
+            onClick={() => {
+              router.push('/resource');
+            }}
+          >
+            Find your local support
           </button>
         </div>
       </div>

@@ -9,7 +9,7 @@ export default function HeroSection() {
     <section className="col-span-12 w-[87.5%] xl:w-[80%] 2xl:w-[70%] xl:h-[500px] 2xl:h-[600px] max-w-7xl mt-3 flex flex-col">
       <div className="w-full flex flex-col gap-16 h-full xl:grid xl:grid-cols-12 items-center xl:pt-10 2xl:pt-0">
         {/* Left Content */}
-        <div className="xl:col-start-1 xl:col-span-6 flex flex-col gap-8 md:gap-16 z-10">
+        <div className="xl:col-start-1 xl:col-span-7 flex flex-col gap-8 md:gap-16 z-10">
           <div className="flex flex-col gap-4">
             <p className="text-neutral-9 body-18-semi font-inter text-center xl:text-left">
               Your Quiet Ally in Emotional Awareness
@@ -40,7 +40,7 @@ export default function HeroSection() {
         </div>
 
 
-        <div className="xl:col-span-6 xl:col-start-7 xl:h-full relative h-80 md:h-100 w-full">
+        <div className="xl:col-span-5 xl:col-start-8 xl:h-full relative h-80 md:h-100 w-full">
           <div className="absolute bottom-[-20] md:bottom-[-10] xl:bottom-[0] 2xl:bottom-[-30] right-0 w-full h-full">
             <Image
               src="/hero-image.png"

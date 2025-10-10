@@ -22,7 +22,7 @@ export default function MissionSection() {
           Care shouldn&apos;t be a battle
         </div>
         <div className="heading-28 md:!font-medium md:!text-[2.5rem] md:!tracking-[-0.06rem] xl:!font-semibold xl:!text-[3.5rem] xl:!tracking-[-0.06rem] xl:!leading-[1.1] text-neutral-9">
-          Our mission is to make care simple, safe, and human.
+          Our mission is to make care simple, <br className="hidden xl:block" /> safe, and human.
         </div>
         <div className="w-full flex flex-col gap-8 xl:grid xl:grid-cols-12 items-center pb-20">
           {/* Content */}
