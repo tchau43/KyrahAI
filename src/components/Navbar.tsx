@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { ExitIcon } from './icons';
+import MenuBar from '@/features/homepage/components/MenuBar';
 
 interface NavItem {
   href: string;
@@ -24,6 +25,7 @@ const navigationItems: NavItem[] = [
 export default function Navbar() {
   const pathname = usePathname();
   const [currentHash, setCurrentHash] = useState('');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const updateHash = () => {
@@ -94,28 +96,49 @@ export default function Navbar() {
 
   return (
     <nav
-      className="fixed top-0 z-99 left-1/2 transform -translate-x-1/2 w-[66.666667%] mx-auto mt-8
+      className="fixed top-0 z-[99] left-1/2 transform -translate-x-1/2 w-[87.5%] xl:w-[80%] 2xl:w-[70%] max-w-7xl mt-8
                  backdrop-blur-[30px] bg-[#FFFFFF3D] rounded-full"
     >
-      <div className="max-w-7xl mx-auto px-8 py-5">
+      <div className="px-8 py-3 xl:py-5">
         <div className="flex items-center justify-between">
+          {/* Menu Button - Show on screens smaller than xl */}
+          <div className="xl:hidden flex items-center gap-2">
+            <button className="p-2 rounded-md text-neutral-9 hover:text-neutral-7 transition-colors" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <svg
+                className={`size-6 transition-transform duration-200 ${isMenuOpen ? 'rotate-90' : 'rotate-0'}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+            <span className="hidden md:block body-16-semi font-inter text-neutral-9">Menu</span>
+          </div>
+
           {/* Logo and Brand */}
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <Image
                 src="/kyrah-logo.svg"
                 alt="Kyrah Logo"
                 width={40}
                 height={40}
+                className="size-6 xl:size-8"
               />
-              <span className="text-3xl font-inder text-neutral-9 font-normal">
+              <span className="xl:text-3xl text-2xl font-inder text-neutral-9 font-normal">
                 KYRAH.AI
               </span>
             </Link>
           </div>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Navigation Links - Show on xl and larger screens */}
+          <div className="hidden xl:flex items-center gap-8">
             {navigationItems.map(renderNavItem)}
           </div>
 
@@ -135,34 +158,16 @@ export default function Navbar() {
               window.location.replace('https://www.google.com');
               window.close();
             }}
-            className="exitIcon flex items-center px-6 py-2 border rounded-full gap-3 text-neutral-9 hover:bg-neutral-9 hover:border-neutral-9 hover:text-neutral cursor-pointer"
+            className="exitIcon flex items-center p-2 md:px-4 md:py-2 md:border rounded-full gap-3 text-neutral-9 hover:bg-neutral-9 hover:border-neutral-9 hover:text-neutral cursor-pointer"
           >
-            <span className="body-16-semi font-inter text-base bold-16-semi">
+            <span className="hidden md:block body-16-semi font-inter text-base bold-16-semi">
               Safe Exit
             </span>
-            <ExitIcon />
+            <ExitIcon className='size-4' />
           </button>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button className="p-2 rounded-md text-gray-600 hover:text-gray-900">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
+      <MenuBar setIsMenuOpen={setIsMenuOpen} isMenuOpen={isMenuOpen} />
     </nav>
   );
 }

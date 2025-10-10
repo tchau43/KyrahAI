@@ -3,11 +3,12 @@ import Image from 'next/image';
 interface HowItWorksCardProps {
   step: string;
   title: string;
-  description: string;
+  description: React.ReactNode;
   imageSrc: string;
   imageAlt: string;
   backgroundColor: string;
   isFirst?: boolean;
+  isLast?: boolean;
 }
 
 export default function HowItWorksCard({
@@ -18,21 +19,27 @@ export default function HowItWorksCard({
   imageAlt,
   backgroundColor,
   isFirst = false,
+  isLast = false,
 }: HowItWorksCardProps) {
   return (
     <div
-      className={`col-span-4 ${isFirst ? 'col-start-1' : ''} ${backgroundColor} p-8 rounded-2xl mt-10`}
+      className={`w-full xl:col-span-4 ${isFirst ? 'xl:col-start-1' : ''} ${backgroundColor} p-4 xl:p-8 rounded-2xl mt-4 xl:mt-10`}
     >
-      <div className="flex flex-col gap-6 mb-5">
-        <div className="heading-40 text-neutral-9">
-          <i>{step}/</i> {title}
+      <div className="flex flex-col md:flex-row xl:flex-col gap-6 md:h-[250px] xl:h-full">
+        {/* Text content */}
+        <div className="flex flex-col gap-6 md:flex-1 xl:flex-none">
+          <div className={`md:pt-4 xl:pt-0 heading-28 md:!text-[2rem] xl:!text-[2.5rem] xl:!tracking-[-0.06rem] ${isLast ? 'text-white' : 'text-neutral-9'}`}>
+            <i>{step}/</i> {title}
+          </div>
+          <div className={`body-16-regular ${isLast ? 'text-white' : 'text-neutral-9'}`}>
+            {description}
+          </div>
         </div>
-        <div className="font-inter leading-[1.6] text-neutral-9">
-          {description}
+
+        {/* Image */}
+        <div className="relative w-full md:w-[40%] xl:w-full h-[200px] md:top-16 xl:top-0">
+          <Image src={imageSrc} fill alt={imageAlt} className="object-contain" />
         </div>
-      </div>
-      <div className="relative w-full md:h-[400px] h-[250px] ">
-        <Image src={imageSrc} fill alt={imageAlt} />
       </div>
     </div>
   );

@@ -8,7 +8,41 @@
   scrollbar-width: thin;
 }
 
+@theme {
+  --container-6xl: 1152px;
+  --container-7xl: 1280px;
+  --container-8xl: 1408px;
+  --container-9xl: 1536px; 
+  --container-10xl: 1664px;
+  --container-11xl: 1792px;
+  --container-12xl: 1920px;
+  --container-13xl: 2048px;
+  --container-14xl: 2176px;
+  --container-15xl: 2304px;
+  --container-16xl: 2432px;
+  --container-17xl: 2560px;
+  --container-18xl: 2688px;
+  --container-19xl: 2816px;
+  --container-20xl: 2944px;
+  --container-21xl: 3072px;
+  --container-22xl: 3200px;
+  --container-23xl: 3328px;
+  --container-24xl: 3456px;
+  --container-25xl: 3584px;
+  --container-26xl: 3712px;
+  --container-27xl: 3840px;
+}
+
 @theme inline {
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4xl: 2560px;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-spectral: var(--font-spectral);
@@ -57,10 +91,24 @@
   }
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.display {
+  font-family: var(--font-spectral), serif;
+  font-size: 4.5rem;
+  font-weight: 600;
+  line-height: 110%;
+  letter-spacing: -0.06rem;
 }
 
 .heading-56 {
@@ -150,6 +198,14 @@ body {
   letter-spacing: 0;
 }
 
+.body-16-medium {
+  font-family: var(--font-inter);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 130%;
+  letter-spacing: 0;
+}
+
 .body-16-regular {
   font-family: var(--font-inter);
   font-weight: 400;
@@ -180,14 +236,6 @@ body {
   font-size: 0.875rem;
   line-height: 160%;
   letter-spacing: 0;
-}
-
-.display {
-  font-family: var(--font-spectral), serif;
-  font-size: 4.5rem;
-  font-weight: 600;
-  line-height: 110%;
-  letter-spacing: -0.06rem;
 }
 
 /* Font family utility classes */

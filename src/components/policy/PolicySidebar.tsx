@@ -20,8 +20,8 @@ export default function PolicySidebar({ policies }: PolicySidebarProps) {
   };
 
   return (
-    <div className="lg:pl-8">
-      <div className="sticky top-8 space-y-2 rounded-2xl bg-neutral-1 p-6 shadow-sm w-[280px]">
+    <div className="xl:pl-8">
+      <div className="sticky top-8 space-y-2 rounded-2xl bg-neutral-1 p-6 shadow-sm xl:w-[280px] w-[50%]">
         {policies.map((policy: PolicyProps) => (
           <a
             key={policy.id}

@@ -10,7 +10,7 @@ import NewsLetterSection from '@/components/homepage/NewsLetterSection';
 
 export default function Home() {
   return (
-    <div className="font-spectral grid grid-cols-12 grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-primary overflow-hidden pt-40">
+    <div className="font-spectral grid grid-cols-12 grid-rows-[auto_1fr_auto] items-center justify-items-center min-h-screen bg-primary overflow-hidden pt-32 md:pt-40">
       <HeroSection />
       <TopRated />
       <MissionSection />
