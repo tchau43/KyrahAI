@@ -7,9 +7,9 @@ export default function TopRated() {
             {/* Left block */}
             <div className="col-span-12 md:col-span-3 px-6 md:px-8 xl:px-20 flex items-center gap-1 pb-4 pt-4 md:pt-0">
               {/* Vertical email */}
-              <span className="text-[0.75rem] xl:!text-xl text-neutral-9 self-start font-inter font-semibold tracking-[0] xl:tracking-[-0.07] [writing-mode:sideways-lr] xl:pt-2">
+              <a href="mailto:safe@kyrah.ai" className="text-[0.75rem] xl:!text-xl text-neutral-9 self-start font-inter font-semibold tracking-[0] xl:tracking-[-0.07] [writing-mode:sideways-lr] xl:pt-2 underline hover:text-neutral-10 transition-colors">
                 safe@kyrah.ai
-              </span>
+              </a>
 
               {/* Award text */}
               <div className="flex flex-col text-neutral-9 gap-2 relative">
@@ -31,7 +31,7 @@ export default function TopRated() {
                 Rated <br className="md:hidden" />&quot;Best AI Companion&quot;
                 <br /> by our growing <br className="md:hidden" /> community
               </h3>
-              <p className="caption-14-semi xl:!text-[1.125rem] xl:!leading-[1.6] xl:!text-medium text-neutral-9 text-right pt-5">
+              <p className="caption-14-semi xl:!text-[1.125rem] xl:!leading-[1.6] xl:!font-medium text-neutral-9 text-right pt-5">
                 Helping users in 20+ countries find warmth and care, every day
               </p>
             </div>

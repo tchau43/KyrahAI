@@ -69,9 +69,9 @@ export default function Footer() {
             <div className="flex justify-between items-center gap-3">
               <div className="flex items-center gap-2">
                 <EmailIcon />
-                <span className="body-16-regular text-neutral">
+                <a href="mailto:safe@kyrah.ai" className="body-16-regular text-neutral font-semibold underline hover:text-neutral-9 transition-colors">
                   safe@kyrah.ai
-                </span>
+                </a>
               </div>
               <div className="flex gap-7">
                 <Link href="#" className="hover:opacity-80 transition-opacity">
