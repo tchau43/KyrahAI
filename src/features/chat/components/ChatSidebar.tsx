@@ -2,24 +2,23 @@
 
 import { useState } from 'react';
 import { Button } from '@heroui/react';
-import { Conversation } from '../data';
 import ChatSidebarHeader from './ChatSidebarHeader';
 import ChatHistory from './ChatHistory';
 import ChatSidebarFooter from './ChatSidebarFooter';
 
 interface ChatSidebarProps {
-  conversations: Conversation[];
-  activeConversationId: string | null;
-  onSelectConversation: (id: string) => void;
+  sessionIds: string[];
+  activeSessionId: string | null;
+  onSelectSession: (id: string) => void;
   onNewChat: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function ChatSidebar({
-  conversations,
-  activeConversationId,
-  onSelectConversation,
+  sessionIds,
+  activeSessionId,
+  onSelectSession,
   onNewChat,
   isOpen,
   onClose,
@@ -38,9 +37,8 @@ export default function ChatSidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 z-50 bg-neutral flex flex-col border-r border-neutral-2 transition-all duration-300 ${
-          isCollapsed ? 'w-16' : 'w-72'
-        } ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`fixed md:relative inset-y-0 left-0 z-50 bg-neutral flex flex-col border-r border-neutral-2 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-72'
+          } ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
         {!isCollapsed && (
           <>
@@ -49,9 +47,9 @@ export default function ChatSidebar({
               onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
             />
             <ChatHistory
-              conversations={conversations}
-              activeConversationId={activeConversationId}
-              onSelectConversation={onSelectConversation}
+              sessionIds={sessionIds}
+              activeSessionId={activeSessionId}
+              onSelectSession={onSelectSession}
             />
             <ChatSidebarFooter />
           </>
