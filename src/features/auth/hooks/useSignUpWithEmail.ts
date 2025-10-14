@@ -14,7 +14,7 @@ export function useSignUpWithEmail() {
 
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['session'] })
-            router.push('/')
+            router.push('/mail-confirm')
         }
     })
 }

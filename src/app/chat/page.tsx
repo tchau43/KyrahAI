@@ -3,9 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import ChatSidebar from '@/features/chat/components/ChatSidebar';
 import ChatMainView from '@/features/chat/components/ChatMainView';
-import AuthModalTest from '@/components/modals/AuthModalTest';
-import AuthStatusTest from '@/components/auth/AuthStatusTest';
-import { Message } from '@/features/chat/data';
+import AuthModal from '@/components/modals/AuthModal';
+import AuthStatus from '@/components/auth/AuthStatus';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSignOut } from '@/features/auth/hooks/useSignOut';
 import { useStartAnonymousSession } from '@/features/auth/hooks/useStartAnonymousSession';
@@ -49,16 +48,6 @@ export default function ChatPage() {
     }
   }, [loading, user]);
 
-  // Safe client-only log of localStorage value
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log(
-        ">>>>>>>>>>>>>>>>>>>>>>>>>>kyrah_anonymous_session_id",
-        window.localStorage.getItem("kyrah_anonymous_session_id")
-      );
-    }
-  }, []);
-
   return (
     <div className="flex h-screen overflow-hidden">
       <ChatSidebar
@@ -76,44 +65,43 @@ export default function ChatPage() {
       />
 
       {/* Auth Status - Top Right */}
-      <div className="fixed top-6 right-6 z-40">
-        <AuthStatusTest />
-      </div>
+      {!loading && user && (
+        <div className="fixed top-6 right-6 z-40">
+          <AuthStatus />
+        </div>
+      )}
 
       {/* Floating auth buttons */}
       {!loading && !user && (
-        <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3">
-          <button
-            onClick={() => { setAuthModalMode('signup'); setIsAuthModalOpen(true); }}
-            className="px-6 py-3 bg-secondary-2 text-white rounded-full body-16-semi shadow-lg hover:bg-secondary-1 hover:scale-105 transition-all duration-200 flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Test Sign Up
-          </button>
+        <div className="fixed top-4 right-8 z-40 flex gap-2">
           <button
             onClick={() => { setAuthModalMode('signin'); setIsAuthModalOpen(true); }}
-            className="px-6 py-3 bg-neutral-10 text-white rounded-full body-16-semi shadow-lg hover:bg-neutral-9 hover:scale-105 transition-all duration-200"
+            className="px-6 py-2 bg-primary text-white rounded-full body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
           >
-            Test Sign In
+            Sign In
+          </button>
+          <button
+            onClick={() => { setAuthModalMode('signup'); setIsAuthModalOpen(true); }}
+            className="px-6 py-2 bg-secondary-2 text-white rounded-full body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-2"
+          >
+            Sign Up
           </button>
         </div>
       )}
 
       {/* Test Logout (only when authenticated) */}
-      {!loading && user && (
+      {/* {!loading && user && (
         <button
           onClick={() => signOut.mutate()}
           disabled={signOut.isPending}
-          className="fixed bottom-8 right-8 px-6 py-3 bg-neutral-10 text-white rounded-full body-16-semi shadow-lg hover:bg-neutral-9 hover:scale-105 transition-all duration-200 z-40"
+          className="fixed top-4 right-8 px-6 py-2 bg-neutral-10 text-white rounded-full body-16-semi shadow-lg hover:bg-neutral-9 hover:scale-105 transition-all duration-200 z-40"
         >
           {signOut.isPending ? 'Signing out...' : 'Test Logout'}
         </button>
-      )}
+      )} */}
 
       {/* Auth Modal */}
-      <AuthModalTest
+      <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialMode={authModalMode}
