@@ -76,9 +76,8 @@ export default function ChatMainView({
           <div className="absolute bottom-0 left-0 right-0 pb-4 bg-gradient-to-t from-neutral via-neutral/95 to-transparent">
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
               <div
-                className={`w-full bg-white border border-neutral-3 ${
-                  isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
-                } p-[0.625rem] min-h-[2.25rem] flex items-center`}
+                className={`w-full bg-white border border-neutral-3 ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
+                  } p-[0.625rem] min-h-[2.25rem] flex items-center`}
               >
                 <textarea
                   aria-label="Message input"
@@ -106,9 +105,8 @@ export default function ChatMainView({
             </h1>
             <form onSubmit={handleSubmit} className="w-full max-w-2xl">
               <div
-                className={`w-full bg-white border border-neutral-3 shadow-sm ${
-                  isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
-                } p-[0.625rem] min-h-[2.25rem] flex items-center`}
+                className={`w-full bg-white border border-neutral-3 shadow-sm ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
+                  } p-[0.625rem] min-h-[2.25rem] flex items-center`}
               >
                 <textarea
                   aria-label="Message input"

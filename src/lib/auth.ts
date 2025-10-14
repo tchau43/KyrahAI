@@ -449,6 +449,19 @@ export async function convertAnonymousToAuthenticated(
 // Session Retrieval
 // ============================================
 
+export async function getUserSessions(userId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('session_id')
+    .eq('user_id', userId)
+    .is('deleted_at', null);
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>data', data);
+  if (error) {
+    throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
+  }
+  return data.map((session) => session.session_id);
+}
+
 /**
  * Get the current user's session (authenticated or anonymous)
  * @returns Current session info or null if no active session
