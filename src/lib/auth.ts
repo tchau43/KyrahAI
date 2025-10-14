@@ -15,6 +15,7 @@ import type {
 } from '../types/auth.types';
 import { AuthError, InvalidTokenError } from '../types/auth.types';
 import { generateSecureToken, hashToken } from './crypto';
+import { GetMessagesParams, GetMessagesResult, Message } from '@/features/chat/data';
 
 // ============================================
 // Anonymous Session Management
@@ -460,6 +461,81 @@ export async function getUserSessions(userId: string): Promise<string[]> {
     throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
   }
   return data.map((session) => session.session_id);
+}
+
+export async function getSessionById(sessionId: string): Promise<Session | null> {
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('session_id', sessionId)
+    .single();
+  if (error) {
+    throw new AuthError('Failed to get session', error.code || 'UNKNOWN_ERROR', 500);
+  }
+  return data as Session | null;
+}
+
+// ============================================
+// Messages Retrieval
+// ============================================
+
+/**
+ * Get messages for a session with pagination
+ * @param params - Parameters including sessionId, limit, offset
+ * @returns Messages, total count, and hasMore flag
+ * @throws {AuthError} If retrieval fails
+ */
+export async function getSessionMessages(
+  params: GetMessagesParams
+): Promise<GetMessagesResult> {
+  try {
+    const {
+      sessionId,
+      limit = 10,
+      offset = 0,
+      includeDeleted = false
+    } = params;
+
+    // Build query
+    let query = supabase
+      .from('messages')
+      .select('*', { count: 'exact' })
+      .eq('session_id', sessionId)
+      .order('timestamp', { ascending: true });
+
+    // Filter out deleted messages unless explicitly requested
+    if (!includeDeleted) {
+      query = query.is('deleted_at', null);
+    }
+
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      throw new AuthError(
+        'Failed to get session messages',
+        error.code,
+        500
+      );
+    }
+
+    const total = count || 0;
+    const messages = (data || []) as Message[];
+    const hasMore = offset + messages.length < total;
+
+    return {
+      messages,
+      total,
+      hasMore,
+    };
+  } catch (error) {
+    console.error('Error getting session messages:', error);
+    throw error instanceof AuthError
+      ? error
+      : new AuthError('Failed to get session messages');
+  }
 }
 
 /**

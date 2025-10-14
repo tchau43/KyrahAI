@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@heroui/react';
+import SessionItem from './SessionItem';
 
 interface ChatHistoryProps {
   sessionIds: string[];
@@ -20,19 +20,12 @@ export default function ChatHistory({
       </div>
       <div className="space-y-1">
         {sessionIds.map(id => (
-          <Button
+          <SessionItem
             key={id}
-            onPress={() => onSelectSession(id)}
-            className={`w-full justify-start px-3 py-3 h-auto ${activeSessionId === id
-                ? 'bg-neutral-3 text-neutral-9'
-                : 'bg-transparent text-neutral-8'
-              }`}
-            variant="light"
-          >
-            <div className="body-14-semi truncate w-full text-left">
-              {id}
-            </div>
-          </Button>
+            sessionId={id}
+            isActive={activeSessionId === id}
+            onSelect={onSelectSession}
+          />
         ))}
       </div>
     </div>

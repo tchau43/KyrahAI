@@ -13,6 +13,7 @@ export interface Session {
   deleted_at: string | null;
   config: SessionConfig;
   metadata: Record<string, unknown>;
+  title: string;
 }
 
 export interface SessionConfig {

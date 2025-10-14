@@ -1,19 +1,18 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import ChatSidebar from '@/features/chat/components/ChatSidebar';
 import ChatMainView from '@/features/chat/components/ChatMainView';
 import AuthModalTest from '@/components/modals/AuthModalTest';
 import AuthStatusTest from '@/components/auth/AuthStatusTest';
-import { Message } from '@/features/chat/data';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSignOut } from '@/features/auth/hooks/useSignOut';
 import { useStartAnonymousSession } from '@/features/auth/hooks/useStartAnonymousSession';
-import { useGetUserSessions } from '@/features/auth/hooks/useGetUserSesssions';
+import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
+import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
 
 export default function ChatPage() {
-  const { user, authType, loading } = useAuth();
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>user1', user);
+  const { user, loading } = useAuth();
   const signOut = useSignOut();
   const startAnon = useStartAnonymousSession();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -25,8 +24,20 @@ export default function ChatPage() {
 
   const { data: sessionIds = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
 
+  // Fetch messages for active session
+  const { data: messagesData, isLoading: messagesLoading } = useGetSessionMessages({
+    sessionId: activeSessionId || '',
+    limit: 30,
+    offset: 0,
+  });
+
+  // Get messages for current session
+  const currentMessages = useMemo(() => {
+    if (!activeSessionId || !messagesData?.messages) return null;
+    return messagesData.messages;
+  }, [activeSessionId, messagesData]);
+
   const handleNewChat = () => {
-    // Placeholder: will call API to create session; for now just close sidebar
     setIsSidebarOpen(false);
   };
 
@@ -36,8 +47,8 @@ export default function ChatPage() {
   };
 
   const handleSendMessage = (content: string) => {
-    // Placeholder: will send message to API tied to activeSessionId
     if (!activeSessionId) return;
+    // TODO: Send message to API
   };
 
   // Initialize anonymous session on first unauthenticated visit
@@ -70,7 +81,7 @@ export default function ChatPage() {
         onClose={() => setIsSidebarOpen(false)}
       />
       <ChatMainView
-        conversation={null}
+        messages={currentMessages}
         onSendMessage={handleSendMessage}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
