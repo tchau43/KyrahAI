@@ -4,16 +4,17 @@ import { useEffect, useState } from 'react';
 import { useSignUpWithEmail } from '@/features/auth/hooks/useSignUpWithEmail';
 import { useSignInWithEmail } from '@/features/auth/hooks/useSignInWithEmail';
 
-interface AuthModalTestProps {
+interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'signin' | 'signup';
 }
 
-export default function AuthModalTest({ isOpen, onClose, initialMode = 'signup' }: AuthModalTestProps) {
+export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: AuthModalProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const signUp = useSignUpWithEmail();
   const signIn = useSignInWithEmail();
@@ -35,11 +36,14 @@ export default function AuthModalTest({ isOpen, onClose, initialMode = 'signup' 
     } else {
       signIn.mutate({ email, password });
     }
+
+    onClose();
   };
 
   const resetForm = () => {
     setEmail('');
     setPassword('');
+    setConfirmPassword('');
   };
 
   const switchMode = (newMode: 'signin' | 'signup') => {
@@ -51,8 +55,8 @@ export default function AuthModalTest({ isOpen, onClose, initialMode = 'signup' 
   const error = signUp.error || signIn.error;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-md bg-neutral rounded-3xl p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[1px]" onClick={onClose}>
+      <div className="relative w-full max-w-md bg-neutral rounded-3xl p-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -74,7 +78,7 @@ export default function AuthModalTest({ isOpen, onClose, initialMode = 'signup' 
         </button>
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h2 className="heading-32 text-neutral-10 mb-2">
             {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
           </h2>
@@ -87,47 +91,66 @@ export default function AuthModalTest({ isOpen, onClose, initialMode = 'signup' 
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email Input */}
-          <div>
-            <label className="block body-16-semi text-neutral-10 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          {/* Password Input */}
-          <div>
-            <label className="block body-16-semi text-neutral-10 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {/* Confirm Password removed for testing */}
-
-          {/* Error Message */}
-          {error && (
-            <div className="p-3 rounded-xl bg-error-4 border border-error-3">
-              <p className="caption-14-regular text-error-1">
-                {error.message || 'Something went wrong. Please try again.'}
-              </p>
+          {/* input fields */}
+          <div className="flex flex-col gap-4 mb-8">
+            {/* Email Input */}
+            <div>
+              <label className="block body-16-semi text-neutral-10 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                placeholder="your@email.com"
+              />
             </div>
-          )}
+
+            {/* Password Input */}
+            <div>
+              <label className="block body-16-semi text-neutral-10 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {/* Confirm Password */}
+            {mode === 'signup' && (
+              <div>
+                <label className="block body-16-semi text-neutral-10 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 rounded-xl bg-error-4 border border-error-3">
+                <p className="caption-14-regular text-error-1">
+                  {error.message || 'Something went wrong. Please try again.'}
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Submit Button */}
           <button

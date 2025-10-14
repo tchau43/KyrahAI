@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function AuthStatusTest() {
+export default function AuthStatus() {
   const { user, loading, authType } = useAuth();
 
   if (loading) {
@@ -27,7 +27,7 @@ export default function AuthStatusTest() {
     return (
       <div className="px-4 py-2 bg-success-4 rounded-lg border border-success-3">
         <p className="caption-14-semi text-success-1">
-          ✅ Signed in as: {user.email}
+          Hello, {user.email}
         </p>
       </div>
     );
