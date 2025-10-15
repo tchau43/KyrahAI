@@ -12,6 +12,7 @@ import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
 import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
 import { createTempSession, getTempSessionId, sendFirstMessage } from '@/lib/auth';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
+import { Menu } from 'lucide-react';
 
 export default function ChatPage() {
   const { user, loading } = useAuth();
@@ -89,11 +90,23 @@ export default function ChatPage() {
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
-      <ChatMainView
-        messages={currentMessages}
-        onSendMessage={handleSendMessage}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <div className="flex-1 flex flex-col relative">
+        {user && (
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="fixed top-3 left-3 md:top-4 md:left-4 xl:hidden z-30 p-2 rounded-lg bg-neutral hover:bg-neutral-2 transition-colors shadow-md"
+            aria-label="Open menu"
+          >
+            <Menu size={24} className="text-neutral-9" />
+          </button>
+        )}
+        <ChatMainView
+          messages={currentMessages}
+          onSendMessage={handleSendMessage}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+      </div>
+
 
       {/* Auth Status - Top Right (Responsive) */}
       {!loading && user && (

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import {
   User,
-  Avatar,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
@@ -15,7 +14,7 @@ import {
   UserCircle,
 } from 'lucide-react';
 import SettingsModal from '@/components/modals/SettingsModal';
-import { getUserPreferences, updateUserPreferences } from '@/lib/auth';
+import { getUserPreferences, updateUserPreferences, updateUserDisplayName } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import type { UserPreferences } from '@/types/auth.types';
 
@@ -64,6 +63,30 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
       console.error('Error loading user data:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSaveDisplayName = async (displayName: string) => {
+    try {
+      if (!user) {
+        throw new Error('No user found');
+      }
+
+      await updateUserDisplayName(displayName);
+
+      // Cập nhật state local
+      setUser((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          name: displayName,
+        };
+      });
+
+      console.log('Display name updated successfully');
+    } catch (error) {
+      console.error('Failed to update display name:', error);
+      throw error;
     }
   };
 
@@ -161,7 +184,7 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
       <div className={`border-t border-neutral-2 ${isCollapsed ? 'px-2 py-2' : 'px-2 py-2'}`}>
         <Dropdown placement="top-start">
           <DropdownTrigger>
-            <button className={`w-full cursor-pointer hover:bg-neutral-1 rounded-lg p-2 transition-colors ${isCollapsed ? 'flex justify-center' : ''
+            <button className={`w-full flex cursor-pointer hover:bg-neutral-1 rounded-lg p-2 transition-colors ${isCollapsed ? 'flex justify-center' : ''
               }`}>
               <User
                 name={user.name}
@@ -175,7 +198,7 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
                 classNames={{
                   base: 'gap-3',
                   wrapper: isCollapsed ? 'hidden' : 'min-w-0',
-                  name: 'body-14-semi text-neutral-9 truncate',
+                  name: 'caption-14-semi text-neutral-9 truncate',
                   description: 'caption-12-regular text-neutral-6 truncate',
                 }}
               />
@@ -213,6 +236,7 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
             preferences: user.preferences,
           }}
           onSave={handleSaveSettings}
+          onSaveDisplayName={handleSaveDisplayName}
           onDownloadData={handleDownloadData}
         />
       )}

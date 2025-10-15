@@ -21,8 +21,9 @@ import {
   MessageSquare,
   Globe,
   Clock,
+  HeartHandshake,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ interface SettingsModalProps {
     preferences: UserPreferences;
   };
   onSave: (preferences: Partial<UserPreferences>) => Promise<UserPreferences>;
+  onSaveDisplayName: (displayName: string) => Promise<void>;
   onDownloadData: () => void;
 }
 
@@ -109,13 +111,15 @@ export default function SettingsModal({
   onClose,
   user,
   onSave,
+  onSaveDisplayName,
 }: SettingsModalProps) {
   const [preferences, setPreferences] = useState(user.preferences);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [detectedTimezone, setDetectedTimezone] = useState<string>('');
+  const [userName, setUserName] = useState(user.name || '');
 
-  useState(() => {
+  useEffect(() => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setDetectedTimezone(tz);
 
@@ -125,7 +129,12 @@ export default function SettingsModal({
         timezone: tz
       }));
     }
-  });
+  }, [user.preferences.timezone]);
+
+  const handleUserNameChange = (value: string) => {
+    setUserName(value);
+    setHasChanges(true);
+  };
 
   const handlePreferenceChange = (
     key: keyof UserPreferences,
@@ -146,6 +155,11 @@ export default function SettingsModal({
   const handleSave = async () => {
     try {
       setIsSaving(true);
+
+      if (userName !== user.name) {
+        await onSaveDisplayName(userName);
+      }
+
       const changes: Partial<UserPreferences> = {};
       (Object.keys(preferences) as Array<keyof UserPreferences>).forEach((key) => {
         if (JSON.stringify(preferences[key]) !== JSON.stringify(user.preferences[key])) {
@@ -153,11 +167,12 @@ export default function SettingsModal({
         }
       });
 
-      const updatedPreferences = await onSave(changes);
+      if (Object.keys(changes).length > 0) {
+        const updatedPreferences = await onSave(changes);
+        setPreferences(updatedPreferences);
+      }
 
-      setPreferences(updatedPreferences);
       setHasChanges(false);
-
       onClose();
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -166,9 +181,9 @@ export default function SettingsModal({
     }
   };
 
-
   const handleCancel = () => {
     setPreferences(user.preferences);
+    setUserName(user.name);
     setHasChanges(false);
     onClose();
   };
@@ -199,6 +214,35 @@ export default function SettingsModal({
                 </p>
               </ModalHeader>
               <ModalBody className="px-4 xl:!px-10 gap-4 xl:!gap-6">
+                {/* User Name Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <HeartHandshake className="text-danger" size={20} />
+                    <h3 className="body-18-semi text-neutral-9">What should Kyrah call you?</h3>
+                  </div>
+
+                  <Card className="bg-neutral-1 shadow-xl px-2 py-2">
+                    <CardBody className="space-y-3">
+                      <div>
+                        <label className="body-16-semi text-neutral-9 block mb-2">
+                          Type in the name you feel most comfortable with:
+                        </label>
+                        <input
+                          type="text"
+                          value={userName}
+                          onChange={(e) => handleUserNameChange(e.target.value)}
+                          placeholder="Enter your name"
+                          className="w-full px-4 py-2.5 bg-neutral border border-neutral-4 rounded-lg body-16-regular text-neutral-9 placeholder:text-neutral-5 focus:outline-none focus:border-primary transition-colors"
+                          maxLength={50}
+                        />
+                        <p className="caption-14-regular text-neutral-6 mt-1">
+                          Kyrah will use this name when chatting with you
+                        </p>
+                      </div>
+                    </CardBody>
+                  </Card>
+                </div>
+
                 {/* Privacy & Data Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
