@@ -1,6 +1,7 @@
 // src/app/api/chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { createAuthenticatedSupabaseClient } from '@/lib/supabase-auth';
 import {
   getConversationHistory,
   createChatCompletion,
@@ -24,6 +25,18 @@ interface ChatRequestBody {
 export async function POST(request: NextRequest) {
   console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>POST');
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authToken = authHeader?.replace('Bearer ', '');
+
+    if (!authToken) {
+      return NextResponse.json(
+        { error: 'Missing authentication token' },
+        { status: 401 }
+      );
+    }
+
+    const authenticatedSupabase = createAuthenticatedSupabaseClient(authToken);
+
     const body: ChatRequestBody = await request.json();
     const { sessionId, userMessage, isFirstMessage = false } = body;
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessionId', sessionId);
@@ -126,7 +139,7 @@ export async function POST(request: NextRequest) {
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>userMessage', userMessage);
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>promptTokens', promptTokens);
     // 4. Save user message to database
-    const { data: savedUserMessage, error: userMsgError } = await supabase
+    const { data: savedUserMessage, error: userMsgError } = await authenticatedSupabase
       .from('messages')
       .insert({
         session_id: sessionId,
@@ -144,7 +157,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Save assistant response to database
-    const { data: savedAssistantMessage, error: assistantMsgError } = await supabase
+    const { data: savedAssistantMessage, error: assistantMsgError } = await authenticatedSupabase
       .from('messages')
       .insert({
         session_id: sessionId,
@@ -163,14 +176,14 @@ export async function POST(request: NextRequest) {
     // 6. Generate and save session title if this is the first message
     if (isFirstMessage) {
       const title = await generateSessionTitle(userMessage);
-      await supabase
+      await authenticatedSupabase
         .from('sessions')
         .update({ title })
         .eq('session_id', sessionId);
     }
 
     // 7. Log prompt usage
-    const { data: systemPromptData } = await supabase
+    const { data: systemPromptData } = await authenticatedSupabase
       .from('system_prompts')
       .select('prompt_id, version')
       .eq('is_active', true)
@@ -179,7 +192,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (systemPromptData) {
-      await supabase.from('prompt_usage_log').insert({
+      await authenticatedSupabase.from('prompt_usage_log').insert({
         prompt_id: systemPromptData.prompt_id,
         message_id: savedAssistantMessage.message_id,
         session_id: sessionId,
@@ -195,7 +208,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 8. Update session last_activity_at
-    await supabase
+    await authenticatedSupabase
       .from('sessions')
       .update({ last_activity_at: new Date().toISOString() })
       .eq('session_id', sessionId);

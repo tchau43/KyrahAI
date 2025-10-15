@@ -1,6 +1,7 @@
 // src/lib/chat.ts
 import { supabase } from './supabase';
 import { Message } from '@/features/chat/data';
+import { getAuthToken } from './auth-token';
 
 interface SendMessageWithAIOptions {
   sessionId: string;
@@ -22,35 +23,44 @@ interface SendMessageWithAIResult {
 export async function sendMessageWithAI(
   options: SendMessageWithAIOptions
 ): Promise<SendMessageWithAIResult> {
-  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sendMessageWithAI');
-  const { sessionId, content, isFirstMessage = false } = options;
+  try {
+    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sendMessageWithAI');
+    const { sessionId, content, isFirstMessage = false } = options;
 
-  // Call the API route
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      sessionId,
-      userMessage: content,
-      isFirstMessage,
-    }),
-  });
-  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>response', response);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.details || error.error || 'Failed to send message');
+    // Get authentication token
+    const authToken = await getAuthToken();
+
+    // Call the API route
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+      },
+      body: JSON.stringify({
+        sessionId,
+        userMessage: content,
+        isFirstMessage,
+      }),
+    });
+    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>response', response);
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.details || error.error || 'Failed to send message');
+    }
+
+    const data = await response.json();
+    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>data', data);
+    return {
+      userMessage: data.userMessage,
+      assistantMessage: data.assistantMessage,
+      tokensUsed: data.tokensUsed,
+      responseTime: data.responseTime,
+    };
+  } catch (error) {
+    console.error('Error in sendMessageWithAI:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>data', data);
-  return {
-    userMessage: data.userMessage,
-    assistantMessage: data.assistantMessage,
-    tokensUsed: data.tokensUsed,
-    responseTime: data.responseTime,
-  };
 }
 
 /**
