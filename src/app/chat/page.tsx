@@ -10,7 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useStartAnonymousSession } from '@/features/auth/hooks/useStartAnonymousSession';
 import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
 import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
-import { createTempSession, getTempSessionId, sendFirstMessage } from '@/lib/auth';
+import { createTempSession, getTempSessionId } from '@/lib/auth';
+import { sendFirstMessageWithAI } from '@/lib/chat';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
 
 export default function ChatPage() {
@@ -57,15 +58,15 @@ export default function ChatPage() {
     // Check if this is a temp session (first message)
     const tempSessionId = getTempSessionId();
     if (tempSessionId) {
-      // First message: create session and message
-      const result = await sendFirstMessage({ sessionId: tempSessionId, content });
+      // First message: create session and message with AI
+      const result = await sendFirstMessageWithAI({ sessionId: tempSessionId, content });
       console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>result', result);
       setActiveSessionId(result.session.session_id);
       queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
       // Invalidate messages query to refetch with new session ID
       queryClient.invalidateQueries({ queryKey: ['session-messages', result.session.session_id] });
     } else {
-      // Subsequent messages: just send message
+      // Subsequent messages: just send message with AI
       await sendMessageMutation.mutateAsync(content);
     }
   };

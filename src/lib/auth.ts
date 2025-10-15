@@ -548,6 +548,9 @@ export async function convertAnonymousToAuthenticated(
 // ============================================
 
 export async function getUserSessions(userId: string): Promise<Session[]> {
+  if (!userId) {
+    return [];
+  }
   const { data, error } = await supabase
     .from('sessions')
     .select('*')

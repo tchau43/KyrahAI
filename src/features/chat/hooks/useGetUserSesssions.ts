@@ -7,5 +7,6 @@ export const useGetUserSessions = (userId: string) => {
   return useQuery({
     queryKey: ['user-sessions', userId],
     queryFn: () => getUserSessions(userId),
+    enabled: !!userId,
   });
 };
