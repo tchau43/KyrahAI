@@ -95,25 +95,25 @@ export default function ChatPage() {
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
-      {/* Auth Status - Top Right */}
+      {/* Auth Status - Top Right (Responsive) */}
       {!loading && user && (
-        <div className="fixed top-6 right-6 z-40">
+        <div className="fixed top-3 right-3 md:top-4 md:right-4 xl:top-6 xl:right-6 z-40">
           <AuthStatus />
         </div>
       )}
 
-      {/* Floating auth buttons */}
+      {/* Floating auth buttons (Responsive) */}
       {!loading && !user && (
-        <div className="fixed top-4 right-8 z-40 flex gap-2">
+        <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
           <button
             onClick={() => { setAuthModalMode('signin'); setIsAuthModalOpen(true); }}
-            className="px-6 py-2 bg-primary text-white rounded-full body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
+            className="px-4 py-1.5 md:px-5 md:py-2 xl:px-6 xl:py-2 bg-primary text-white rounded-full caption-12-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
           >
             Sign In
           </button>
           <button
             onClick={() => { setAuthModalMode('signup'); setIsAuthModalOpen(true); }}
-            className="px-6 py-2 bg-secondary-2 text-white rounded-full body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-2"
+            className="px-4 py-1.5 md:px-5 md:py-2 xl:px-6 xl:py-2 bg-secondary-2 text-white rounded-full caption-12-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
           >
             Sign Up
           </button>

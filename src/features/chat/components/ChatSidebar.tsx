@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@heroui/react';
 import ChatSidebarHeader from './ChatSidebarHeader';
 import ChatHistory from './ChatHistory';
@@ -25,10 +25,22 @@ export default function ChatSidebar({
   onClose,
 }: ChatSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hasUser, setHasUser] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setHasUser(!!data.session));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setHasUser(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (!hasUser) return null;
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
@@ -36,7 +48,6 @@ export default function ChatSidebar({
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`fixed md:relative inset-y-0 left-0 z-50 bg-neutral flex flex-col border-r border-neutral-2 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-72'
           } ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
@@ -56,11 +67,23 @@ export default function ChatSidebar({
           </>
         )}
 
-        {/* Collapse/Expand Button */}
+        {!isCollapsed && (
+          <ChatHistory
+            sessionIds={sessionIds}
+            activeSessionId={activeSessionId}
+            onSelectSession={onSelectSession}
+          />
+        )}
+
+        {isCollapsed && <div className="flex-1" />}
+
+        <ChatSidebarFooter isCollapsed={isCollapsed} />
+
         <Button
           isIconOnly
           variant="light"
-          className={`absolute top-2 ${isCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-4'} z-10`}
+          className={`absolute top-2 ${isCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-4'
+            } z-10`}
           onPress={() => setIsCollapsed(!isCollapsed)}
         >
           <svg
