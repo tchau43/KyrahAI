@@ -120,20 +120,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(authSession.user as SupabaseUser)
     setAuthType('authenticated')
 
-    // Create Kyrah session
-    const { data: kyrahSession } = await supabase
-      .from('sessions')
-      .insert({
-        user_id: authSession.user.id,
-        is_anonymous: false,
-        auth_type: 'email',
-      })
-      .select()
-      .single()
-
-    if (kyrahSession) {
-      setSession(kyrahSession as Session)
-    }
+    // Create only a temp session id for authenticated user
+    const temp = await auth.createTempSession()
+    setSession({
+      // minimal in-memory shape until persisted
+      session_id: temp.session_id,
+      user_id: authSession.user.id,
+      is_anonymous: false,
+      auth_type: 'email',
+      created_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      last_activity_at: new Date().toISOString(),
+      deleted_at: null,
+      config: { retention_days: 30, language: 'vi', timezone: 'Asia/Ho_Chi_Minh' },
+      metadata: {},
+      title: '',
+    } as Session)
   }
 
   function clearSessionState(): void {
@@ -145,31 +147,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('kyrah_anonymous_session_id')
       localStorage.removeItem('kyrah_anonymous_token')
+      // New temp session storage
+      sessionStorage.removeItem('kyrah_temp_session')
+      sessionStorage.removeItem('kyrah_anonymous_token')
     }
   }
 
   async function startAnonymous(): Promise<AnonymousSessionResult> {
     try {
       const result = await auth.startAnonymousSession()
-
-      // Store in localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('kyrah_anonymous_session_id', result.sessionId)
-        localStorage.setItem('kyrah_anonymous_token', result.token)
-      }
-
-      // Fetch the session
-      const { data: session } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('session_id', result.sessionId)
-        .single()
-
-      if (session) {
-        setSession(session as Session)
+      // Build minimal in-memory session from temp id
+      const tempId = auth.getTempSessionId()
+      if (tempId) {
+        setSession({
+          session_id: tempId,
+          user_id: null,
+          is_anonymous: true,
+          auth_type: 'anonymous',
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          last_activity_at: new Date().toISOString(),
+          deleted_at: null,
+          config: { retention_days: 1, language: 'vi', timezone: 'Asia/Ho_Chi_Minh' },
+          metadata: {},
+          title: '',
+        } as Session)
         setAuthType('anonymous')
       }
-
       return result
     } catch (error) {
       console.error('Error starting anonymous session:', error)

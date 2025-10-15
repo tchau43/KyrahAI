@@ -5,9 +5,10 @@ import { Button } from '@heroui/react';
 import ChatSidebarHeader from './ChatSidebarHeader';
 import ChatHistory from './ChatHistory';
 import ChatSidebarFooter from './ChatSidebarFooter';
+import { Session } from '@/types/auth.types';
 
 interface ChatSidebarProps {
-  sessionIds: string[];
+  sessions: Session[];
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
   onNewChat: () => void;
@@ -16,7 +17,7 @@ interface ChatSidebarProps {
 }
 
 export default function ChatSidebar({
-  sessionIds,
+  sessions,
   activeSessionId,
   onSelectSession,
   onNewChat,
@@ -47,7 +48,7 @@ export default function ChatSidebar({
               onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
             />
             <ChatHistory
-              sessionIds={sessionIds}
+              sessions={sessions}
               activeSessionId={activeSessionId}
               onSelectSession={onSelectSession}
             />

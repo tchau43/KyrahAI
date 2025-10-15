@@ -1,5 +1,6 @@
 // lib/auth.ts
 import { supabase } from './supabase';
+import { v4 as uuidv4 } from 'uuid';
 import type {
   AnonymousSessionResult,
   AnonymousSessionMetadata,
@@ -18,6 +19,196 @@ import { generateSecureToken, hashToken } from './crypto';
 import { GetMessagesParams, GetMessagesResult, Message } from '@/features/chat/data';
 
 // ============================================
+// Client-side Temp Session Utilities (store only session_id)
+// ============================================
+
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof sessionStorage !== 'undefined';
+}
+
+function generateUuid(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return (crypto as unknown as { randomUUID: () => string }).randomUUID();
+  }
+  return uuidv4();
+}
+
+async function generateUniqueSessionId(maxRetries: number = 5): Promise<string> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const candidate = generateUuid();
+    const { data } = await supabase
+      .from('sessions')
+      .select('session_id')
+      .eq('session_id', candidate)
+      .maybeSingle();
+    if (!data) return candidate;
+  }
+  throw new AuthError('Failed to generate unique session id', 'UUID_COLLISION', 500);
+}
+
+const TEMP_SESSION_ID_KEY = 'kyrah_temp_session_id';
+
+export async function createTempSession(): Promise<{ session_id: string }> {
+  const sessionId = await generateUniqueSessionId();
+  if (isBrowser()) {
+    sessionStorage.setItem(TEMP_SESSION_ID_KEY, sessionId);
+  }
+  return { session_id: sessionId };
+}
+
+export function getTempSessionId(): string | null {
+  if (!isBrowser()) return null;
+  const id = sessionStorage.getItem(TEMP_SESSION_ID_KEY);
+  return id || null;
+}
+
+export function clearTempSession(): void {
+  if (isBrowser()) {
+    sessionStorage.removeItem(TEMP_SESSION_ID_KEY);
+  }
+}
+
+export async function sendFirstMessage(options: {
+  sessionId: string;
+  content: string;
+  userAgent?: string;
+  ipAddress?: string;
+}): Promise<{ session: Session; message: Message }> {
+  // Get authenticated user from Supabase
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  const currentUserId = authUser?.id ?? null;
+  // console.log('sendFirstMessage', options);
+  // Check if session already exists
+  const { data: existing } = await supabase
+    .from('sessions')
+    .select('*')
+    .eq('session_id', options.sessionId)
+    .maybeSingle();
+  if (existing) {
+    // If session already exists, just insert the first message
+    const { data: message, error: msgError } = await supabase
+      .from('messages')
+      .insert({
+        session_id: options.sessionId,
+        role: 'user',
+        content: options.content,
+      })
+      .select()
+      .single();
+    if (msgError || !message) {
+      throw new AuthError('Failed to create message', msgError?.code || 'UNKNOWN_ERROR', 500);
+    }
+    // Clear temp session id if it matches
+    if (isBrowser() && getTempSessionId() === options.sessionId) {
+      // Keep for anonymous; clear for authenticated users only
+      if (currentUserId) {
+        clearTempSession();
+      }
+    }
+    return { session: existing as Session, message: message as Message };
+  }
+
+  const isAnonymous = !currentUserId;
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  // Insert into DB using provided session_id
+  const { data: persisted, error: insertError } = await supabase
+    .from('sessions')
+    .insert({
+      session_id: options.sessionId,
+      user_id: currentUserId,
+      is_anonymous: isAnonymous,
+      auth_type: isAnonymous ? 'anonymous' : 'email',
+      expires_at: expiresAt,
+      config: {
+        retention_days: isAnonymous ? 1 : 30,
+        language: 'vi',
+        timezone: 'Asia/Ho_Chi_Minh',
+      },
+    })
+    .select()
+    .single();
+
+  if (insertError || !persisted) {
+    throw new AuthError('Failed to persist session', insertError?.code || 'UNKNOWN_ERROR', 500);
+  }
+
+  // For anonymous, create and store a token now
+  if (isAnonymous) {
+    const token = generateSecureToken();
+    const tokenHash = hashToken(token);
+    const { error: tokenError } = await supabase
+      .from('anonymous_session_tokens')
+      .insert({
+        session_id: options.sessionId,
+        token_hash: tokenHash,
+        expires_at: expiresAt,
+        user_agent: options.userAgent || null,
+        ip_address: options.ipAddress || null,
+      });
+    if (tokenError) {
+      throw new AuthError('Failed to create anonymous token', tokenError.code, 500);
+    }
+    if (isBrowser()) {
+      sessionStorage.setItem('kyrah_anonymous_token', token);
+    }
+  }
+
+  // Insert the first user message
+  const { data: message, error: msgError } = await supabase
+    .from('messages')
+    .insert({
+      session_id: options.sessionId,
+      role: 'user',
+      content: options.content,
+    })
+    .select()
+    .single();
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>message', message);
+  if (msgError || !message) {
+    throw new AuthError('Failed to create message', msgError?.code || 'UNKNOWN_ERROR', 500);
+  }
+
+  // Clear temp session id after successful persist
+  if (isBrowser() && getTempSessionId() === options.sessionId) {
+    // Keep for anonymous; clear for authenticated users only
+    if (currentUserId) {
+      clearTempSession();
+    }
+  }
+
+  return { session: persisted as Session, message: message as Message };
+}
+
+// ============================================
+// Message Management
+// ============================================
+
+/**
+ * Send a message to a session
+ * @param sessionId - The session ID
+ * @param content - The message content
+ * @returns The message
+ */
+export async function sendMessage(sessionId: string, content: string): Promise<Message> {
+  const { data: message, error: msgError } = await supabase
+    .from('messages')
+    .insert({
+      session_id: sessionId,
+      role: 'user',
+      content: content,
+    })
+    .select()
+    .single();
+  if (msgError || !message) {
+    throw new AuthError('Failed to create message', msgError?.code || 'UNKNOWN_ERROR', 500);
+  }
+  return message as Message;
+}
+
+// ============================================
 // Anonymous Session Management
 // ============================================
 
@@ -31,84 +222,22 @@ export async function startAnonymousSession(
   metadata: AnonymousSessionMetadata = {}
 ): Promise<AnonymousSessionResult> {
   try {
-    // 1. Create session in database
-    const { data: session, error: sessionError } = await supabase
-      .from('sessions')
-      .insert({
-        is_anonymous: true,
-        auth_type: 'anonymous',
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        config: {
-          retention_days: 1,
-          language: metadata.language || 'vi',
-          timezone: metadata.timezone || 'Asia/Ho_Chi_Minh',
-        },
-      })
-      .select()
-      .single();
+    // Create a client-only temporary session id; defer DB writes until first message
+    const temp = await createTempSession();
 
-    if (sessionError) {
-      throw new AuthError(
-        'Failed to create anonymous session',
-        sessionError.code,
-        500
-      );
-    }
-
-    if (!session) {
-      throw new AuthError('Session creation returned no data', 'NO_DATA', 500);
-    }
-
-    // 2. Generate secure random token
+    // Generate a client-held token to be persisted when the session is saved
     const token = generateSecureToken();
-    const tokenHash = hashToken(token);
-
-    // 3. Store token hash in database
-    const { error: tokenError } = await supabase
-      .from('anonymous_session_tokens')
-      .insert({
-        session_id: session.session_id,
-        token_hash: tokenHash,
-        expires_at: session.expires_at,
-        user_agent: metadata.userAgent || null,
-        ip_address: metadata.ipAddress || null,
-      });
-
-    if (tokenError) {
-      // Cleanup session if token creation fails
-      await supabase
-        .from('sessions')
-        .delete()
-        .eq('session_id', session.session_id);
-
-      throw new AuthError(
-        'Failed to create session token',
-        tokenError.code,
-        500
-      );
+    if (isBrowser()) {
+      sessionStorage.setItem('kyrah_anonymous_token', token);
     }
-
-    // 4. Log auth event
-    await logAuthEvent(
-      'anonymous_start',
-      null,
-      session.session_id,
-      {
-        user_agent: metadata.userAgent,
-        ip_address: metadata.ipAddress,
-      },
-      true
-    );
 
     return {
-      sessionId: session.session_id,
-      token: token, // Return plain token to client (never store plain text)
-      expiresAt: session.expires_at,
+      sessionId: temp.session_id,
+      token,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
   } catch (error) {
     console.error('Error starting anonymous session:', error);
-
-    // Log failed attempt
     await logAuthEvent(
       'anonymous_start',
       null,
@@ -119,7 +248,6 @@ export async function startAnonymousSession(
       false,
       error instanceof Error ? error.message : 'Unknown error'
     );
-
     throw error instanceof AuthError
       ? error
       : new AuthError('Failed to start anonymous session');
@@ -211,30 +339,12 @@ export async function signUpWithEmail(
       throw new AuthError('Signup returned no user', 'NO_USER', 500);
     }
 
-    // Create initial session if user is confirmed
-    let kyrahSession: Session | undefined;
-
+    // Do not create Kyrah session here; defer until first message
     if (data.user && data.session) {
-      const { data: session, error: sessionError } = await supabase
-        .from('sessions')
-        .insert({
-          user_id: data.user.id,
-          is_anonymous: false,
-          auth_type: 'email',
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        })
-        .select()
-        .single();
-
-      if (!sessionError && session) {
-        kyrahSession = session as Session;
-      }
-
-      // Log event
       await logAuthEvent(
         'email_signup',
         data.user.id,
-        session?.session_id || null,
+        null,
         metadata as Record<string, unknown>,
         true
       );
@@ -243,7 +353,7 @@ export async function signUpWithEmail(
     return {
       user: data.user as SupabaseUser,
       session: data.session as any,
-      kyrahSession,
+      kyrahSession: undefined,
     };
   } catch (error) {
     console.error('Error signing up:', error);
@@ -293,27 +403,14 @@ export async function signInWithEmail(
       throw new AuthError('Signin returned no user or session', 'NO_DATA', 500);
     }
 
-    // Create new Kyrah session
-    const { data: session, error: sessionError } = await supabase
-      .from('sessions')
-      .insert({
-        user_id: data.user.id,
-        is_anonymous: false,
-        auth_type: 'email',
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      })
-      .select()
-      .single();
+    // Do not create Kyrah session here; defer until first message
+    const kyrahSession = undefined;
 
-    if (sessionError) {
-      console.warn('Failed to create Kyrah session:', sessionError);
-    }
-
-    // Log event
+    // Log event without session id
     await logAuthEvent(
       'email_signin',
       data.user.id,
-      session?.session_id || null,
+      null,
       metadata as Record<string, unknown>,
       true
     );
@@ -321,7 +418,7 @@ export async function signInWithEmail(
     return {
       user: data.user as SupabaseUser,
       session: data.session as any,
-      kyrahSession: session as Session | undefined,
+      kyrahSession,
     };
   } catch (error) {
     console.error('Error signing in:', error);
@@ -450,17 +547,16 @@ export async function convertAnonymousToAuthenticated(
 // Session Retrieval
 // ============================================
 
-export async function getUserSessions(userId: string): Promise<string[]> {
+export async function getUserSessions(userId: string): Promise<Session[]> {
   const { data, error } = await supabase
     .from('sessions')
-    .select('session_id')
+    .select('*')
     .eq('user_id', userId)
     .is('deleted_at', null);
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>data', data);
   if (error) {
     throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
   }
-  return data.map((session) => session.session_id);
+  return data;
 }
 
 export async function getSessionById(sessionId: string): Promise<Session | null> {
@@ -473,6 +569,60 @@ export async function getSessionById(sessionId: string): Promise<Session | null>
     throw new AuthError('Failed to get session', error.code || 'UNKNOWN_ERROR', 500);
   }
   return data as Session | null;
+}
+
+// ============================================
+// Session Helpers
+// ============================================
+
+/**
+ * Reuse an existing empty session for the user if one exists (no messages), otherwise create new.
+ */
+export async function getOrCreateReusableAuthenticatedSession(userId: string): Promise<Session> {
+  // Find an active session for this user that has zero messages
+  const { data: existingSessions, error: existingError } = await supabase
+    .from('sessions')
+    .select('session_id')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true });
+
+  if (!existingError && existingSessions && existingSessions.length > 0) {
+    for (const s of existingSessions as Array<{ session_id: string }>) {
+      const { count, error: countError } = await supabase
+        .from('messages')
+        .select('message_id', { count: 'exact', head: true })
+        .eq('session_id', s.session_id)
+        .is('deleted_at', null);
+      if (!countError && (count ?? 0) === 0) {
+        // Reuse this empty session
+        const { data } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('session_id', s.session_id)
+          .single();
+        return data as Session;
+      }
+    }
+  }
+
+  // Otherwise, create a new session
+  const { data: newSession, error: sessionError } = await supabase
+    .from('sessions')
+    .insert({
+      user_id: userId,
+      is_anonymous: false,
+      auth_type: 'email',
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    })
+    .select()
+    .single();
+
+  if (sessionError || !newSession) {
+    throw new AuthError('Failed to create Kyrah session', sessionError?.code || 'UNKNOWN_ERROR', 500);
+  }
+
+  return newSession as Session;
 }
 
 // ============================================
@@ -568,41 +718,29 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
       }
     }
 
-    // Check for anonymous session in localStorage
-    if (typeof window === 'undefined') {
-      return null; // Server-side, no localStorage
+    // Fallback: check for temp session id in sessionStorage (pre-persist)
+    if (!isBrowser()) {
+      return null;
     }
-
-    const anonymousSessionId = localStorage.getItem(
-      'kyrah_anonymous_session_id'
-    );
-    const anonymousToken = localStorage.getItem('kyrah_anonymous_token');
-
-    if (anonymousSessionId && anonymousToken) {
-      const isValid = await verifyAnonymousToken(
-        anonymousSessionId,
-        anonymousToken
-      );
-
-      if (isValid) {
-        const { data: session, error } = await supabase
-          .from('sessions')
-          .select('*')
-          .eq('session_id', anonymousSessionId)
-          .single();
-
-        if (!error && session) {
-          return {
-            type: 'anonymous',
-            session: session as Session,
-            token: anonymousToken,
-          };
-        }
-      } else {
-        // Invalid or expired - clear localStorage
-        localStorage.removeItem('kyrah_anonymous_session_id');
-        localStorage.removeItem('kyrah_anonymous_token');
-      }
+    const tempId = getTempSessionId();
+    if (tempId) {
+      return {
+        type: 'anonymous',
+        session: {
+          session_id: tempId,
+          user_id: null,
+          is_anonymous: true,
+          auth_type: 'anonymous',
+          created_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          last_activity_at: new Date().toISOString(),
+          deleted_at: null,
+          config: { retention_days: 1, language: 'vi', timezone: 'Asia/Ho_Chi_Minh' },
+          metadata: {},
+          title: '',
+        } as Session,
+        token: sessionStorage.getItem('kyrah_anonymous_token') || undefined,
+      } as CurrentSession;
     }
 
     return null;
