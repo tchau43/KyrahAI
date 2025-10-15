@@ -11,13 +11,16 @@ import {
 import Link from 'next/link';
 import { useModalStore } from '@/store/useModalStore';
 import { useRouter } from 'next/navigation';
+import { createTempSession } from '@/lib/auth';
 
 export default function BeginModal() {
   const { isModalOpen, closeModal } = useModalStore();
   const router = useRouter();
   const isOpen = isModalOpen('begin-modal');
   const handleClose = () => closeModal('begin-modal');
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // Create a new temp session before navigating to chat
+    await createTempSession();
     router.push('/chat');
     closeModal('begin-modal');
   };

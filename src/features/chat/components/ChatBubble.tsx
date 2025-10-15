@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, Avatar } from '@heroui/react';
+import { Card, CardBody } from '@heroui/react';
 import { Message } from '../data';
 
 interface ChatBubbleProps {

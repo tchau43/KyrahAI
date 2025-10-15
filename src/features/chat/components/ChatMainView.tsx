@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Conversation } from '../data';
+import { Message } from '../data';
 import ChatBubble from './ChatBubble';
 
 interface ChatMainViewProps {
-  conversation: Conversation | null;
+  messages: Message[] | null;
   onSendMessage: (content: string) => void;
   onToggleSidebar: () => void;
 }
 
 export default function ChatMainView({
-  conversation,
+  messages,
   onSendMessage,
 }: ChatMainViewProps) {
   const [inputValue, setInputValue] = useState('');
@@ -22,7 +22,7 @@ export default function ChatMainView({
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation?.messages]);
+  }, [messages]);
 
   // Auto-resize textarea and check if multiline
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function ChatMainView({
     }
   };
 
-  const hasMessages = conversation && conversation.messages.length > 0;
+  const hasMessages = messages && messages.length > 0;
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-neutral relative">
@@ -65,8 +65,8 @@ export default function ChatMainView({
           {/* Messages */}
           <div className="flex h-full flex-col overflow-y-auto thread-xl:pt-(--header-height) [scrollbar-gutter:stable_both-edges]">
             <div className="max-w-3xl mx-auto py-6 pb-32">
-              {conversation.messages.map(message => (
-                <ChatBubble key={message.id} message={message} />
+              {messages.map(message => (
+                <ChatBubble key={message.message_id} message={message} />
               ))}
               <div ref={messagesEndRef} />
             </div>

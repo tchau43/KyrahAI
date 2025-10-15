@@ -1,20 +1,22 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import ChatSidebar from '@/features/chat/components/ChatSidebar';
 import ChatMainView from '@/features/chat/components/ChatMainView';
 import AuthModal from '@/components/modals/AuthModal';
 import AuthStatus from '@/components/auth/AuthStatus';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSignOut } from '@/features/auth/hooks/useSignOut';
 import { useStartAnonymousSession } from '@/features/auth/hooks/useStartAnonymousSession';
-import { useGetUserSessions } from '@/features/auth/hooks/useGetUserSesssions';
+import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
+import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
+import { createTempSession, getTempSessionId, sendFirstMessage } from '@/lib/auth';
+import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
 
 export default function ChatPage() {
-  const { user, authType, loading } = useAuth();
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>user1', user);
-  const signOut = useSignOut();
+  const { user, loading } = useAuth();
   const startAnon = useStartAnonymousSession();
+  const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -22,21 +24,50 @@ export default function ChatPage() {
 
   const hasInitializedAnonymousRef = useRef(false);
 
-  const { data: sessionIds = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
+  const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
+  const sendMessageMutation = useSendMessage(activeSessionId || '');
 
-  const handleNewChat = () => {
-    // Placeholder: will call API to create session; for now just close sidebar
+  // Fetch messages for active session
+  const { data: messagesData, isLoading: messagesLoading } = useGetSessionMessages({
+    sessionId: activeSessionId || '',
+    limit: 30,
+    offset: 0,
+  });
+
+  // Get messages for current session
+  const currentMessages = useMemo(() => {
+    if (!activeSessionId || !messagesData?.messages) return null;
+    return messagesData.messages;
+  }, [activeSessionId, messagesData]);
+
+  const handleNewChat = async () => {
+    setIsSidebarOpen(false);
+    const temp = await createTempSession();
+    setActiveSessionId(temp.session_id);
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
     setIsSidebarOpen(false);
   };
 
-  const handleSelectSession = (id: string) => {
-    setActiveSessionId(id);
-    setIsSidebarOpen(false);
-  };
+  const handleSendMessage = async (content: string) => {
+    // if (!activeSessionId) return;
 
-  const handleSendMessage = (content: string) => {
-    // Placeholder: will send message to API tied to activeSessionId
-    if (!activeSessionId) return;
+    // Check if this is a temp session (first message)
+    const tempSessionId = getTempSessionId();
+    if (tempSessionId) {
+      // First message: create session and message
+      const result = await sendFirstMessage({ sessionId: tempSessionId, content });
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>result', result);
+      setActiveSessionId(result.session.session_id);
+      queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
+      // Invalidate messages query to refetch with new session ID
+      queryClient.invalidateQueries({ queryKey: ['session-messages', result.session.session_id] });
+    } else {
+      // Subsequent messages: just send message
+      await sendMessageMutation.mutateAsync(content);
+    }
   };
 
   // Initialize anonymous session on first unauthenticated visit
@@ -51,7 +82,7 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       <ChatSidebar
-        sessionIds={sessionIds}
+        sessions={sessions}
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
         onNewChat={handleNewChat}
@@ -59,7 +90,7 @@ export default function ChatPage() {
         onClose={() => setIsSidebarOpen(false)}
       />
       <ChatMainView
-        conversation={null}
+        messages={currentMessages}
         onSendMessage={handleSendMessage}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
@@ -88,17 +119,6 @@ export default function ChatPage() {
           </button>
         </div>
       )}
-
-      {/* Test Logout (only when authenticated) */}
-      {/* {!loading && user && (
-        <button
-          onClick={() => signOut.mutate()}
-          disabled={signOut.isPending}
-          className="fixed top-4 right-8 px-6 py-2 bg-neutral-10 text-white rounded-full body-16-semi shadow-lg hover:bg-neutral-9 hover:scale-105 transition-all duration-200 z-40"
-        >
-          {signOut.isPending ? 'Signing out...' : 'Test Logout'}
-        </button>
-      )} */}
 
       {/* Auth Modal */}
       <AuthModal
