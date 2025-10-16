@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@heroui/react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '../icons';
 
 export default function AuthStatus() {
   const { user } = useAuth();

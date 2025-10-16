@@ -12,7 +12,7 @@ import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
 import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
 import { createTempSession, getTempSessionId, sendFirstMessage } from '@/lib/auth';
 import { useSendMessage } from '@/features/chat/hooks/useSendMessage';
-import { Menu } from 'lucide-react';
+import { Menu } from '@/components/icons';
 
 export default function ChatPage() {
   const { user, loading } = useAuth();

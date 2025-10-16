@@ -612,3 +612,225 @@ export const KyrahAI: React.FC<IconSvgProps> = ({
     </defs>
   </svg>
 );
+
+export const Settings: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width={width}
+  height={height}
+  viewBox="0 0 24 24"
+  fill={fill}
+  stroke="currentColor"
+  strokeWidth={2}
+  strokeLinecap="round"
+  strokeLinejoin="round"
+  className="lucide lucide-settings-icon lucide-settings"
+  {...props}
+>
+  <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+  <circle cx={12} cy={12} r={3} />
+</svg>
+);
+
+export const LogOut: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-log-out-icon lucide-log-out"
+    {...props}
+  >
+    <path d="m16 17 5-5-5-5" />
+    <path d="M21 12H9" />
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+  </svg>
+);
+
+export const UserCircle: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-circle-user-icon lucide-circle-user"
+    {...props}
+  >
+    <circle cx={12} cy={12} r={10} />
+    <circle cx={12} cy={10} r={3} />
+    <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
+  </svg>
+);
+
+export const Shield: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-shield-icon lucide-shield"
+    {...props}
+  >
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  </svg>
+);
+
+export const Download: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-download-icon lucide-download"
+    {...props}
+  >
+    <path d="M12 15V3" />
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="m7 10 5 5 5-5" />
+  </svg>
+);
+
+export const MessageSquare: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-message-square-icon lucide-message-square"
+    {...props}
+  >
+    <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+export const Globe: React.FC<IconSvgProps> = ({
+  width = 20,
+  height = 20,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-globe-icon lucide-globe"
+    {...props}
+  >
+    <circle cx={12} cy={12} r={10} />
+    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+    <path d="M2 12h20" />
+  </svg>
+);
+
+export const Clock: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock-icon lucide-clock"  {...props}><path d="M12 6v6l4 2" /><circle cx="12" cy="12" r="10" /></svg>
+);
+
+export const HeartHandshake: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={width}
+    height={height}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="lucide lucide-heart-handshake-icon lucide-heart-handshake"
+    {...props}
+  >
+    <path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762" />
+  </svg>
+);
+
+export const Menu: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+  ...props
+}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-menu-icon lucide-menu" {...props}><path d="M4 5h16" /><path d="M4 12h16" /><path d="M4 19h16" /></svg>
+);
+
+export const AlertTriangle: React.FC<IconSvgProps> = ({
+  width = 24,
+  height = 24,
+  fill = 'none',
+}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-triangle-alert-icon lucide-triangle-alert">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+    <path d="M12 9v4" />
+    <path d="M12 17h.01" />
+  </svg>
+);
