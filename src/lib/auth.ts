@@ -867,6 +867,50 @@ export async function updateUserPreferences(
 }
 
 /**
+ * Update user display name
+ * @param displayName - New display name
+ * @returns Updated user
+ * @throws {AuthError} If not authenticated or update fails
+ */
+export async function updateUserDisplayName(displayName: string): Promise<SupabaseUser> {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new AuthError('Not authenticated', 'NOT_AUTHENTICATED', 401);
+    }
+
+    // Update user metadata in Supabase Auth
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        display_name: displayName,
+      },
+    });
+
+    if (error) {
+      throw new AuthError(
+        'Failed to update display name',
+        error.status?.toString(),
+        error.status
+      );
+    }
+
+    if (!data.user) {
+      throw new AuthError('Update returned no user', 'NO_USER', 500);
+    }
+
+    return data.user as SupabaseUser;
+  } catch (error) {
+    console.error('Error updating display name:', error);
+    throw error instanceof AuthError
+      ? error
+      : new AuthError('Failed to update display name');
+  }
+}
+
+/**
  * Get user preferences
  * @returns User preferences or null if not authenticated
  */

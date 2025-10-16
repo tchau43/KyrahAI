@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@heroui/react';
 import ChatSidebarHeader from './ChatSidebarHeader';
 import ChatHistory from './ChatHistory';
 import ChatSidebarFooter from './ChatSidebarFooter';
+import { supabase } from '@/lib/supabase';
 import { Session } from '@/types/auth.types';
+import { XIcon } from '@/components/icons';
 
 interface ChatSidebarProps {
   sessions: Session[];
@@ -25,60 +27,94 @@ export default function ChatSidebar({
   onClose,
 }: ChatSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hasUser, setHasUser] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setHasUser(!!data.session));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setHasUser(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (!hasUser) return null;
 
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 pointer-events-auto xl:hidden"
           onClick={onClose}
+          aria-hidden
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 z-50 bg-neutral flex flex-col border-r border-neutral-2 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-72'
-          } ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`
+          fixed xl:relative inset-y-0 left-0 z-50 bg-neutral flex flex-col border-r border-neutral-2 
+          transition-all duration-300
+          ${isCollapsed ? 'xl:w-16' : 'w-72 xl:w-72'}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'}
+        `}
       >
-        {!isCollapsed && (
-          <>
-            <ChatSidebarHeader
-              onNewChat={onNewChat}
-              onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
-            />
-            <ChatHistory
-              sessions={sessions}
-              activeSessionId={activeSessionId}
-              onSelectSession={onSelectSession}
-            />
-            <ChatSidebarFooter />
-          </>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 xl:hidden p-2 rounded-full hover:bg-neutral-2 transition-colors z-10"
+          aria-label="Close sidebar"
+        >
+          <XIcon size={20} className="text-neutral-9" />
+        </button>
+
+        <div className={isCollapsed ? 'hidden xl:hidden' : ''}>
+          <ChatSidebarHeader
+            onNewChat={onNewChat}
+            onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
+            showCollapseButton={true}
+          />
+        </div>
+
+        {isCollapsed && (
+          <div className="p-4">
+            <div className="flex items-center justify-center mb-10 relative">
+              <Button
+                isIconOnly
+                variant="light"
+                className="hidden xl:flex"
+                onPress={() => setIsCollapsed(false)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="rotate-180"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                </svg>
+              </Button>
+            </div>
+          </div>
         )}
 
-        {/* Collapse/Expand Button */}
-        <Button
-          isIconOnly
-          variant="light"
-          className={`absolute top-2 ${isCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-4'} z-10`}
-          onPress={() => setIsCollapsed(!isCollapsed)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`}
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="9" y1="3" x2="9" y2="21"></line>
-          </svg>
-        </Button>
+        <div className={isCollapsed ? 'hidden xl:hidden flex-1 min-h-0' : 'flex-1 min-h-0'}>
+          <ChatHistory
+            sessions={sessions}
+            activeSessionId={activeSessionId}
+            onSelectSession={onSelectSession}
+          />
+        </div>
+
+        {isCollapsed && <div className="flex-1" />}
+
+        <ChatSidebarFooter isCollapsed={isCollapsed} />
       </aside>
     </>
   );

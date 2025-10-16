@@ -59,7 +59,7 @@ export default function ChatMainView({
   const hasMessages = messages && messages.length > 0;
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-neutral relative">
+    <div className="flex-1 flex flex-col h-screen bg-neutral relative overflow-hidden">
       {hasMessages ? (
         <>
           {/* Messages */}
@@ -72,54 +72,56 @@ export default function ChatMainView({
             </div>
           </div>
 
-          {/* Input */}
-          <div className="absolute bottom-0 left-0 right-0 pb-4 bg-gradient-to-t from-neutral via-neutral/95 to-transparent">
-            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-              <div
-                className={`w-full bg-white border border-neutral-3 ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
-                  } p-[0.625rem] min-h-[2.25rem] flex items-center`}
-              >
-                <textarea
-                  aria-label="Message input"
-                  ref={textareaRef}
-                  value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  rows={1}
-                  className="flex-1 resize-none outline-none body-16-regular text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto pl-4"
-                />
-              </div>
-              <p className="text-xs text-neutral-6 text-center mt-2">
-                Press Enter to send, Shift+Enter for new line
-              </p>
-            </form>
+          <div className="absolute bottom-0 left-0 right-0 pb-3 md:pb-4 lg:pb-6 bg-neutral">
+            <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12">
+              <form onSubmit={handleSubmit} className="max-w-full md:max-w-[85%] lg:max-w-[75%] xl:max-w-[75%] mx-auto">
+                <div
+                  className={`w-full bg-white border border-neutral-3 shadow-lg ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
+                    } p-2 md:p-[0.625rem] min-h-[2.25rem] flex items-center`}
+                >
+                  <textarea
+                    aria-label="Message input"
+                    ref={textareaRef}
+                    value={inputValue}
+                    onChange={e => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type your message..."
+                    rows={1}
+                    className="flex-1 resize-none outline-none caption-14-regular md:!text-[16px] text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto pl-3 md:pl-4"
+                  />
+                </div>
+                <p className="caption-12-regular md:!text-[14px] text-neutral-6 text-center mt-1.5 md:mt-2">
+                  Press Enter to send, Shift+Enter for new line
+                </p>
+              </form>
+            </div>
           </div>
         </>
       ) : (
         <>
-          {/* Empty State - Centered */}
-          <div className="flex-1 flex flex-col items-center justify-center px-6">
-            <h1 className="heading-32 text-neutral-9 mb-12 text-center">
+          <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 lg:px-8 pb-[120px]">
+            <h1 className="heading-32 text-neutral-9 mb-8 md:mb-10 lg:mb-12 text-center">
               What can I help you with?
             </h1>
-            <form onSubmit={handleSubmit} className="w-full max-w-2xl">
-              <div
-                className={`w-full bg-white border border-neutral-3 shadow-sm ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
-                  } p-[0.625rem] min-h-[2.25rem] flex items-center`}
-              >
-                <textarea
-                  aria-label="Message input"
-                  ref={textareaRef}
-                  value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask anything..."
-                  rows={1}
-                  className="flex-1 resize-none outline-none body-16-regular text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto px-4"
-                />
-              </div>
-            </form>
+            <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12">
+              <form onSubmit={handleSubmit} className="max-w-full md:max-w-[85%] lg:max-w-[75%] xl:max-w-[70%] mx-auto">
+                <div
+                  className={`w-full bg-white border border-neutral-3 shadow-sm ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
+                    } p-2 md:p-[0.625rem] min-h-[2.25rem] flex items-center`}
+                >
+                  <textarea
+                    aria-label="Message input"
+                    ref={textareaRef}
+                    value={inputValue}
+                    onChange={e => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask anything..."
+                    rows={1}
+                    className="flex-1 resize-none outline-none caption-14-regular md:!text-[16px] text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto px-3 md:px-4"
+                  />
+                </div>
+              </form>
+            </div>
           </div>
         </>
       )}

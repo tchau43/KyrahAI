@@ -55,15 +55,22 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
   const error = signUp.error || signIn.error;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[1px]" onClick={onClose}>
-      <div className="relative w-full max-w-md bg-neutral rounded-3xl p-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[1px] p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-md bg-neutral rounded-2xl md:rounded-3xl p-6 md:p-8 xl:p-10 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-2 transition-colors"
+          className="absolute top-3 right-3 md:top-4 md:right-4 p-2 rounded-full hover:bg-neutral-2 transition-colors"
+          aria-label="Close modal"
         >
           <svg
-            className="w-6 h-6 text-neutral-9"
+            className="w-5 h-5 md:w-6 md:h-6 text-neutral-9"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -78,11 +85,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
         </button>
 
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="heading-32 text-neutral-10 mb-2">
+        <div className="mb-4 md:mb-6">
+          <h2 className="heading-28 md:!heading-32 text-neutral-10 mb-1 md:mb-2">
             {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className="body-16-regular text-neutral-6">
+          <p className="caption-14-regular md:!body-16-regular text-neutral-6">
             {mode === 'signup'
               ? 'Sign up to save your conversations'
               : 'Sign in to continue chatting'}
@@ -90,12 +97,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
           {/* input fields */}
-          <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-col gap-3 md:gap-4 mb-6 md:mb-8">
             {/* Email Input */}
             <div>
-              <label className="block body-16-semi text-neutral-10 mb-2">
+              <label className="block caption-14-semi md:!body-16-semi text-neutral-10 mb-1.5 md:mb-2">
                 Email
               </label>
               <input
@@ -103,14 +110,14 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 caption-14-regular md:!body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
                 placeholder="your@email.com"
               />
             </div>
 
             {/* Password Input */}
             <div>
-              <label className="block body-16-semi text-neutral-10 mb-2">
+              <label className="block caption-14-semi md:!body-16-semi text-neutral-10 mb-1.5 md:mb-2">
                 Password
               </label>
               <input
@@ -119,7 +126,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 caption-14-regular md:!body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -127,7 +134,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
             {/* Confirm Password */}
             {mode === 'signup' && (
               <div>
-                <label className="block body-16-semi text-neutral-10 mb-2">
+                <label className="block caption-14-semi md:!body-16-semi text-neutral-10 mb-1.5 md:mb-2">
                   Confirm Password
                 </label>
                 <input
@@ -136,7 +143,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                  className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 caption-14-regular md:!body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -144,8 +151,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
 
             {/* Error Message */}
             {error && (
-              <div className="p-3 rounded-xl bg-error-4 border border-error-3">
-                <p className="caption-14-regular text-error-1">
+              <div className="p-2.5 md:p-3 rounded-xl bg-error-4 border border-error-3">
+                <p className="caption-12-regular md:!caption-14-regular text-error-1">
                   {error.message || 'Something went wrong. Please try again.'}
                 </p>
               </div>
@@ -156,7 +163,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
           <button
             type="submit"
             disabled={isPending}
-            className="w-full py-3 rounded-xl bg-secondary-2 text-white body-16-semi hover:bg-secondary-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2.5 md:py-3 rounded-xl bg-secondary-2 text-white caption-14-semi md:!body-16-semi hover:bg-secondary-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending
               ? mode === 'signup'
@@ -169,12 +176,12 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
         </form>
 
         {/* Toggle Mode */}
-        <div className="mt-6 text-center">
-          <p className="body-16-regular text-neutral-6">
+        <div className="mt-4 md:mt-6 text-center">
+          <p className="caption-14-regular md:!body-16-regular text-neutral-6">
             {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
             <button
               onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
-              className="ml-2 body-16-semi text-secondary-2 hover:text-secondary-1 transition-colors"
+              className="ml-2 caption-14-semi md:!body-16-semi text-secondary-2 hover:text-secondary-1 transition-colors"
             >
               {mode === 'signup' ? 'Sign In' : 'Sign Up'}
             </button>
@@ -184,4 +191,3 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
     </div>
   );
 }
-

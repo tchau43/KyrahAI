@@ -1,10 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ExitIcon } from './icons';
+import { ExitIcon, KyrahAI } from './icons';
 import MenuBar from '@/features/homepage/components/MenuBar';
 
 interface NavItem {
@@ -124,16 +123,7 @@ export default function Navbar() {
           {/* Logo and Brand */}
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="/kyrah-logo.svg"
-                alt="Kyrah Logo"
-                width={40}
-                height={40}
-                className="size-6 xl:size-8"
-              />
-              <span className="xl:text-3xl text-2xl font-inder text-neutral-9 font-normal">
-                KYRAH.AI
-              </span>
+              <KyrahAI />
             </Link>
           </div>
 
