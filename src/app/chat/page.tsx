@@ -29,7 +29,7 @@ interface OptimisticMessage {
 
 export default function ChatPage() {
   const { user, loading } = useAuth();
-  console.log('user', user);
+  // console.log('user', user);
   const startAnon = useStartAnonymousSession();
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -53,8 +53,10 @@ export default function ChatPage() {
     }
   }, []); // Run only once on mount
 
-  const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>ChatPage user', user);
 
+  const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>ChatPage sessions', sessions);
   // Fetch messages for active session
   const { data: messagesData, isLoading: messagesLoading } = useGetSessionMessages({
     sessionId: activeSessionId || '',
@@ -155,7 +157,7 @@ export default function ChatPage() {
 
     try {
       // 3. Stream the response from API
-      await streamChatResponse(currentSessionId, content, tempSessionId !== null, assistantMsgId);
+      await streamChatResponse(currentSessionId, content, tempSessionId !== null, assistantMsgId, userMsgId);
 
       // 4. After streaming completes, we do NOT immediately refetch.
       // Optimistic messages were replaced with saved DB records (same message_id),
@@ -185,7 +187,8 @@ export default function ChatPage() {
     sessionId: string,
     userMessage: string,
     isFirstMessage: boolean,
-    assistantMsgId: string
+    assistantMsgId: string,
+    userMsgId: string
   ) => {
     const authToken = await getAuthToken();
     const isJwt = typeof authToken === 'string' && authToken.split('.').length === 3;
@@ -257,30 +260,24 @@ export default function ChatPage() {
             const savedUser = data.userMessage as Message;
             const savedAssistant = data.assistantMessage as Message;
 
-            setOptimisticMessages(prev => {
-              return prev
-                .map(msg => {
-                  if (msg.message_id === assistantMsgId) {
-                    // Replace streaming assistant with saved assistant record
-                    return {
-                      ...savedAssistant,
-                      isOptimistic: false,
-                      isStreaming: false,
-                    } as unknown as OptimisticMessage;
-                  }
-                  return msg;
-                })
-                .map(msg => {
-                  // Also replace the optimistic user message if it exists (by role/content match)
-                  if (msg.role === 'user' && msg.content === userMessage) {
-                    return {
-                      ...savedUser,
-                      isOptimistic: false,
-                    } as unknown as OptimisticMessage;
-                  }
-                  return msg;
-                });
-            });
+            setOptimisticMessages(prev =>
+              prev.map(msg => {
+                if (msg.message_id === assistantMsgId) {
+                  return {
+                    ...savedAssistant,
+                    isOptimistic: false,
+                    isStreaming: false,
+                  } as unknown as OptimisticMessage;
+                }
+                if (msg.message_id === userMsgId) {
+                  return {
+                    ...savedUser,
+                    isOptimistic: false,
+                  } as unknown as OptimisticMessage;
+                }
+                return msg;
+              }),
+            );
           } else if (data.type === 'error') {
             throw new Error(data.error);
           }
@@ -307,7 +304,7 @@ export default function ChatPage() {
   // Restore active session on page load/refresh
   useEffect(() => {
     if (hasRestoredSessionRef.current) return;
-    if (loading) return; // Wait for auth to load
+    if (loading || sessionsLoading) return; // Wait for auth and sessions to load
 
     hasRestoredSessionRef.current = true;
 

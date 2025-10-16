@@ -17,6 +17,7 @@ export default function ChatHistory({
   onSelectSession,
 }: ChatHistoryProps) {
   const [nonEmptySessionIds, setNonEmptySessionIds] = useState<Set<string>>(new Set());
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessions', sessions);
 
   useEffect(() => {
     let isMounted = true;

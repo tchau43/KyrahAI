@@ -567,6 +567,7 @@ export async function convertAnonymousToAuthenticated(
 // ============================================
 
 export async function getUserSessions(userId: string): Promise<Session[]> {
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>getUserSessions userId', userId);
   if (!userId) {
     return [];
   }
@@ -575,10 +576,13 @@ export async function getUserSessions(userId: string): Promise<Session[]> {
     .select('*')
     .eq('user_id', userId)
     .is('deleted_at', null)
-    .order('last_activity_at', { ascending: false });
+    .order('last_activity_at', { ascending: false })
+
   if (error) {
     throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
   }
+
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>getUserSessions data', data);
   return data || [];
 }
 

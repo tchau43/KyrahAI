@@ -18,15 +18,10 @@ interface ChatRequestBody {
   sessionId: string;
   userMessage: string;
   isFirstMessage?: boolean;
-  user?: {
-    id?: string;
-    email?: string;
-    isAuthenticated: boolean;
-  };
 }
 
 export async function POST(request: NextRequest) {
-  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>POST');
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>POST');
   // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>request', request);
   const encoder = new TextEncoder();
 
@@ -41,7 +36,27 @@ export async function POST(request: NextRequest) {
     const authenticatedSupabase = authToken ? createAuthenticatedSupabaseClient(authToken) : null;
 
     const body: ChatRequestBody = await request.json();
-    const { sessionId, userMessage, isFirstMessage = false, user: userInfo } = body;
+    const { sessionId, userMessage, isFirstMessage = false } = body;
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessionId', sessionId);
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>userMessage', userMessage);
+    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>isFirstMessage', isFirstMessage);
+
+    // Authenticate user from JWT token if present
+    let authenticatedUserId: string | null = null;
+    if (authToken) {
+      const { data: userResponse, error: userErr } = await authenticatedSupabase!.auth.getUser();
+      if (userErr) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid auth token' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      authenticatedUserId = userResponse.user?.id ?? null;
+    }
+
+    const currentUserId = authenticatedUserId;
+    const dbClient = currentUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
+
 
     if (!sessionId || !userMessage) {
       return new Response(
@@ -51,20 +66,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate session ownership/access - for first message, create session if doesn't exist
-    let { data: sessionRow, error: sessionErr } = await supabase
+    let { data: sessionRow, error: sessionErr } = await dbClient
       .from('sessions')
-      .select('session_id, user_id, is_anonymous, auth_type')
+      .select('*')
       .eq('session_id', sessionId)
       .maybeSingle();
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessionRow', sessionRow);
 
     // If session doesn't exist and this is first message, create it
     if (!sessionRow && isFirstMessage) {
       // console.log('Creating session for first message:', sessionId);
-      const currentUserId = userInfo?.isAuthenticated ? userInfo.id : null;
-      // console.log('User info from request:', { userInfo, currentUserId });
+      // console.log('User info from JWT:', { authenticatedUserId, currentUserId });
 
       // Double-check session doesn't exist (in case of race condition)
-      const { data: doubleCheckSession } = await supabase
+      const { data: doubleCheckSession } = await dbClient
         .from('sessions')
         .select('session_id, user_id, is_anonymous, auth_type')
         .eq('session_id', sessionId)
@@ -80,7 +95,6 @@ export async function POST(request: NextRequest) {
         // console.log('Creating session with:', { sessionId, currentUserId, isAnonymous });
 
         // Use authenticated client for authenticated users, regular client for anonymous
-        const dbClient = currentUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
         // console.log('Using DB client:', { hasAuth: !!authenticatedSupabase, isAnonymous });
 
         const { data: newSession, error: createErr } = await dbClient
@@ -126,12 +140,13 @@ export async function POST(request: NextRequest) {
         if (isAnonymous) {
           const tokenId = anonHeader || '';
           if (tokenId) {
+            const hashedToken = hashToken(tokenId);
             const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
             // console.log('Creating anonymous token for session:', { sessionId, tokenId });
             const { error: tokenErr } = await dbClient
               .from('anonymous_session_tokens')
               .insert({
-                token_id: tokenId,
+                token_id: hashedToken,
                 session_id: sessionId,
                 expires_at: expiresAt,
                 user_agent: request.headers.get('user-agent') || null,
@@ -150,6 +165,7 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
 
     if (sessionErr && sessionErr.code !== 'PGRST116') {
       console.error('Session query error:', {
@@ -179,7 +195,7 @@ export async function POST(request: NextRequest) {
 
     // Authenticated pathway - check if user is authenticated and session belongs to them
     if (!isAnonymousSession) {
-      if (!userInfo?.isAuthenticated || !userInfo?.id) {
+      if (!authenticatedUserId) {
         return new Response(
           JSON.stringify({ error: 'User not authenticated' }),
           { status: 401, headers: { 'Content-Type': 'application/json' } }
@@ -187,7 +203,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Verify session belongs to the authenticated user
-      if (sessionRow.user_id !== userInfo.id) {
+      if (sessionRow.user_id !== authenticatedUserId) {
         return new Response(
           JSON.stringify({ error: 'Session does not belong to user' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -206,11 +222,12 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate token for non-first messages
+      const hashedToken = hashToken(tokenId);
       const { data: tokenRow } = await supabase
         .from('anonymous_session_tokens')
         .select('token_id, session_id, expires_at')
         .eq('session_id', sessionId)
-        .eq('token_id', tokenId)
+        .eq('token_id', hashedToken)
         .maybeSingle();
 
       if (!tokenRow || new Date(tokenRow.expires_at) < new Date()) {
@@ -254,6 +271,7 @@ export async function POST(request: NextRequest) {
     // Create readable stream for SSE
     const stream = new ReadableStream({
       async start(controller) {
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>start');
         try {
           let fullContent = '';
           let promptTokens = 0;
@@ -277,7 +295,8 @@ export async function POST(request: NextRequest) {
           completionTokens = streamResult.completionTokens;
 
           // Save messages to database after streaming completes
-          const dbClient = authenticatedSupabase ?? supabase;
+          // Use authenticated client for authenticated users, regular client for anonymous
+          const dbClient = authenticatedUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
 
           // Save user message
           const { data: savedUserMessage, error: userMsgErr } = await dbClient
@@ -290,6 +309,7 @@ export async function POST(request: NextRequest) {
             })
             .select()
             .single();
+          console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>savedUserMessage', savedUserMessage);
 
           if (userMsgErr || !savedUserMessage) {
             console.error('Error saving user message:', userMsgErr);

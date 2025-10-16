@@ -28,6 +28,7 @@ export default function ChatSidebar({
 }: ChatSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hasUser, setHasUser] = useState(false);
+  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>ChatSidebar sessions', sessions);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setHasUser(!!data.session));

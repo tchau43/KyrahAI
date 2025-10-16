@@ -19,6 +19,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const signUp = useSignUpWithEmail();
   const signIn = useSignInWithEmail();
@@ -33,6 +34,11 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
     e.preventDefault();
 
     if (mode === 'signup') {
+      if (password !== confirmPassword) {
+        signUp.reset();
+        signIn.reset();
+        return setFormError('Passwords do not match');
+      }
       signUp.mutate({ email, password });
     } else {
       signIn.mutate({ email, password });
@@ -43,6 +49,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
+    setFormError(null);
   };
 
   const switchMode = (newMode: 'signin' | 'signup') => {
@@ -53,8 +60,16 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
     signIn.reset();
   };
 
+  // Clear form error when mutations succeed
+  useEffect(() => {
+    if (signUp.isSuccess || signIn.isSuccess) {
+      setFormError(null);
+    }
+  }, [signUp.isSuccess, signIn.isSuccess]);
+
   const isPending = signUp.isPending || signIn.isPending;
   const error = signUp.error || signIn.error;
+  const displayError = formError || error;
 
   return (
     <Modal
@@ -131,10 +146,10 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
                 </div>
               )}
 
-              {error && (
+              {displayError && (
                 <div className="p-3 rounded-xl bg-error-4 border border-error-3 mt-2">
                   <p className="caption-14-regular text-error-1">
-                    {error.message || 'Something went wrong. Please try again.'}
+                    {formError || (error?.message || 'Something went wrong. Please try again.')}
                   </p>
                 </div>
               )}
