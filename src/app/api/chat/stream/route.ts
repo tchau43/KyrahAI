@@ -18,9 +18,16 @@ interface ChatRequestBody {
   sessionId: string;
   userMessage: string;
   isFirstMessage?: boolean;
+  user?: {
+    id?: string;
+    email?: string;
+    isAuthenticated: boolean;
+  };
 }
 
 export async function POST(request: NextRequest) {
+  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>POST');
+  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>request', request);
   const encoder = new TextEncoder();
 
   try {
@@ -34,7 +41,7 @@ export async function POST(request: NextRequest) {
     const authenticatedSupabase = authToken ? createAuthenticatedSupabaseClient(authToken) : null;
 
     const body: ChatRequestBody = await request.json();
-    const { sessionId, userMessage, isFirstMessage = false } = body;
+    const { sessionId, userMessage, isFirstMessage = false, user: userInfo } = body;
 
     if (!sessionId || !userMessage) {
       return new Response(
@@ -52,11 +59,9 @@ export async function POST(request: NextRequest) {
 
     // If session doesn't exist and this is first message, create it
     if (!sessionRow && isFirstMessage) {
-      console.log('Creating session for first message:', sessionId);
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
-      const currentUserId = authUser?.id ?? null;
+      // console.log('Creating session for first message:', sessionId);
+      const currentUserId = userInfo?.isAuthenticated ? userInfo.id : null;
+      // console.log('User info from request:', { userInfo, currentUserId });
 
       // Double-check session doesn't exist (in case of race condition)
       const { data: doubleCheckSession } = await supabase
@@ -67,12 +72,18 @@ export async function POST(request: NextRequest) {
 
       if (doubleCheckSession) {
         // Session was created by another request, use it
-        console.log('Session created by concurrent request, using it');
+        // console.log('Session created by concurrent request, using it');
         sessionRow = doubleCheckSession;
       } else {
         // Safe to create now
         const isAnonymous = !currentUserId;
-        const { data: newSession, error: createErr } = await supabase
+        // console.log('Creating session with:', { sessionId, currentUserId, isAnonymous });
+
+        // Use authenticated client for authenticated users, regular client for anonymous
+        const dbClient = currentUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
+        // console.log('Using DB client:', { hasAuth: !!authenticatedSupabase, isAnonymous });
+
+        const { data: newSession, error: createErr } = await dbClient
           .from('sessions')
           .insert({
             session_id: sessionId,
@@ -87,6 +98,8 @@ export async function POST(request: NextRequest) {
           })
           .select()
           .single();
+
+        // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>newSession', newSession);
 
         if (createErr) {
           console.error('Failed to create session:', createErr);
@@ -114,7 +127,8 @@ export async function POST(request: NextRequest) {
           const tokenId = anonHeader || '';
           if (tokenId) {
             const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-            const { error: tokenErr } = await supabase
+            // console.log('Creating anonymous token for session:', { sessionId, tokenId });
+            const { error: tokenErr } = await dbClient
               .from('anonymous_session_tokens')
               .insert({
                 token_id: tokenId,
@@ -127,7 +141,11 @@ export async function POST(request: NextRequest) {
             if (tokenErr) {
               console.error('Failed to create anonymous token:', tokenErr);
               // Don't fail the request, but log the error
+            } else {
+              console.log('Anonymous token created successfully:', { sessionId, tokenId });
             }
+          } else {
+            console.warn('Anonymous session created but no token provided in X-Anonymous-Token header');
           }
         }
       }
@@ -159,12 +177,22 @@ export async function POST(request: NextRequest) {
 
     const isAnonymousSession = sessionRow?.is_anonymous ?? true;
 
-    // Authenticated pathway
-    if (!isAnonymousSession && !authenticatedSupabase) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authentication token' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+    // Authenticated pathway - check if user is authenticated and session belongs to them
+    if (!isAnonymousSession) {
+      if (!userInfo?.isAuthenticated || !userInfo?.id) {
+        return new Response(
+          JSON.stringify({ error: 'User not authenticated' }),
+          { status: 401, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Verify session belongs to the authenticated user
+      if (sessionRow.user_id !== userInfo.id) {
+        return new Response(
+          JSON.stringify({ error: 'Session does not belong to user' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Anonymous pathway - validate token (skip for first message, token will be created)
@@ -285,15 +313,28 @@ export async function POST(request: NextRequest) {
             throw new Error(`Failed to save assistant message: ${assistantMsgErr?.message || 'Unknown error'}`);
           }
 
-          // Update session last_activity_at
+          // Update session last_activity_at and generate title from first message
+          const updateData: { last_activity_at: string; title?: string } = {
+            last_activity_at: new Date().toISOString(),
+          };
+
+          // If this is the first message, set a title based on the user message
+          if (isFirstMessage) {
+            const title = userMessage.slice(0, 50) + (userMessage.length > 50 ? '...' : '');
+            updateData.title = title;
+            console.log('Setting session title:', { sessionId, title });
+          }
+
           const { error: updateErr } = await dbClient
             .from('sessions')
-            .update({ last_activity_at: new Date().toISOString() })
+            .update(updateData)
             .eq('session_id', sessionId);
 
           if (updateErr) {
             console.error('Error updating session activity:', updateErr);
             // Don't throw, this is not critical
+          } else if (isFirstMessage) {
+            console.log('Session created and title set successfully');
           }
 
           // Send completion event with saved message data

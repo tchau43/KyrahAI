@@ -3,14 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useSignUpWithEmail } from '@/features/auth/hooks/useSignUpWithEmail';
 import { useSignInWithEmail } from '@/features/auth/hooks/useSignInWithEmail';
+import { useModalStore } from '@/store/useModalStore';
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Button } from '@heroui/react';
 
 interface AuthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   initialMode?: 'signin' | 'signup';
 }
 
-export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: AuthModalProps) {
+export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
+  const { isModalOpen, closeModal, authMode } = useModalStore();
+  const isOpen = isModalOpen('auth-modal');
+  const onClose = () => closeModal('auth-modal');
+
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,14 +23,11 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
   const signUp = useSignUpWithEmail();
   const signIn = useSignInWithEmail();
 
-  // Sync mode with prop when modal opens
   useEffect(() => {
     if (isOpen) {
-      setMode(initialMode);
+      setMode(authMode ?? initialMode);
     }
-  }, [isOpen, initialMode]);
-
-  if (!isOpen) return null;
+  }, [isOpen, authMode, initialMode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +37,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
     } else {
       signIn.mutate({ email, password });
     }
-
-    onClose();
   };
 
   const resetForm = () => {
@@ -49,135 +48,116 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
   const switchMode = (newMode: 'signin' | 'signup') => {
     setMode(newMode);
     resetForm();
+    // Reset errors when switching modes
+    signUp.reset();
+    signIn.reset();
   };
 
   const isPending = signUp.isPending || signIn.isPending;
   const error = signUp.error || signIn.error;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[1px] p-4"
-      onClick={onClose}
+    <Modal
+      hideCloseButton
+      isDismissable
+      isOpen={isOpen}
+      onClose={onClose}
+      size="md"
+      placement="center"
+      classNames={{
+        wrapper: 'items-center justify-center z-[9999]',
+        backdrop: 'z-[9998]',
+        base: 'bg-neutral rounded-3xl text-neutral-9 mx-4 my-4 z-[9999] w-full max-w-md',
+        header: 'border-b-0',
+        body: 'py-4',
+        footer: 'border-t-0',
+      }}
     >
-      <div
-        className="relative w-full max-w-md bg-neutral rounded-2xl md:rounded-3xl p-6 md:p-8 xl:p-10 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 md:top-4 md:right-4 p-2 rounded-full hover:bg-neutral-2 transition-colors"
-          aria-label="Close modal"
-        >
-          <svg
-            className="w-5 h-5 md:w-6 md:h-6 text-neutral-9"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-
-        {/* Header */}
-        <div className="mb-4 md:mb-6">
-          <h2 className="heading-28 md:!heading-32 text-neutral-10 mb-1 md:mb-2">
+      <ModalContent onClick={(e) => e.stopPropagation()}>
+        <ModalHeader className="flex flex-col gap-1 text-center text-neutral-9 pt-6 pb-0 px-4">
+          <h2 className="heading-32 text-neutral-10">
             {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p className="caption-14-regular md:!body-16-regular text-neutral-6">
-            {mode === 'signup'
-              ? 'Sign up to save your conversations'
-              : 'Sign in to continue chatting'}
+          <p className="body-16-regular text-neutral-6">
+            {mode === 'signup' ? 'Sign up to save your conversations' : 'Sign in to continue chatting'}
           </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-          {/* input fields */}
-          <div className="flex flex-col gap-3 md:gap-4 mb-6 md:mb-8">
-            {/* Email Input */}
-            <div>
-              <label className="block caption-14-semi md:!body-16-semi text-neutral-10 mb-1.5 md:mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 caption-14-regular md:!body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label className="block caption-14-semi md:!body-16-semi text-neutral-10 mb-1.5 md:mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 caption-14-regular md:!body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {/* Confirm Password */}
-            {mode === 'signup' && (
+        </ModalHeader>
+        <ModalBody className="px-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex flex-col gap-4 mb-8">
               <div>
-                <label className="block caption-14-semi md:!body-16-semi text-neutral-10 mb-1.5 md:mb-2">
-                  Confirm Password
+                <label className="block body-16-semi text-neutral-10 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block body-16-semi text-neutral-10 mb-2">
+                  Password
                 </label>
                 <input
                   type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 caption-14-regular md:!body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                  className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
                   placeholder="••••••••"
                 />
               </div>
-            )}
 
-            {/* Error Message */}
-            {error && (
-              <div className="p-2.5 md:p-3 rounded-xl bg-error-4 border border-error-3">
-                <p className="caption-12-regular md:!caption-14-regular text-error-1">
-                  {error.message || 'Something went wrong. Please try again.'}
-                </p>
-              </div>
-            )}
-          </div>
+              {mode === 'signup' && (
+                <div>
+                  <label className="block body-16-semi text-neutral-10 mb-2">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full px-3 py-2.5 md:px-4 md:py-3 rounded-xl bg-neutral-1 border border-neutral-3 text-neutral-10 body-16-regular focus:outline-none focus:ring-2 focus:ring-secondary-2 transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+              )}
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full py-2.5 md:py-3 rounded-xl bg-secondary-2 text-white caption-14-semi md:!body-16-semi hover:bg-secondary-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isPending
-              ? mode === 'signup'
-                ? 'Creating account...'
-                : 'Signing in...'
-              : mode === 'signup'
-                ? 'Create Account'
-                : 'Sign In'}
-          </button>
-        </form>
+              {error && (
+                <div className="p-3 rounded-xl bg-error-4 border border-error-3 mt-2">
+                  <p className="caption-14-regular text-error-1">
+                    {error.message || 'Something went wrong. Please try again.'}
+                  </p>
+                </div>
+              )}
+            </div>
 
-        {/* Toggle Mode */}
-        <div className="mt-4 md:mt-6 text-center">
-          <p className="caption-14-regular md:!body-16-regular text-neutral-6">
+            <Button
+              type="submit"
+              isDisabled={isPending}
+              className="w-full py-6 body-16-semi rounded-full bg-secondary-2 text-white hover:bg-secondary-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              size="lg"
+            >
+              {isPending
+                ? mode === 'signup'
+                  ? 'Creating account...'
+                  : 'Signing in...'
+                : mode === 'signup'
+                  ? 'Create Account'
+                  : 'Sign In'}
+            </Button>
+          </form>
+        </ModalBody>
+        <ModalFooter className="flex flex-col gap-3 pb-8 px-6">
+          <p className="body-16-regular text-neutral-6 text-center">
             {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
             <button
               onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
@@ -186,8 +166,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }: A
               {mode === 'signup' ? 'Sign In' : 'Sign Up'}
             </button>
           </p>
-        </div>
-      </div>
-    </div>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

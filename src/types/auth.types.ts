@@ -118,7 +118,7 @@ export interface AuthResult {
 export interface CurrentSession {
   type: 'authenticated' | 'anonymous';
   user?: SupabaseUser;
-  session: Session;
+  session: Session | null;
   token?: string;
 }
 

@@ -97,9 +97,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function checkSession(): Promise<void> {
     try {
+      console.log('AuthContext: Checking session on mount/refresh');
       const currentSession = await auth.getCurrentSession()
 
       if (currentSession) {
+        console.log('AuthContext: Session found:', {
+          type: currentSession.type,
+          hasUser: !!currentSession.user,
+          hasSession: !!currentSession.session
+        });
         if (currentSession.type === 'authenticated') {
           setUser(currentSession.user!)
           setSession(currentSession.session)
@@ -108,6 +114,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(currentSession.session)
           setAuthType('anonymous')
         }
+      } else {
+        console.log('AuthContext: No session found');
       }
     } catch (error) {
       console.error('Error checking session:', error)
@@ -119,6 +127,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function handleSignIn(authSession: any): Promise<void> {
     setUser(authSession.user as SupabaseUser)
     setAuthType('authenticated')
+
+    // Check if there's an active anonymous session to convert
+    const activeSessionId = typeof window !== 'undefined'
+      ? sessionStorage.getItem('kyrah_active_session_id')
+      : null;
+    const anonToken = typeof window !== 'undefined'
+      ? sessionStorage.getItem('kyrah_anonymous_token')
+      : null;
+
+    if (activeSessionId && anonToken) {
+      try {
+        console.log('Converting anonymous session to authenticated:', activeSessionId);
+        // Convert the anonymous session to authenticated
+        await auth.convertAnonymousToAuthenticated(activeSessionId, anonToken);
+
+        // Fetch the updated session
+        const updatedSession = await auth.getSessionById(activeSessionId);
+        if (updatedSession) {
+          setSession(updatedSession);
+          console.log('Successfully converted and loaded session');
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to convert anonymous session:', error);
+        // Continue with creating new temp session
+      }
+    }
 
     // Create only a temp session id for authenticated user
     const temp = await auth.createTempSession()

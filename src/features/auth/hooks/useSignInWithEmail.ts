@@ -5,11 +5,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getUserSessions } from '@/lib/auth';
+import { useModalStore } from '@/store/useModalStore';
 
 export function useSignInWithEmail() {
   const { signInWithEmail } = useAuth()
   const router = useRouter()
   const queryClient = useQueryClient()
+  const { closeModal } = useModalStore()
 
   return useMutation({
     mutationFn: ({ email, password }: { email: string, password: string }) => signInWithEmail(email, password),
@@ -37,6 +39,8 @@ export function useSignInWithEmail() {
       await queryClient.invalidateQueries({ predicate })
       await queryClient.refetchQueries({ predicate })
 
+      // Close auth modal before navigating
+      closeModal('auth-modal')
       router.push('/chat')
     }
   })

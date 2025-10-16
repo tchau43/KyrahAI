@@ -63,12 +63,23 @@ export default function ChatMainView({
       {hasMessages ? (
         <>
           {/* Messages */}
-          <div className="flex h-full flex-col overflow-y-auto thread-xl:pt-(--header-height) [scrollbar-gutter:stable_both-edges]">
+          {/* <div className="flex h-full flex-col overflow-y-auto thread-xl:pt-(--header-height) [scrollbar-gutter:stable_both-edges]">
             <div className="max-w-3xl mx-auto py-6 pb-32">
               {messages && messages.length > 0 ? messages.map((message, idx) => (
                 <ChatBubble key={`${message.message_id}-${idx}`} message={message} />
               )) : null}
               <div ref={messagesEndRef} />
+            </div>
+          </div> */}
+
+          <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
+            <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 py-4 md:py-6 pb-[180px] md:pb-[200px] lg:pb-[220px]">
+              <div className="max-w-full md:max-w-[85%] lg:max-w-[75%] xl:max-w-[70%] mx-auto">
+                {messages && messages.length > 0 ? messages.map((message, idx) => (
+                  <ChatBubble key={`${message.message_id}-${idx}`} message={message} />
+                )) : null}
+                <div ref={messagesEndRef} />
+              </div>
             </div>
           </div>
 

@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import ChatSidebar from '@/features/chat/components/ChatSidebar';
 import ChatMainView from '@/features/chat/components/ChatMainView';
-import AuthModal from '@/components/modals/AuthModal';
 import AuthStatus from '@/components/auth/AuthStatus';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStartAnonymousSession } from '@/features/auth/hooks/useStartAnonymousSession';
@@ -13,6 +12,7 @@ import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessag
 import { createTempSession, getTempSessionId, clearTempSession } from '@/lib/auth';
 import type { Message } from '@/features/chat/data';
 import { Menu } from 'lucide-react';
+import { useModalStore } from '@/store/useModalStore';
 
 interface OptimisticMessage {
   message_id: string;
@@ -29,12 +29,12 @@ interface OptimisticMessage {
 
 export default function ChatPage() {
   const { user, loading } = useAuth();
+  console.log('user', user);
   const startAnon = useStartAnonymousSession();
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signup');
+  const { openModal } = useModalStore();
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -167,7 +167,10 @@ export default function ChatPage() {
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('kyrah_active_session_id', currentSessionId);
         }
-        await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
+        // Invalidate queries to refresh session list
+        console.log('First message sent, invalidating session queries');
+        await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+        await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -194,6 +197,15 @@ export default function ChatPage() {
       } catch { }
     }
 
+    // Prepare user info for server
+    const userInfo = user ? {
+      id: user.id,
+      email: user.email,
+      isAuthenticated: true,
+    } : {
+      isAuthenticated: false,
+    };
+
     const response = await fetch('/api/chat/stream', {
       method: 'POST',
       headers: {
@@ -205,6 +217,7 @@ export default function ChatPage() {
         sessionId,
         userMessage,
         isFirstMessage,
+        user: userInfo,
       }),
     });
 
@@ -414,26 +427,26 @@ export default function ChatPage() {
       {!loading && !user && (
         <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
           <button
-            onClick={() => { setAuthModalMode('signin'); setIsAuthModalOpen(true); }}
-            className="px-4 py-1.5 md:px-5 md:py-2 xl:px-6 xl:py-2 bg-primary text-white rounded-full caption-12-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
+            onClick={() => {
+              useModalStore.getState().setAuthMode('signin');
+              openModal('auth-modal');
+            }}
+            className="px-6 py-2 bg-primary text-white rounded-full body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
           >
             Sign In
           </button>
           <button
-            onClick={() => { setAuthModalMode('signup'); setIsAuthModalOpen(true); }}
-            className="px-4 py-1.5 md:px-5 md:py-2 xl:px-6 xl:py-2 bg-secondary-2 text-white rounded-full caption-12-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
+            onClick={() => {
+              useModalStore.getState().setAuthMode('signup');
+              openModal('auth-modal');
+            }}
+            className="px-6 py-2 bg-secondary-2 text-white rounded-full body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-2"
           >
             Sign Up
           </button>
         </div>
       )}
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialMode={authModalMode}
-      />
+      {/* Auth Modal is globally mounted via ModalProvider */}
     </div>
   );
 }
