@@ -26,7 +26,7 @@ interface AssistantRunOptions {
 export async function createChatCompletion(options: ChatCompletionOptions) {
   const {
     messages,
-    model = 'gpt-4o-mini',
+    model = 'gpt-4.1-nano',
     temperature = 0.7,
     max_tokens = 1000,
   } = options;
@@ -44,6 +44,65 @@ export async function createChatCompletion(options: ChatCompletionOptions) {
     promptTokens: completion.usage?.prompt_tokens || 0,
     completionTokens: completion.usage?.completion_tokens || 0,
     finishReason: completion.choices[0].finish_reason,
+  };
+}
+
+interface ChatCompletionStreamOptions extends ChatCompletionOptions {
+  onToken?: (token: string) => void;
+}
+
+/**
+ * Call OpenAI Chat Completions API with streaming
+ */
+export async function createChatCompletionStream(options: ChatCompletionStreamOptions) {
+  const {
+    messages,
+    model = 'gpt-4.1-nano',
+    temperature = 0.7,
+    max_tokens = 1000,
+    onToken,
+  } = options;
+
+  const stream = await openai.chat.completions.create({
+    model,
+    messages,
+    temperature,
+    max_tokens,
+    stream: true,
+  });
+
+  let fullContent = '';
+  let promptTokens = 0;
+  let completionTokens = 0;
+
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content || '';
+    if (delta) {
+      fullContent += delta;
+      onToken?.(delta);
+    }
+
+    // Capture token usage if available (usually in last chunk)
+    if (chunk.usage) {
+      promptTokens = chunk.usage.prompt_tokens || 0;
+      completionTokens = chunk.usage.completion_tokens || 0;
+    }
+  }
+
+  // Estimate tokens if not provided (rough estimate: 1 token ≈ 4 characters)
+  if (completionTokens === 0) {
+    completionTokens = Math.ceil(fullContent.length / 4);
+  }
+  if (promptTokens === 0) {
+    const totalPromptLength = messages.reduce((acc, msg) => acc + msg.content.length, 0);
+    promptTokens = Math.ceil(totalPromptLength / 4);
+  }
+
+  return {
+    content: fullContent,
+    tokensUsed: promptTokens + completionTokens,
+    promptTokens,
+    completionTokens,
   };
 }
 
@@ -103,15 +162,11 @@ export async function runAssistant(options: AssistantRunOptions) {
     }
 
     // Wait for completion
-    let runStatus = await openai.beta.threads.runs.retrieve(run.id, {
-      thread_id: thread.id,
-    });
+    let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
 
     while (runStatus.status !== 'completed' && runStatus.status !== 'failed') {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      runStatus = await openai.beta.threads.runs.retrieve(run.id, {
-        thread_id: thread.id,
-      });
+      runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
     }
 
 
@@ -149,7 +204,7 @@ export async function runAssistant(options: AssistantRunOptions) {
 export async function generateSessionTitle(firstMessage: string): Promise<string> {
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1-nano',
       messages: [
         {
           role: 'system',

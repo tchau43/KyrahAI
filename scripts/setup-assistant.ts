@@ -10,7 +10,7 @@ async function main() {
   try {
     const assistantId = await setupAssistant({
       name: 'Kyrah AI Assistant',
-      model: 'gpt-4o-mini',
+      model: 'gpt-4.1-nano',
     });
 
     console.log('\n✅ Assistant setup completed!');

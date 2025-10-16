@@ -14,7 +14,7 @@ interface AssistantSetupOptions {
 export async function setupAssistant(options?: AssistantSetupOptions): Promise<string> {
   const {
     name = 'Kyrah AI Assistant',
-    model = 'gpt-4o-mini',
+    model = 'gpt-4.1-nano',
   } = options || {};
 
   try {

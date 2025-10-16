@@ -8,5 +8,6 @@ export const useGetUserSessions = (userId: string) => {
     queryKey: ['user-sessions', userId],
     queryFn: () => getUserSessions(userId),
     enabled: !!userId,
+    staleTime: 30000, // Cache for 30 seconds
   });
 };

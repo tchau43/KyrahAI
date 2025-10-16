@@ -4,11 +4,12 @@ import { Card, CardBody } from '@heroui/react';
 import { Message } from '../data';
 
 interface ChatBubbleProps {
-  message: Message;
+  message: Message & { isStreaming?: boolean };
 }
 
 export default function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === 'user';
+  const isStreaming = message.isStreaming;
 
   return (
     <div
@@ -26,6 +27,12 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
         <div className="w-full">
           <div className="body-16-regular whitespace-pre-wrap break-words text-neutral-9">
             {message.content}
+            {isStreaming && message.content.length === 0 && (
+              <span className="inline-block w-2 h-4 ml-1 bg-neutral-6 animate-pulse" />
+            )}
+            {isStreaming && message.content.length > 0 && (
+              <span className="inline-block w-1 h-4 ml-1 bg-neutral-6 animate-pulse">▋</span>
+            )}
           </div>
         </div>
       )}

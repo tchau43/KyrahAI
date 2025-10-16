@@ -14,6 +14,7 @@ export interface GetMessagesParams {
   limit?: number;
   offset?: number;
   includeDeleted?: boolean;
+  anonymousToken?: string;
 }
 
 export interface GetMessagesResult {

@@ -5,7 +5,7 @@ import { Message } from '../data';
 import ChatBubble from './ChatBubble';
 
 interface ChatMainViewProps {
-  messages: Message[] | null;
+  messages: (Message & { isStreaming?: boolean })[] | null;
   onSendMessage: (content: string) => void;
   onToggleSidebar: () => void;
 }
@@ -65,9 +65,9 @@ export default function ChatMainView({
           {/* Messages */}
           <div className="flex h-full flex-col overflow-y-auto thread-xl:pt-(--header-height) [scrollbar-gutter:stable_both-edges]">
             <div className="max-w-3xl mx-auto py-6 pb-32">
-              {messages.map(message => (
-                <ChatBubble key={message.message_id} message={message} />
-              ))}
+              {messages && messages.length > 0 ? messages.map((message, idx) => (
+                <ChatBubble key={`${message.message_id}-${idx}`} message={message} />
+              )) : null}
               <div ref={messagesEndRef} />
             </div>
           </div>
