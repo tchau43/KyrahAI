@@ -140,7 +140,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         console.log('Converting anonymous session to authenticated:', activeSessionId);
         // Convert the anonymous session to authenticated
-        await auth.convertAnonymousToAuthenticated(activeSessionId, anonToken);
+        // await auth.convertAnonymousToAuthenticated(activeSessionId, anonToken);
 
         // Fetch the updated session
         const updatedSession = await auth.getSessionById(activeSessionId);

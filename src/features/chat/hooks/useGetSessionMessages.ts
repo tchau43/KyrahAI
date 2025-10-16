@@ -21,6 +21,6 @@ export const useGetSessionMessages = (params: GetMessagesParams) => {
       return data;
     },
     enabled: !!params.sessionId,
-    staleTime: 30000,
+    // staleTime: 30000,
   });
 };

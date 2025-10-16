@@ -2,11 +2,8 @@
 import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { createAuthenticatedSupabaseClient } from '@/lib/supabase';
-import {
-  getConversationHistory,
-  createChatCompletionStream,
-} from '@/lib/openai-helper';
-import { getSystemInstructionsFromDB } from '@/lib/get-system-instructions';
+import { runAssistantStream } from '@/lib/openai-helper';
+import { getAssistantId } from '@/lib/setup-assistant';
 import { hashToken } from '@/lib/crypto';
 
 interface ChatMessage {
@@ -238,51 +235,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get system prompt and conversation history
-    const systemPrompt = await getSystemInstructionsFromDB();
-    const messageHistory = await getConversationHistory(sessionId, 20);
+    // Get assistant ID from environment
+    const assistantId = getAssistantId();
 
-    // Build messages array
-    const messages: ChatMessage[] = [
-      {
-        role: 'system',
-        content: systemPrompt,
-      },
-    ];
-
-    // Add conversation history
-    if (messageHistory.length > 0) {
-      messageHistory.forEach((msg) => {
-        if (msg.role === 'user' || msg.role === 'assistant') {
-          messages.push({
-            role: msg.role,
-            content: msg.content,
-          });
-        }
-      });
-    }
-
-    // Add current user message
-    messages.push({
-      role: 'user',
-      content: userMessage,
-    });
+    // Get thread ID from session (if exists)
+    const threadId = (sessionRow as any).thread_id || null;
 
     // Create readable stream for SSE
     const stream = new ReadableStream({
       async start(controller) {
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>start');
+        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>start streaming with Assistant API');
         try {
           let fullContent = '';
           let promptTokens = 0;
           let completionTokens = 0;
+          let newThreadId = threadId;
 
-          // Stream the AI response
-          const streamResult = await createChatCompletionStream({
-            messages,
-            model: 'gpt-4.1-nano',
-            temperature: 0.7,
-            max_tokens: 1000,
+          // Stream the AI response using Assistant API
+          const streamResult = await runAssistantStream({
+            assistantId,
+            threadId: threadId || undefined,
+            message: userMessage,
             onToken: (token: string) => {
               fullContent += token;
               // Send token to client
@@ -291,8 +264,10 @@ export async function POST(request: NextRequest) {
             },
           });
 
+          fullContent = streamResult.content;
           promptTokens = streamResult.promptTokens;
           completionTokens = streamResult.completionTokens;
+          newThreadId = streamResult.threadId;
 
           // Save messages to database after streaming completes
           // Use authenticated client for authenticated users, regular client for anonymous
@@ -333,14 +308,14 @@ export async function POST(request: NextRequest) {
             throw new Error(`Failed to save assistant message: ${assistantMsgErr?.message || 'Unknown error'}`);
           }
 
-          // Update session last_activity_at and generate title from first message
+          // Update session last_activity_at, thread_id, and generate title from first message
           const updateData: { last_activity_at: string; title?: string } = {
             last_activity_at: new Date().toISOString(),
           };
 
           // If this is the first message, set a title based on the user message
           if (isFirstMessage) {
-            const title = userMessage.slice(0, 50) + (userMessage.length > 50 ? '...' : '');
+            const title = `Conversation at ${new Date()}`;
             updateData.title = title;
             console.log('Setting session title:', { sessionId, title });
           }

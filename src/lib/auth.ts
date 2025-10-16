@@ -611,7 +611,7 @@ export async function getOrCreateReusableAuthenticatedSession(userId: string): P
     .from('sessions')
     .select('session_id')
     .eq('user_id', userId)
-    .is('deleted_at', null)
+    // .is('deleted_at', null)
     .order('created_at', { ascending: true });
 
   if (!existingError && existingSessions && existingSessions.length > 0) {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface MenuBarProps {
   setIsMenuOpen: (isMenuOpen: boolean) => void;
@@ -25,6 +25,12 @@ const navigationItems: NavItem[] = [
 ];
 
 const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Lock body scroll when menu is open
   useEffect(() => {
     if (isMenuOpen) {
@@ -39,7 +45,7 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
     }
   }, [isMenuOpen]);
 
-  if (!isMenuOpen && typeof document === 'undefined') return null;
+  if (!isMounted) return null;
 
   return createPortal(<div className={`fixed inset-0 z-[100] bg-black/50 backdrop-blur-[2px] transition-all duration-300 ease-in-out ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
     onClick={() => setIsMenuOpen(false)}

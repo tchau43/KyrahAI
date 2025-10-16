@@ -11,7 +11,7 @@ import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
 import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
 import { createTempSession, getTempSessionId, clearTempSession } from '@/lib/auth';
 import type { Message } from '@/features/chat/data';
-import { Menu } from 'lucide-react';
+import { Menu } from '@/components/icons';
 import { useModalStore } from '@/store/useModalStore';
 
 interface OptimisticMessage {

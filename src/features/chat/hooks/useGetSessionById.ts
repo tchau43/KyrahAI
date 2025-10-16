@@ -8,6 +8,6 @@ export const useGetSessionById = (sessionId: string) => {
     queryKey: ['session-by-id', sessionId],
     queryFn: () => getSessionById(sessionId),
     enabled: !!sessionId,
-    staleTime: 30000,
+    // staleTime: 30000,
   });
 };
