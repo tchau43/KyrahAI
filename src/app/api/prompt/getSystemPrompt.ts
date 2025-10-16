@@ -1,8 +1,9 @@
 // src/app/api/prompt/getSystemPrompt.ts
 
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 
 export async function getSystemPrompt() {
+  const supabase = await createClient();
   // Get the active system prompt from system_prompts table
   const { data: systemPrompt, error: systemPromptError } = await supabase
     .from('system_prompts')

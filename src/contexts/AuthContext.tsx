@@ -1,5 +1,3 @@
-// contexts/AuthContext.tsx
-
 'use client'
 
 import {
@@ -9,7 +7,7 @@ import {
   useState,
   ReactNode,
 } from 'react'
-import { supabase } from '../lib/supabase'
+import { createClient } from '../utils/supabase/client'
 import * as auth from '../lib/auth'
 import type {
   SupabaseUser,
@@ -18,10 +16,6 @@ import type {
   UserPreferences,
   UserPreferencesUpdate,
 } from '../types/auth.types'
-
-// ============================================
-// Context Type Definition
-// ============================================
 
 interface AuthContextType {
   user: SupabaseUser | null
@@ -43,9 +37,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// ============================================
-// Hook to use auth context
-// ============================================
 
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
@@ -55,9 +46,6 @@ export function useAuth(): AuthContextType {
   return context
 }
 
-// ============================================
-// Auth Provider Component
-// ============================================
 
 interface AuthProviderProps {
   children: ReactNode
@@ -72,14 +60,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   )
 
   useEffect(() => {
-    // Check active session on mount
+    const supabase = createClient()
     checkSession()
-
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event)
 
       if (event === 'SIGNED_IN' && session) {
         await handleSignIn(session)
@@ -97,15 +82,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function checkSession(): Promise<void> {
     try {
-      console.log('AuthContext: Checking session on mount/refresh');
       const currentSession = await auth.getCurrentSession()
 
       if (currentSession) {
-        console.log('AuthContext: Session found:', {
-          type: currentSession.type,
-          hasUser: !!currentSession.user,
-          hasSession: !!currentSession.session
-        });
         if (currentSession.type === 'authenticated') {
           setUser(currentSession.user!)
           setSession(currentSession.session)
@@ -114,8 +93,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(currentSession.session)
           setAuthType('anonymous')
         }
-      } else {
-        console.log('AuthContext: No session found');
       }
     } catch (error) {
       console.error('Error checking session:', error)

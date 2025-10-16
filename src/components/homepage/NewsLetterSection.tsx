@@ -50,7 +50,6 @@ export default function NewsLetterSection() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    console.log('Form submitted:', formData);
   };
 
   // Sort countries alphabetically

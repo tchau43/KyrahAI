@@ -1,7 +1,8 @@
-import { supabase } from './supabase';
+import { createClient } from '../utils/supabase/client';
 
 export async function getAuthToken(): Promise<string | null> {
   try {
+    const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       const token = session.access_token;
@@ -9,7 +10,6 @@ export async function getAuthToken(): Promise<string | null> {
       return isJwt ? token : null;
     }
 
-    // Do NOT return custom anonymous token here; avoid sending non-JWT as Authorization
     return null;
   } catch (error) {
     console.error('Error getting auth token:', error);

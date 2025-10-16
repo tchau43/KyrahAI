@@ -1,8 +1,9 @@
 // src/app/api/prompt/getPromptComponents.ts
 
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/server';
 
 export async function getPromptComponents() {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('prompt_components')
     .select('*');

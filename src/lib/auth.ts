@@ -1,6 +1,6 @@
-// lib/auth.ts
-import { supabase } from './supabase';
-import { v4 as uuidv4 } from 'uuid';
+import { createClient } from '../utils/supabase/client';
+
+const supabase = createClient();
 import type {
   AnonymousSessionResult,
   AnonymousSessionMetadata,
@@ -15,22 +15,11 @@ import type {
   SupabaseUser,
 } from '../types/auth.types';
 import { AuthError, InvalidTokenError } from '../types/auth.types';
-import { generateSecureToken, hashToken } from './crypto';
+import { generateUuid, hashToken } from './crypto';
 import { GetMessagesParams, GetMessagesResult, Message } from '@/features/chat/data';
-
-// ============================================
-// Client-side Temp Session Utilities (store only session_id)
-// ============================================
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined' && typeof sessionStorage !== 'undefined';
-}
-
-function generateUuid(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return (crypto as unknown as { randomUUID: () => string }).randomUUID();
-  }
-  return uuidv4();
 }
 
 async function generateUniqueSessionId(maxRetries: number = 5): Promise<string> {
@@ -68,130 +57,7 @@ export function clearTempSession(): void {
   }
 }
 
-// export async function sendFirstMessage(options: {
-//   sessionId: string;
-//   content: string;
-//   userAgent?: string;
-//   ipAddress?: string;
-// }): Promise<{ session: Session; message: Message }> {
-//   // Get authenticated user from Supabase
-//   const {
-//     data: { user: authUser },
-//   } = await supabase.auth.getUser();
-//   const currentUserId = authUser?.id ?? null;
-//   // console.log('sendFirstMessage', options);
-//   // Check if session already exists
-//   const { data: existing } = await supabase
-//     .from('sessions')
-//     .select('*')
-//     .eq('session_id', options.sessionId)
-//     .maybeSingle();
-//   if (existing) {
-//     // If session already exists, just insert the first message
-//     const { data: message, error: msgError } = await supabase
-//       .from('messages')
-//       .insert({
-//         session_id: options.sessionId,
-//         role: 'user',
-//         content: options.content,
-//       })
-//       .select()
-//       .single();
-//     if (msgError || !message) {
-//       throw new AuthError('Failed to create message', msgError?.code || 'UNKNOWN_ERROR', 500);
-//     }
-//     // Clear temp session id if it matches
-//     if (isBrowser() && getTempSessionId() === options.sessionId) {
-//       // Keep for anonymous; clear for authenticated users only
-//       if (currentUserId) {
-//         clearTempSession();
-//       }
-//     }
-//     return { session: existing as Session, message: message as Message };
-//   }
 
-//   const isAnonymous = !currentUserId;
-//   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-//   // Insert into DB using provided session_id
-//   const { data: persisted, error: insertError } = await supabase
-//     .from('sessions')
-//     .insert({
-//       session_id: options.sessionId,
-//       user_id: currentUserId,
-//       is_anonymous: isAnonymous,
-//       auth_type: isAnonymous ? 'anonymous' : 'email',
-//       expires_at: expiresAt,
-//       config: {
-//         retention_days: isAnonymous ? 1 : 30,
-//         language: 'vi',
-//         timezone: 'Asia/Ho_Chi_Minh',
-//       },
-//     })
-//     .select()
-//     .single();
-
-//   if (insertError || !persisted) {
-//     throw new AuthError('Failed to persist session', insertError?.code || 'UNKNOWN_ERROR', 500);
-//   }
-
-//   // For anonymous, create and store a token now
-//   if (isAnonymous) {
-//     const token = generateSecureToken();
-//     const tokenHash = hashToken(token);
-//     const { error: tokenError } = await supabase
-//       .from('anonymous_session_tokens')
-//       .insert({
-//         session_id: options.sessionId,
-//         token_hash: tokenHash,
-//         expires_at: expiresAt,
-//         user_agent: options.userAgent || null,
-//         ip_address: options.ipAddress || null,
-//       });
-//     if (tokenError) {
-//       throw new AuthError('Failed to create anonymous token', tokenError.code, 500);
-//     }
-//     if (isBrowser()) {
-//       sessionStorage.setItem('kyrah_anonymous_token', token);
-//     }
-//   }
-
-//   // Insert the first user message
-//   const { data: message, error: msgError } = await supabase
-//     .from('messages')
-//     .insert({
-//       session_id: options.sessionId,
-//       role: 'user',
-//       content: options.content,
-//     })
-//     .select()
-//     .single();
-//   console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>message', message);
-//   if (msgError || !message) {
-//     throw new AuthError('Failed to create message', msgError?.code || 'UNKNOWN_ERROR', 500);
-//   }
-
-//   // Clear temp session id after successful persist
-//   if (isBrowser() && getTempSessionId() === options.sessionId) {
-//     // Keep for anonymous; clear for authenticated users only
-//     if (currentUserId) {
-//       clearTempSession();
-//     }
-//   }
-
-//   return { session: persisted as Session, message: message as Message };
-// }
-
-// ============================================
-// Message Management
-// ============================================
-
-/**
- * Send a message to a session
- * @param sessionId - The session ID
- * @param content - The message content
- * @returns The message
- */
 export async function sendMessage(sessionId: string, content: string): Promise<Message> {
   const { data: message, error: msgError } = await supabase
     .from('messages')
@@ -214,12 +80,9 @@ export async function sendMessage(sessionId: string, content: string): Promise<M
 
 /**
  * Start a new anonymous session
- * @param metadata - Optional metadata (language, timezone, user agent, etc.)
- * @returns Session ID, token, and expiration time
- * @throws {AuthError} If session creation fails
  */
 export async function startAnonymousSession(
-  metadata: AnonymousSessionMetadata = {}
+  _metadata: AnonymousSessionMetadata = {}
 ): Promise<AnonymousSessionResult> {
   try {
     // Create a client-only temporary session id; defer DB writes until first message
@@ -256,9 +119,6 @@ export async function startAnonymousSession(
 
 /**
  * Verify an anonymous session token
- * @param sessionId - The session ID
- * @param token - The plain text token
- * @returns True if valid, false otherwise
  */
 export async function verifyAnonymousToken(
   sessionId: string,
@@ -302,11 +162,6 @@ export async function verifyAnonymousToken(
 
 /**
  * Sign up a new user with email and password
- * @param email - User's email address
- * @param password - User's password (min 6 characters)
- * @param metadata - Optional user metadata
- * @returns Auth result with user and session
- * @throws {AuthError} If signup fails
  */
 export async function signUpWithEmail(
   email: string,
@@ -370,8 +225,8 @@ export async function signUpWithEmail(
     }
 
     return {
-      user: data.user as SupabaseUser,
-      session: data.session as any,
+      user: data.user,
+      session: data.session,
       kyrahSession: undefined,
     };
   } catch (error) {
@@ -393,11 +248,6 @@ export async function signUpWithEmail(
 
 /**
  * Sign in an existing user with email and password
- * @param email - User's email address
- * @param password - User's password
- * @param metadata - Optional metadata (user agent, IP, etc.)
- * @returns Auth result with user and session
- * @throws {AuthError} If signin fails
  */
 export async function signInWithEmail(
   email: string,
@@ -435,8 +285,8 @@ export async function signInWithEmail(
     );
 
     return {
-      user: data.user as SupabaseUser,
-      session: data.session as any,
+      user: data.user,
+      session: data.session,
       kyrahSession,
     };
   } catch (error) {
@@ -458,24 +308,23 @@ export async function signInWithEmail(
 
 /**
  * Sign out the current user
- * @throws {AuthError} If signout fails
  */
 export async function signOut(): Promise<void> {
   try {
     const {
-      data: { session: authSession },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (authSession?.user) {
+    if (user) {
       // Soft delete current sessions
       await supabase
         .from('sessions')
         .update({ deleted_at: new Date().toISOString() })
-        .eq('user_id', authSession.user.id)
+        .eq('user_id', user.id)
         .is('deleted_at', null);
 
       // Log event
-      await logAuthEvent('signout', authSession.user.id, null, {}, true);
+      await logAuthEvent('signout', user.id, null, {}, true);
     }
 
     const { error } = await supabase.auth.signOut();
@@ -500,11 +349,6 @@ export async function signOut(): Promise<void> {
 
 /**
  * Convert an anonymous session to an authenticated session
- * @param sessionId - The anonymous session ID
- * @param token - The anonymous session token
- * @returns True if successful
- * @throws {InvalidTokenError} If token is invalid
- * @throws {AuthError} If conversion fails
  */
 export async function convertAnonymousToAuthenticated(
   sessionId: string,
@@ -567,7 +411,6 @@ export async function convertAnonymousToAuthenticated(
 // ============================================
 
 export async function getUserSessions(userId: string): Promise<Session[]> {
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>getUserSessions userId', userId);
   if (!userId) {
     return [];
   }
@@ -581,8 +424,6 @@ export async function getUserSessions(userId: string): Promise<Session[]> {
   if (error) {
     throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
   }
-
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>getUserSessions data', data);
   return data || [];
 }
 
@@ -599,7 +440,7 @@ export async function getOrCreateReusableAuthenticatedSession(userId: string): P
     .from('sessions')
     .select('session_id')
     .eq('user_id', userId)
-    // .is('deleted_at', null)
+    .is('deleted_at', null) // Only consider non-deleted sessions
     .order('created_at', { ascending: true });
 
   if (!existingError && existingSessions && existingSessions.length > 0) {
@@ -646,9 +487,6 @@ export async function getOrCreateReusableAuthenticatedSession(userId: string): P
 
 /**
  * Get messages for a session with pagination
- * @param params - Parameters including sessionId, limit, offset
- * @returns Messages, total count, and hasMore flag
- * @throws {AuthError} If retrieval fails
  */
 export async function getSessionMessages(
   params: GetMessagesParams
@@ -658,97 +496,14 @@ export async function getSessionMessages(
       sessionId,
       limit = 10,
       offset = 0,
-      includeDeleted = false,
-      anonymousToken,
     } = params;
-
-    // Validate access for anonymous sessions: if session is anonymous, verify token
-    // const { data: sessionRow, error: sessionErr } = await supabase
-    //   .from('sessions')
-    //   .select('session_id, is_anonymous, user_id')
-    //   .eq('session_id', sessionId)
-    //   .single();
-
-    // if (sessionErr) {
-    //   // If session not found (404/PGRST116), return empty messages
-    //   // This can happen for temp sessions that haven't been persisted yet
-    //   if (sessionErr.code === 'PGRST116') {
-    //     return {
-    //       messages: [],
-    //       total: 0,
-    //       hasMore: false,
-    //     };
-    //   }
-    //   throw new AuthError(
-    //     'Failed to get session',
-    //     sessionErr.code,
-    //     500
-    //   );
-    // }
-
-    // if (!sessionRow) {
-    //   // Session not found, return empty messages
-    //   return {
-    //     messages: [],
-    //     total: 0,
-    //     hasMore: false,
-    //   };
-    // }
-
-    // if (sessionRow?.is_anonymous) {
-    //   // If anonymous, require a valid token_id (UUID)
-    //   if (!anonymousToken) {
-    //     throw new AuthError('Missing anonymous token', 'NO_ANON_TOKEN', 401);
-    //   }
-
-    //   console.log('Validating anonymous token for session:', { sessionId, hasToken: !!anonymousToken });
-
-    //   // Validate 1:1 relationship: token_id must match session_id
-    //   const { data: tokenRow, error: tokenErr } = await supabase
-    //     .from('anonymous_session_tokens')
-    //     .select('token_id, session_id, expires_at')
-    //     .eq('session_id', sessionId)
-    //     .eq('token_id', anonymousToken)
-    //     .maybeSingle();
-
-    //   // Handle case where token record doesn't exist yet (e.g., temp session before first message)
-    //   // Only throw if we got an actual error (not just "not found")
-    //   if (tokenErr && tokenErr.code !== 'PGRST116') {
-    //     console.error('Token validation error:', { sessionId, tokenErr });
-    //     throw new InvalidTokenError('Failed to validate anonymous token');
-    //   }
-
-    //   if (!tokenRow) {
-    //     console.log('Token record not found in database yet, validating token format:', { sessionId });
-    //     // Token record doesn't exist yet - this is OK for temp sessions
-    //     // The token will be created when the first message is sent
-    //     // For now, we just allow access if the token matches the expected format (UUID)
-    //     if (!anonymousToken.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-    //       throw new InvalidTokenError('Invalid anonymous token format');
-    //     }
-    //     console.log('Token format valid, allowing access:', { sessionId });
-    //     // Token is valid in format but not persisted yet, allow access
-    //   } else {
-    //     console.log('Token record found, validating expiration:', { sessionId });
-    //     // Token record exists, validate expiration
-    //     if (new Date(tokenRow.expires_at) < new Date()) {
-    //       throw new InvalidTokenError('Anonymous session token expired');
-    //     }
-
-    //     // Update last_used_at asynchronously (don't block)
-    //     void supabase
-    //       .from('anonymous_session_tokens')
-    //       .update({ last_used_at: new Date().toISOString() })
-    //       .eq('token_id', anonymousToken)
-    //       .eq('session_id', sessionId);
-    //   }
-    // }
 
     // Build query
     let query = supabase
       .from('messages')
       .select('*', { count: 'exact' })
       .eq('session_id', sessionId)
+      .is('deleted_at', null) // Only fetch non-deleted messages
       .order('timestamp', { ascending: true });
 
     // Apply pagination
@@ -783,7 +538,6 @@ export async function getSessionMessages(
 
 /**
  * Get the current user's session (authenticated or anonymous)
- * @returns Current session info or null if no active session
  */
 export async function getCurrentSession(): Promise<CurrentSession | null> {
   try {
@@ -805,17 +559,14 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
       if (!error && session) {
         return {
           type: 'authenticated',
-          user: user as SupabaseUser,
+          user: user,
           session: session as Session,
         };
       }
 
-      // User is authenticated but has no sessions yet - this is normal for new users
-      // Return authenticated state without session
-      console.log('Authenticated user has no sessions yet');
       return {
         type: 'authenticated',
-        user: user as SupabaseUser,
+        user: user,
         session: null,
       };
     }
@@ -858,9 +609,6 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
 
 /**
  * Update user preferences
- * @param preferences - Preferences to update
- * @returns Updated preferences
- * @throws {AuthError} If not authenticated or update fails
  */
 export async function updateUserPreferences(
   preferences: UserPreferencesUpdate
@@ -903,9 +651,6 @@ export async function updateUserPreferences(
 
 /**
  * Update user display name
- * @param displayName - New display name
- * @returns Updated user
- * @throws {AuthError} If not authenticated or update fails
  */
 export async function updateUserDisplayName(displayName: string): Promise<SupabaseUser> {
   try {
@@ -936,7 +681,7 @@ export async function updateUserDisplayName(displayName: string): Promise<Supaba
       throw new AuthError('Update returned no user', 'NO_USER', 500);
     }
 
-    return data.user as SupabaseUser;
+    return data.user;
   } catch (error) {
     console.error('Error updating display name:', error);
     throw error instanceof AuthError
@@ -947,7 +692,6 @@ export async function updateUserDisplayName(displayName: string): Promise<Supaba
 
 /**
  * Get user preferences
- * @returns User preferences or null if not authenticated
  */
 export async function getUserPreferences(): Promise<UserPreferences | null> {
   try {
@@ -983,12 +727,6 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
 
 /**
  * Log an authentication event
- * @param eventType - Type of auth event
- * @param userId - User ID (null for anonymous events)
- * @param sessionId - Session ID
- * @param metadata - Additional metadata
- * @param success - Whether the event succeeded
- * @param errorMessage - Error message if failed
  */
 async function logAuthEvent(
   eventType: AuthEventType,
@@ -1017,8 +755,6 @@ async function logAuthEvent(
 
 /**
  * Check if a string is a valid email
- * @param email - Email to validate
- * @returns True if valid email format
  */
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1027,8 +763,6 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Check if a password meets minimum requirements
- * @param password - Password to validate
- * @returns Object with valid flag and error message
  */
 export function validatePassword(password: string): {
   valid: boolean;

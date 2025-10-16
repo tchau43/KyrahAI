@@ -10,7 +10,7 @@ import {
 } from '@heroui/react';
 import SettingsModal from '@/components/modals/SettingsModal';
 import { getUserPreferences, updateUserPreferences, updateUserDisplayName } from '@/lib/auth';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import type { UserPreferences } from '@/types/auth.types';
 import { LogOut, Settings, UserCircle } from '@/components/icons';
 import { useSignOut } from '@/features/auth/hooks/useSignOut';
@@ -40,6 +40,7 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
   const loadUserData = async () => {
     try {
       setIsLoading(true);
+      const supabase = createClient();
 
       const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
 
@@ -80,8 +81,6 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
           name: displayName,
         };
       });
-
-      console.log('Display name updated successfully');
     } catch (error) {
       console.error('Failed to update display name:', error);
       throw error;

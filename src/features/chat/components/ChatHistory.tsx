@@ -1,7 +1,7 @@
 'use client';
 
 import { Session } from '@/types/auth.types';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
 import { Button } from '@heroui/react';
 
@@ -17,11 +17,11 @@ export default function ChatHistory({
   onSelectSession,
 }: ChatHistoryProps) {
   const [nonEmptySessionIds, setNonEmptySessionIds] = useState<Set<string>>(new Set());
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessions', sessions);
 
   useEffect(() => {
     let isMounted = true;
     async function loadCounts() {
+      const supabase = createClient();
       const ids = sessions.map(s => s.session_id);
       if (ids.length === 0) {
         if (isMounted) setNonEmptySessionIds(new Set());

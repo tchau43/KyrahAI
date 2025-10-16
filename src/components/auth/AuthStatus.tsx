@@ -13,8 +13,6 @@ export default function AuthStatus() {
         throw new Error('No user found');
       }
 
-      console.log('Urgent delete triggered for user:', user.id);
-
       // TODO: Implement API call to delete account
       await new Promise((resolve) => setTimeout(resolve, 1000));
 

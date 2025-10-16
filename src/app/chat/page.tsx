@@ -13,6 +13,7 @@ import { createTempSession, getTempSessionId, clearTempSession } from '@/lib/aut
 import type { Message } from '@/features/chat/data';
 import { Menu } from '@/components/icons';
 import { useModalStore } from '@/store/useModalStore';
+import { getAuthToken } from '@/lib/auth-token';
 
 interface OptimisticMessage {
   message_id: string;
@@ -29,7 +30,6 @@ interface OptimisticMessage {
 
 export default function ChatPage() {
   const { user, loading } = useAuth();
-  // console.log('user', user);
   const startAnon = useStartAnonymousSession();
   const queryClient = useQueryClient();
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -47,16 +47,12 @@ export default function ChatPage() {
     if (typeof window !== 'undefined') {
       const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
       if (savedSessionId && !activeSessionId) {
-        console.log('Immediate restore:', savedSessionId);
         setActiveSessionId(savedSessionId);
       }
     }
   }, []); // Run only once on mount
 
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>ChatPage user', user);
-
   const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>ChatPage sessions', sessions);
   // Fetch messages for active session
   const { data: messagesData, isLoading: messagesLoading } = useGetSessionMessages({
     sessionId: activeSessionId || '',
@@ -170,7 +166,6 @@ export default function ChatPage() {
           sessionStorage.setItem('kyrah_active_session_id', currentSessionId);
         }
         // Invalidate queries to refresh session list
-        console.log('First message sent, invalidating session queries');
         await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
         await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
       }
@@ -286,21 +281,6 @@ export default function ChatPage() {
     }
   };
 
-  // Helper to get auth token
-  const getAuthToken = async (): Promise<string | null> => {
-    try {
-      const { data: { session } } = await import('@/lib/supabase').then(m => m.supabase.auth.getSession());
-      if (session?.access_token) {
-        const token = session.access_token;
-        const isJwt = typeof token === 'string' && token.split('.').length === 3;
-        return isJwt ? token : null;
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  };
-
   // Restore active session on page load/refresh
   useEffect(() => {
     if (hasRestoredSessionRef.current) return;
@@ -311,27 +291,23 @@ export default function ChatPage() {
     // Try to restore from sessionStorage
     if (typeof window !== 'undefined') {
       const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
-      console.log('Restoring session:', { savedSessionId, user: !!user, userId: user?.id, sessionsCount: sessions?.length, sessionsLoading });
 
       if (savedSessionId) {
         // Validate session access
         if (user) {
           // For authenticated users, check if session exists in their sessions list
           const hasAccess = sessions.some(s => s.session_id === savedSessionId);
-          console.log('Authenticated user session check:', { hasAccess, savedSessionId, sessionsList: sessions.map(s => s.session_id) });
           if (hasAccess) {
             setActiveSessionId(savedSessionId);
             setIsInitialized(true);
             return;
           } else {
             // Session not accessible, clear it
-            console.log('Session not accessible, clearing');
             sessionStorage.removeItem('kyrah_active_session_id');
           }
         } else {
           // For anonymous users, check if we have a valid token
           const anonToken = sessionStorage.getItem('kyrah_anonymous_token');
-          console.log('Anonymous user session check:', { hasToken: !!anonToken, savedSessionId });
           if (anonToken) {
             // Assume valid for now, will be validated when fetching messages
             setActiveSessionId(savedSessionId);
@@ -339,7 +315,6 @@ export default function ChatPage() {
             return;
           } else {
             // No token, clear saved session
-            console.log('No anonymous token, clearing session');
             sessionStorage.removeItem('kyrah_active_session_id');
           }
         }
@@ -347,7 +322,6 @@ export default function ChatPage() {
 
       // Check if there's a temp session ID (for new anonymous sessions)
       const tempSessionId = getTempSessionId();
-      console.log('Temp session check:', { tempSessionId });
       if (tempSessionId) {
         setActiveSessionId(tempSessionId);
         setIsInitialized(true);
@@ -364,13 +338,10 @@ export default function ChatPage() {
 
     const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
     if (savedSessionId && !activeSessionId) {
-      console.log('Late restore attempt:', { savedSessionId, sessionsCount: sessions.length });
       const hasAccess = sessions.some(s => s.session_id === savedSessionId);
       if (hasAccess) {
-        console.log('Late restore successful');
         setActiveSessionId(savedSessionId);
       } else {
-        console.log('Late restore failed, clearing session');
         sessionStorage.removeItem('kyrah_active_session_id');
       }
     }

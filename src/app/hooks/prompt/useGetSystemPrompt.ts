@@ -8,7 +8,6 @@ export const useGetSystemPrompt = () => {
     queryKey: ['system-prompt'],
     queryFn: async () => {
       const data = await getSystemPrompt();
-      // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>useGetSystemPrompt data', data);
       return data;
     },
   });

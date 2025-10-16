@@ -9,9 +9,6 @@ interface AssistantSetupOptions {
   temperature?: number;
 }
 
-/**
- * Get the assistant ID from environment variable
- */
 export function getAssistantId(): string {
   const assistantId = process.env.ASSISTANT_ID;
   if (!assistantId) {
@@ -19,12 +16,6 @@ export function getAssistantId(): string {
   }
   return assistantId;
 }
-
-/**
- * Setup or update OpenAI Assistant with system instructions from database
- * This function should be run manually when you want to update the assistant configuration
- * It will either create a new assistant or update the existing one based on ASSISTANT_ID
- */
 export async function setupAssistant(options?: AssistantSetupOptions): Promise<string> {
   const {
     name = 'Kyrah AI Assistant',
@@ -36,14 +27,12 @@ export async function setupAssistant(options?: AssistantSetupOptions): Promise<s
   try {
     // 1. Get system instructions from database
     const systemInstruction = await getSystemInstructionsFromDB();
-    // console.log('System instruction length:', systemInstruction.length);
 
     // 2. Check if assistant ID is provided or exists in environment
     const existingAssistantId = assistantId || process.env.ASSISTANT_ID;
 
     if (existingAssistantId) {
       // Update existing assistant
-      console.log('Updating existing assistant:', existingAssistantId);
 
       try {
         const assistant = await openai.beta.assistants.update(existingAssistantId, {
@@ -53,7 +42,6 @@ export async function setupAssistant(options?: AssistantSetupOptions): Promise<s
           temperature,
         });
 
-        console.log('Assistant updated successfully:', assistant.id);
         return assistant.id;
       } catch (error: any) {
         if (error?.status === 404) {
@@ -66,16 +54,11 @@ export async function setupAssistant(options?: AssistantSetupOptions): Promise<s
     }
 
     // 3. Create new assistant if no existing ID or assistant not found
-    console.log('Creating new assistant...');
     const assistant = await openai.beta.assistants.create({
       name,
       model,
       instructions: systemInstruction,
     });
-
-    console.log('Assistant created successfully:', assistant.id);
-    console.log('⚠️  IMPORTANT: Add this to your .env file:');
-    console.log(`ASSISTANT_ID=${assistant.id}`);
 
     return assistant.id;
   } catch (error) {
@@ -98,10 +81,6 @@ export async function getAssistant(assistantId?: string) {
   }
 }
 
-/**
- * Update assistant instructions from database
- * Call this when you update prompts in database
- */
 export async function updateAssistantInstructions(assistantId?: string) {
   try {
     const id = assistantId || getAssistantId();
@@ -114,7 +93,6 @@ export async function updateAssistantInstructions(assistantId?: string) {
       instructions: systemInstruction,
     });
 
-    console.log('Assistant instructions updated successfully:', assistant.id);
     return assistant;
   } catch (error) {
     console.error('Error updating assistant instructions:', error);

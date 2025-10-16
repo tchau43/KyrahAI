@@ -46,7 +46,7 @@ export default function MailConfirmModal() {
               verify your account.
             </p>
             <div className="text-neutral-6 caption-14-regular space-y-2">
-              <p>If you don't see the email, check your spam folder.</p>
+              <p>If you don&apos;t see the email, check your spam folder.</p>
               <p>Still no email? Try signing up again or use a different address.</p>
             </div>
             <Button

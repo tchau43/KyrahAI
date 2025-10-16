@@ -1,7 +1,6 @@
 // src/app/api/chat/stream/route.ts
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { createAuthenticatedSupabaseClient } from '@/lib/supabase';
+import { createClient, createAuthenticatedClient } from '@/utils/supabase/server';
 import { runAssistantStream } from '@/lib/openai-helper';
 import { getAssistantId } from '@/lib/setup-assistant';
 import { hashToken } from '@/lib/crypto';
@@ -13,8 +12,6 @@ interface ChatRequestBody {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>POST');
-  // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>request', request);
   const encoder = new TextEncoder();
 
   try {
@@ -22,21 +19,19 @@ export async function POST(request: NextRequest) {
     const authToken = authHeader?.startsWith('Bearer ')
       ? authHeader.replace('Bearer ', '')
       : null;
-    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>authToken', authToken);
     const anonHeader = request.headers.get('X-Anonymous-Token') || request.headers.get('x-anonymous-token');
 
-    const authenticatedSupabase = authToken ? createAuthenticatedSupabaseClient(authToken) : null;
+    // Create appropriate Supabase client
+    const authenticatedSupabase = authToken ? await createAuthenticatedClient(authToken) : null;
+    const supabase = await createClient();
 
     const body: ChatRequestBody = await request.json();
     const { sessionId, userMessage, isFirstMessage = false } = body;
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessionId', sessionId);
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>userMessage', userMessage);
-    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>isFirstMessage', isFirstMessage);
 
     // Authenticate user from JWT token if present
     let authenticatedUserId: string | null = null;
-    if (authToken) {
-      const { data: userResponse, error: userErr } = await authenticatedSupabase!.auth.getUser();
+    if (authToken && authenticatedSupabase) {
+      const { data: userResponse, error: userErr } = await authenticatedSupabase.auth.getUser();
       if (userErr) {
         return new Response(
           JSON.stringify({ error: 'Invalid auth token' }),
@@ -58,17 +53,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate session ownership/access - for first message, create session if doesn't exist
-    let { data: sessionRow, error: sessionErr } = await dbClient
+    const { data: sessionRow, error: sessionErr } = await dbClient
       .from('sessions')
       .select('*')
       .eq('session_id', sessionId)
       .maybeSingle();
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>sessionRow', sessionRow);
+
+    // Track the actual session row to use (may be created in this block)
+    let actualSessionRow = sessionRow;
 
     // If session doesn't exist and this is first message, create it
     if (!sessionRow && isFirstMessage) {
-      // console.log('Creating session for first message:', sessionId);
-      // console.log('User info from JWT:', { authenticatedUserId, currentUserId });
 
       // Double-check session doesn't exist (in case of race condition)
       const { data: doubleCheckSession } = await dbClient
@@ -79,15 +74,11 @@ export async function POST(request: NextRequest) {
 
       if (doubleCheckSession) {
         // Session was created by another request, use it
-        // console.log('Session created by concurrent request, using it');
-        sessionRow = doubleCheckSession;
+        actualSessionRow = doubleCheckSession;
       } else {
         // Safe to create now
         const isAnonymous = !currentUserId;
-        // console.log('Creating session with:', { sessionId, currentUserId, isAnonymous });
-
         // Use authenticated client for authenticated users, regular client for anonymous
-        // console.log('Using DB client:', { hasAuth: !!authenticatedSupabase, isAnonymous });
 
         const { data: newSession, error: createErr } = await dbClient
           .from('sessions')
@@ -104,8 +95,6 @@ export async function POST(request: NextRequest) {
           })
           .select()
           .single();
-
-        // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>newSession', newSession);
 
         if (createErr) {
           console.error('Failed to create session:', createErr);
@@ -126,7 +115,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        sessionRow = newSession;
+        actualSessionRow = newSession;
 
         // For anonymous sessions, create token record
         if (isAnonymous) {
@@ -134,7 +123,6 @@ export async function POST(request: NextRequest) {
           if (tokenId) {
             const hashedToken = hashToken(tokenId);
             const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-            // console.log('Creating anonymous token for session:', { sessionId, tokenId });
             const { error: tokenErr } = await dbClient
               .from('anonymous_session_tokens')
               .insert({
@@ -149,8 +137,6 @@ export async function POST(request: NextRequest) {
             if (tokenErr) {
               console.error('Failed to create anonymous token:', tokenErr);
               // Don't fail the request, but log the error
-            } else {
-              console.log('Anonymous token created successfully:', { sessionId, tokenId });
             }
           } else {
             console.warn('Anonymous session created but no token provided in X-Anonymous-Token header');
@@ -177,14 +163,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!sessionRow) {
+    if (!actualSessionRow) {
       return new Response(
         JSON.stringify({ error: 'Session not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    const isAnonymousSession = sessionRow?.is_anonymous ?? true;
+    const isAnonymousSession = actualSessionRow?.is_anonymous ?? true;
 
     // Authenticated pathway - check if user is authenticated and session belongs to them
     if (!isAnonymousSession) {
@@ -196,7 +182,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Verify session belongs to the authenticated user
-      if (sessionRow.user_id !== authenticatedUserId) {
+      if (actualSessionRow.user_id !== authenticatedUserId) {
         return new Response(
           JSON.stringify({ error: 'Session does not belong to user' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -235,17 +221,17 @@ export async function POST(request: NextRequest) {
     const assistantId = getAssistantId();
 
     // Get thread ID from session (if exists)
-    const threadId = (sessionRow as any).thread_id || null;
+    const threadId = actualSessionRow && 'thread_id' in actualSessionRow
+      ? (actualSessionRow as { thread_id?: string }).thread_id || null
+      : null;
 
     // Create readable stream for SSE
     const stream = new ReadableStream({
       async start(controller) {
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>start streaming with Assistant API');
         try {
           let fullContent = '';
           let promptTokens = 0;
           let completionTokens = 0;
-          let newThreadId = threadId;
 
           // Stream the AI response using Assistant API
           const streamResult = await runAssistantStream({
@@ -263,7 +249,7 @@ export async function POST(request: NextRequest) {
           fullContent = streamResult.content;
           promptTokens = streamResult.promptTokens;
           completionTokens = streamResult.completionTokens;
-          newThreadId = streamResult.threadId;
+          // newThreadId is tracked by streamResult but not used currently
 
           // Save messages to database after streaming completes
           // Use authenticated client for authenticated users, regular client for anonymous
@@ -280,7 +266,6 @@ export async function POST(request: NextRequest) {
             })
             .select()
             .single();
-          console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>savedUserMessage', savedUserMessage);
 
           if (userMsgErr || !savedUserMessage) {
             console.error('Error saving user message:', userMsgErr);
@@ -313,7 +298,6 @@ export async function POST(request: NextRequest) {
           if (isFirstMessage) {
             const title = `Conversation at ${new Date()}`;
             updateData.title = title;
-            console.log('Setting session title:', { sessionId, title });
           }
 
           const { error: updateErr } = await dbClient
@@ -323,9 +307,6 @@ export async function POST(request: NextRequest) {
 
           if (updateErr) {
             console.error('Error updating session activity:', updateErr);
-            // Don't throw, this is not critical
-          } else if (isFirstMessage) {
-            console.log('Session created and title set successfully');
           }
 
           // Send completion event with saved message data

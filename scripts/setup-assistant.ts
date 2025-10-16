@@ -1,16 +1,3 @@
-// scripts/setup-assistant.ts
-// Script to setup or update OpenAI Assistant with system instructions from database
-// Run: npx tsx scripts/setup-assistant.ts
-//
-// This script will:
-// - Create a new assistant if ASSISTANT_ID is not set
-// - Update the existing assistant if ASSISTANT_ID is set
-//
-// Usage:
-// 1. First time: Run without ASSISTANT_ID to create new assistant
-// 2. Add the returned ID to your .env file as ASSISTANT_ID
-// 3. Future runs: Script will update the existing assistant with latest prompts from database
-
 import { setupAssistant, getAssistant } from '../src/lib/setup-assistant';
 
 async function main() {

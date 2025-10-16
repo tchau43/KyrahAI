@@ -1,5 +1,7 @@
 // types/auth.types.ts
 
+import type { Session as SupabaseSession, User } from '@supabase/supabase-js';
+
 export type AuthType = 'anonymous' | 'email';
 
 export interface Session {
@@ -71,33 +73,14 @@ export type AuthEventType =
   | 'anonymous_to_authenticated';
 
 // ============================================
-// Supabase Auth Types
+// Supabase Auth Types (Re-exported)
 // ============================================
 
-export interface SupabaseUser {
-  id: string;
-  email?: string;
-  email_confirmed_at?: string;
-  phone?: string;
-  created_at: string;
-  updated_at: string;
-  last_sign_in_at?: string;
-  role?: string;
-  user_metadata?: Record<string, unknown>;
-  app_metadata?: {
-    provider?: string;
-    providers?: string[];
-  };
-}
+// Re-export Supabase's native Session type
+export type { SupabaseSession };
 
-export interface SupabaseSession {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  expires_at?: number;
-  token_type: string;
-  user: SupabaseUser;
-}
+// Use Supabase's native User type as SupabaseUser
+export type SupabaseUser = User;
 
 // ============================================
 // Function Return Types

@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { getUserSessions } from '@/lib/auth';
 import { useModalStore } from '@/store/useModalStore';
 
@@ -17,6 +17,8 @@ export function useSignInWithEmail() {
     mutationFn: ({ email, password }: { email: string, password: string }) => signInWithEmail(email, password),
 
     onSuccess: async () => {
+      const supabase = createClient();
+
       // Ensure session query updates
       await queryClient.invalidateQueries({ queryKey: ['session'] })
 
