@@ -128,33 +128,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(authSession.user as SupabaseUser)
     setAuthType('authenticated')
 
-    // Check if there's an active anonymous session to convert
-    const activeSessionId = typeof window !== 'undefined'
-      ? sessionStorage.getItem('kyrah_active_session_id')
-      : null;
-    const anonToken = typeof window !== 'undefined'
-      ? sessionStorage.getItem('kyrah_anonymous_token')
-      : null;
-
-    if (activeSessionId && anonToken) {
-      try {
-        console.log('Converting anonymous session to authenticated:', activeSessionId);
-        // Convert the anonymous session to authenticated
-        // await auth.convertAnonymousToAuthenticated(activeSessionId, anonToken);
-
-        // Fetch the updated session
-        const updatedSession = await auth.getSessionById(activeSessionId);
-        if (updatedSession) {
-          setSession(updatedSession);
-          console.log('Successfully converted and loaded session');
-          return;
-        }
-      } catch (error) {
-        console.error('Failed to convert anonymous session:', error);
-        // Continue with creating new temp session
-      }
-    }
-
     // Create only a temp session id for authenticated user
     const temp = await auth.createTempSession()
     setSession({

@@ -586,18 +586,6 @@ export async function getUserSessions(userId: string): Promise<Session[]> {
   return data || [];
 }
 
-export async function getSessionById(sessionId: string): Promise<Session | null> {
-  const { data, error } = await supabase
-    .from('sessions')
-    .select('*')
-    .eq('session_id', sessionId)
-    .single();
-  if (error) {
-    throw new AuthError('Failed to get session', error.code || 'UNKNOWN_ERROR', 500);
-  }
-  return data as Session | null;
-}
-
 // ============================================
 // Session Helpers
 // ============================================
@@ -675,86 +663,86 @@ export async function getSessionMessages(
     } = params;
 
     // Validate access for anonymous sessions: if session is anonymous, verify token
-    const { data: sessionRow, error: sessionErr } = await supabase
-      .from('sessions')
-      .select('session_id, is_anonymous, user_id')
-      .eq('session_id', sessionId)
-      .single();
+    // const { data: sessionRow, error: sessionErr } = await supabase
+    //   .from('sessions')
+    //   .select('session_id, is_anonymous, user_id')
+    //   .eq('session_id', sessionId)
+    //   .single();
 
-    if (sessionErr) {
-      // If session not found (404/PGRST116), return empty messages
-      // This can happen for temp sessions that haven't been persisted yet
-      if (sessionErr.code === 'PGRST116') {
-        return {
-          messages: [],
-          total: 0,
-          hasMore: false,
-        };
-      }
-      throw new AuthError(
-        'Failed to get session',
-        sessionErr.code,
-        500
-      );
-    }
+    // if (sessionErr) {
+    //   // If session not found (404/PGRST116), return empty messages
+    //   // This can happen for temp sessions that haven't been persisted yet
+    //   if (sessionErr.code === 'PGRST116') {
+    //     return {
+    //       messages: [],
+    //       total: 0,
+    //       hasMore: false,
+    //     };
+    //   }
+    //   throw new AuthError(
+    //     'Failed to get session',
+    //     sessionErr.code,
+    //     500
+    //   );
+    // }
 
-    if (!sessionRow) {
-      // Session not found, return empty messages
-      return {
-        messages: [],
-        total: 0,
-        hasMore: false,
-      };
-    }
+    // if (!sessionRow) {
+    //   // Session not found, return empty messages
+    //   return {
+    //     messages: [],
+    //     total: 0,
+    //     hasMore: false,
+    //   };
+    // }
 
-    if (sessionRow?.is_anonymous) {
-      // If anonymous, require a valid token_id (UUID)
-      if (!anonymousToken) {
-        throw new AuthError('Missing anonymous token', 'NO_ANON_TOKEN', 401);
-      }
+    // if (sessionRow?.is_anonymous) {
+    //   // If anonymous, require a valid token_id (UUID)
+    //   if (!anonymousToken) {
+    //     throw new AuthError('Missing anonymous token', 'NO_ANON_TOKEN', 401);
+    //   }
 
-      console.log('Validating anonymous token for session:', { sessionId, hasToken: !!anonymousToken });
+    //   console.log('Validating anonymous token for session:', { sessionId, hasToken: !!anonymousToken });
 
-      // Validate 1:1 relationship: token_id must match session_id
-      const { data: tokenRow, error: tokenErr } = await supabase
-        .from('anonymous_session_tokens')
-        .select('token_id, session_id, expires_at')
-        .eq('session_id', sessionId)
-        .eq('token_id', anonymousToken)
-        .maybeSingle();
+    //   // Validate 1:1 relationship: token_id must match session_id
+    //   const { data: tokenRow, error: tokenErr } = await supabase
+    //     .from('anonymous_session_tokens')
+    //     .select('token_id, session_id, expires_at')
+    //     .eq('session_id', sessionId)
+    //     .eq('token_id', anonymousToken)
+    //     .maybeSingle();
 
-      // Handle case where token record doesn't exist yet (e.g., temp session before first message)
-      // Only throw if we got an actual error (not just "not found")
-      if (tokenErr && tokenErr.code !== 'PGRST116') {
-        console.error('Token validation error:', { sessionId, tokenErr });
-        throw new InvalidTokenError('Failed to validate anonymous token');
-      }
+    //   // Handle case where token record doesn't exist yet (e.g., temp session before first message)
+    //   // Only throw if we got an actual error (not just "not found")
+    //   if (tokenErr && tokenErr.code !== 'PGRST116') {
+    //     console.error('Token validation error:', { sessionId, tokenErr });
+    //     throw new InvalidTokenError('Failed to validate anonymous token');
+    //   }
 
-      if (!tokenRow) {
-        console.log('Token record not found in database yet, validating token format:', { sessionId });
-        // Token record doesn't exist yet - this is OK for temp sessions
-        // The token will be created when the first message is sent
-        // For now, we just allow access if the token matches the expected format (UUID)
-        if (!anonymousToken.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-          throw new InvalidTokenError('Invalid anonymous token format');
-        }
-        console.log('Token format valid, allowing access:', { sessionId });
-        // Token is valid in format but not persisted yet, allow access
-      } else {
-        console.log('Token record found, validating expiration:', { sessionId });
-        // Token record exists, validate expiration
-        if (new Date(tokenRow.expires_at) < new Date()) {
-          throw new InvalidTokenError('Anonymous session token expired');
-        }
+    //   if (!tokenRow) {
+    //     console.log('Token record not found in database yet, validating token format:', { sessionId });
+    //     // Token record doesn't exist yet - this is OK for temp sessions
+    //     // The token will be created when the first message is sent
+    //     // For now, we just allow access if the token matches the expected format (UUID)
+    //     if (!anonymousToken.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+    //       throw new InvalidTokenError('Invalid anonymous token format');
+    //     }
+    //     console.log('Token format valid, allowing access:', { sessionId });
+    //     // Token is valid in format but not persisted yet, allow access
+    //   } else {
+    //     console.log('Token record found, validating expiration:', { sessionId });
+    //     // Token record exists, validate expiration
+    //     if (new Date(tokenRow.expires_at) < new Date()) {
+    //       throw new InvalidTokenError('Anonymous session token expired');
+    //     }
 
-        // Update last_used_at asynchronously (don't block)
-        void supabase
-          .from('anonymous_session_tokens')
-          .update({ last_used_at: new Date().toISOString() })
-          .eq('token_id', anonymousToken)
-          .eq('session_id', sessionId);
-      }
-    }
+    //     // Update last_used_at asynchronously (don't block)
+    //     void supabase
+    //       .from('anonymous_session_tokens')
+    //       .update({ last_used_at: new Date().toISOString() })
+    //       .eq('token_id', anonymousToken)
+    //       .eq('session_id', sessionId);
+    //   }
+    // }
 
     // Build query
     let query = supabase
@@ -762,11 +750,6 @@ export async function getSessionMessages(
       .select('*', { count: 'exact' })
       .eq('session_id', sessionId)
       .order('timestamp', { ascending: true });
-
-    // Filter out deleted messages unless explicitly requested
-    if (!includeDeleted) {
-      query = query.is('deleted_at', null);
-    }
 
     // Apply pagination
     query = query.range(offset, offset + limit - 1);

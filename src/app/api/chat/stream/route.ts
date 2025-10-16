@@ -6,11 +6,6 @@ import { runAssistantStream } from '@/lib/openai-helper';
 import { getAssistantId } from '@/lib/setup-assistant';
 import { hashToken } from '@/lib/crypto';
 
-interface ChatMessage {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-}
-
 interface ChatRequestBody {
   sessionId: string;
   userMessage: string;
@@ -143,7 +138,8 @@ export async function POST(request: NextRequest) {
             const { error: tokenErr } = await dbClient
               .from('anonymous_session_tokens')
               .insert({
-                token_id: hashedToken,
+                token_id: tokenId,
+                token_hash: hashedToken,
                 session_id: sessionId,
                 expires_at: expiresAt,
                 user_agent: request.headers.get('user-agent') || null,
