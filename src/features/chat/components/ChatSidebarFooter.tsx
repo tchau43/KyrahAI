@@ -8,15 +8,12 @@ import {
   DropdownMenu,
   DropdownItem,
 } from '@heroui/react';
-import {
-  Settings,
-  LogOut,
-  UserCircle,
-} from 'lucide-react';
 import SettingsModal from '@/components/modals/SettingsModal';
 import { getUserPreferences, updateUserPreferences, updateUserDisplayName } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import type { UserPreferences } from '@/types/auth.types';
+import { LogOut, Settings, UserCircle } from '@/components/icons';
+import { useSignOut } from '@/features/auth/hooks/useSignOut';
 
 interface UserData {
   id: string;
@@ -34,6 +31,7 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { mutate: signOut } = useSignOut();
 
   useEffect(() => {
     loadUserData();
@@ -145,18 +143,8 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
     }
   };
 
-  const handleSignOut = async () => {
-    console.log('Signing out user');
-    try {
-      const { error } = await supabase.auth.signOut();
-      console.log('User signed out');
-      if (error) throw error;
-
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error signing out:', error);
-      alert('Error signing out. Please try again.');
-    }
+  const handleSignOut = () => {
+    signOut();
   };
 
   if (isLoading) {

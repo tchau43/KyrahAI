@@ -15,15 +15,8 @@ import {
   SelectItem,
   Switch,
 } from '@heroui/react';
-import {
-  Shield,
-  Download,
-  MessageSquare,
-  Globe,
-  Clock,
-  HeartHandshake,
-} from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Clock, Download, Globe, HeartHandshake, MessageSquare, Shield } from '../icons';
 
 interface SettingsModalProps {
   isOpen: boolean;
