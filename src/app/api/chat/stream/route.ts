@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
         .from('anonymous_session_tokens')
         .select('token_id, session_id, expires_at')
         .eq('session_id', sessionId)
-        .eq('token_id', hashedToken)
+        .eq('token_hash', hashedToken)
         .maybeSingle();
 
       if (!tokenRow || new Date(tokenRow.expires_at) < new Date()) {

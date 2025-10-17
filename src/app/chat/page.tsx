@@ -14,6 +14,7 @@ import type { Message } from '@/features/chat/data';
 import { Menu } from '@/components/icons';
 import { useModalStore } from '@/store/useModalStore';
 import { getAuthToken } from '@/lib/auth-token';
+import { Button } from '@heroui/react';
 
 interface OptimisticMessage {
   message_id: string;
@@ -28,6 +29,40 @@ interface OptimisticMessage {
   isStreaming?: boolean;
 }
 
+const GREETING_MESSAGES = [
+  "I'm here to listen — where would you like to start?",
+  "Would you like to share what's on your mind right now?",
+  "I'm here with you. Tell me what's been difficult.",
+  "Take your time. What feels most pressing today?",
+  "If you'd like, I can guide a short grounding exercise.",
+  "Would you prefer coping ideas or someone to simply listen?",
+  "Tell me more when you're ready — I'm listening.",
+  "How are you feeling in this moment?",
+  "What has been weighing on you lately?",
+  "Would you like to try a brief breathing exercise together?",
+  "I can help you explore small steps to feel a bit better — want that?",
+  "Would talking through a recent event help you right now?",
+  "If it helps, name one small thing that would make today easier.",
+  "I'm here without judgment — share whenever you're ready.",
+  "Do you want practical strategies or emotional support in this moment?",
+  "Would reflecting on what helped before be useful?",
+  "Let's take one small step together — what would that be?",
+  "How can I best support you right now?",
+  "You don't have to explain everything — start with one sentence.",
+  "I can help you plan a next step — would you like that?",
+  "Would a calming or grounding exercise be helpful now?",
+  "What would feel most supportive to you in this moment?",
+  "Share as much or as little as you like — I'm here.",
+  "Would you like resources, techniques, or a patient ear?",
+];
+
+const SUGGESTION_MESSAGES = [
+  "I feel sad, maybe I'm being gaslighted",
+  "I'm feeling anxious and overwhelmed",
+  "Help me deal with stress",
+  "I need coping strategies for depression",
+];
+
 export default function ChatPage() {
   const { user, loading } = useAuth();
   const startAnon = useStartAnonymousSession();
@@ -37,6 +72,8 @@ export default function ChatPage() {
   const { openModal } = useModalStore();
   const [optimisticMessages, setOptimisticMessages] = useState<OptimisticMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [greetingMessage, setGreetingMessage] = useState(GREETING_MESSAGES[0]);
+  const [isNewChat, setIsNewChat] = useState(false);
 
   const hasInitializedAnonymousRef = useRef(false);
   const hasRestoredSessionRef = useRef(false);
@@ -63,6 +100,8 @@ export default function ChatPage() {
   // Merge DB messages with optimistic messages, dedupe by message_id (prefer optimistic during streaming)
   const currentMessages = useMemo(() => {
     if (!activeSessionId) return null;
+    if (isNewChat) return null;
+
     const dbMessages = messagesData?.messages || [];
 
     const byId = new Map<string, (Message & { isStreaming?: boolean })>();
@@ -79,15 +118,20 @@ export default function ChatPage() {
 
     const merged = Array.from(byId.values());
     return merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  }, [activeSessionId, messagesData, optimisticMessages]);
+  }, [activeSessionId, messagesData, optimisticMessages, isNewChat]);
 
   const handleNewChat = async () => {
+    const randomIndex = Math.floor(Math.random() * GREETING_MESSAGES.length);
+    setGreetingMessage(GREETING_MESSAGES[randomIndex]);
+
     setIsSidebarOpen(false);
-    setOptimisticMessages([]); // Clear optimistic messages for new chat
-    clearTempSession(); // Clear old temp session before creating new one
+    setOptimisticMessages([]);
+    setIsNewChat(true);
+    await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
+
+    clearTempSession();
     const temp = await createTempSession();
     setActiveSessionId(temp.session_id);
-    // Save to sessionStorage for persistence on refresh
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('kyrah_active_session_id', temp.session_id);
     }
@@ -95,21 +139,20 @@ export default function ChatPage() {
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
-    setOptimisticMessages([]); // Clear optimistic messages when switching sessions
-    clearTempSession(); // Clear temp session when selecting an existing session
+    setOptimisticMessages([]);
+    setIsNewChat(false);
+    clearTempSession();
     setIsSidebarOpen(false);
-    // Save to sessionStorage for persistence on refresh
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('kyrah_active_session_id', sessionId);
     }
   };
 
   const handleSendMessage = async (content: string) => {
-    if (isProcessing) return; // Prevent multiple simultaneous requests
-
+    if (isProcessing) return;
     setIsProcessing(true);
+    setIsNewChat(false);
 
-    // Check if this is a temp session (first message)
     const tempSessionId = getTempSessionId();
     const currentSessionId = tempSessionId || activeSessionId;
 
@@ -299,6 +342,7 @@ export default function ChatPage() {
           const hasAccess = sessions.some(s => s.session_id === savedSessionId);
           if (hasAccess) {
             setActiveSessionId(savedSessionId);
+            setIsNewChat(false); // Loading existing session
             setIsInitialized(true);
             return;
           } else {
@@ -311,6 +355,7 @@ export default function ChatPage() {
           if (anonToken) {
             // Assume valid for now, will be validated when fetching messages
             setActiveSessionId(savedSessionId);
+            setIsNewChat(false); // Loading existing session
             setIsInitialized(true);
             return;
           } else {
@@ -324,9 +369,22 @@ export default function ChatPage() {
       const tempSessionId = getTempSessionId();
       if (tempSessionId) {
         setActiveSessionId(tempSessionId);
+        setIsNewChat(true); // This is a new session
         setIsInitialized(true);
         return;
       }
+    }
+
+    // No session found - show new chat screen for authenticated users
+    if (user) {
+      setIsNewChat(true);
+      // Create a new temp session for authenticated users
+      createTempSession().then(temp => {
+        setActiveSessionId(temp.session_id);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('kyrah_active_session_id', temp.session_id);
+        }
+      });
     }
 
     setIsInitialized(true);
@@ -358,14 +416,17 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <ChatSidebar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={handleSelectSession}
-        onNewChat={handleNewChat}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      {user && (
+        <ChatSidebar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <div className="flex-1 flex flex-col relative">
         {user && (
           <button
@@ -376,13 +437,17 @@ export default function ChatPage() {
             <Menu size={24} className="text-neutral-9" />
           </button>
         )}
+
         <ChatMainView
           messages={currentMessages}
           onSendMessage={handleSendMessage}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          onNewChat={handleNewChat}
+          greetingMessage={greetingMessage}
+          showHeader={!user}
+          suggestionMessages={SUGGESTION_MESSAGES}
         />
       </div>
-
 
       {/* Auth Status - Top Right (Responsive) */}
       {!loading && user && (
@@ -394,24 +459,22 @@ export default function ChatPage() {
       {/* Floating auth buttons (Responsive) */}
       {!loading && !user && (
         <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
-          <button
-            onClick={() => {
-              useModalStore.getState().setAuthMode('signin');
-              openModal('auth-modal');
-            }}
-            className="px-6 py-2 bg-primary text-white rounded-full body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
+          <Button
+            color="primary"
+            variant="shadow"
+            onPress={() => { useModalStore.getState().setAuthMode('signin'); openModal('auth-modal'); }}
+            className="px-4 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
           >
-            Sign In
-          </button>
-          <button
-            onClick={() => {
-              useModalStore.getState().setAuthMode('signup');
-              openModal('auth-modal');
-            }}
-            className="px-6 py-2 bg-secondary-2 text-white rounded-full body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-2"
+            Log in
+          </Button>
+          <Button
+            color="secondary"
+            variant="shadow"
+            onPress={() => { useModalStore.getState().setAuthMode('signup'); openModal('auth-modal'); }}
+            className="px-4 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
           >
-            Sign Up
-          </button>
+            Sign up
+          </Button>
         </div>
       )}
       {/* Auth Modal is globally mounted via ModalProvider */}

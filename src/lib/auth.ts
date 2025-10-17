@@ -316,13 +316,6 @@ export async function signOut(): Promise<void> {
     } = await supabase.auth.getUser();
 
     if (user) {
-      // Soft delete current sessions
-      await supabase
-        .from('sessions')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('deleted_at', null);
-
       // Log event
       await logAuthEvent('signout', user.id, null, {}, true);
     }
