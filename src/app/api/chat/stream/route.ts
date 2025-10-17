@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
     const currentUserId = authenticatedUserId;
     const dbClient = currentUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
 
-
     if (!sessionId || !userMessage) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: sessionId or userMessage' }),
