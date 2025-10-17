@@ -31,7 +31,6 @@ export default function ChatHistory({
         .from('messages')
         .select('session_id', { count: 'exact' })
         .in('session_id', ids)
-        .gt('expires_at', new Date().toISOString());
 
       if (error) {
         if (isMounted) setNonEmptySessionIds(new Set(ids));

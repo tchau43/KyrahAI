@@ -67,6 +67,7 @@ export default function ChatPage() {
   const { user, loading } = useAuth();
   const startAnon = useStartAnonymousSession();
   const queryClient = useQueryClient();
+
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { openModal } = useModalStore();
@@ -76,18 +77,7 @@ export default function ChatPage() {
   const [isNewChat, setIsNewChat] = useState(false);
 
   const hasInitializedAnonymousRef = useRef(false);
-  const hasRestoredSessionRef = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
-
-  // Immediate restore from sessionStorage on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
-      if (savedSessionId && !activeSessionId) {
-        setActiveSessionId(savedSessionId);
-      }
-    }
-  }, []); // Run only once on mount
 
   const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
   // Fetch messages for active session
@@ -127,25 +117,24 @@ export default function ChatPage() {
     setIsSidebarOpen(false);
     setOptimisticMessages([]);
     setIsNewChat(true);
-    await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
 
+    // Clear active session (no real session yet)
+    setActiveSessionId(null);
+
+    // Clear any existing temp session and create new one
     clearTempSession();
-    const temp = await createTempSession();
-    setActiveSessionId(temp.session_id);
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('kyrah_active_session_id', temp.session_id);
-    }
+    await createTempSession();
+
+    await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
   };
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
     setOptimisticMessages([]);
     setIsNewChat(false);
+
     clearTempSession();
     setIsSidebarOpen(false);
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('kyrah_active_session_id', sessionId);
-    }
   };
 
   const handleSendMessage = async (content: string) => {
@@ -157,9 +146,12 @@ export default function ChatPage() {
     const currentSessionId = tempSessionId || activeSessionId;
 
     if (!currentSessionId) {
+      console.error('No session ID available');
       setIsProcessing(false);
       return;
     }
+
+    const isFirstMessage = !!tempSessionId;
 
     // 1. Immediately show user message (optimistic update)
     const userMsgId = `temp-user-${Date.now()}`;
@@ -196,18 +188,14 @@ export default function ChatPage() {
 
     try {
       // 3. Stream the response from API
-      await streamChatResponse(currentSessionId, content, tempSessionId !== null, assistantMsgId, userMsgId);
+      await streamChatResponse(currentSessionId, content, isFirstMessage, assistantMsgId, userMsgId);
 
-      // 4. After streaming completes, we do NOT immediately refetch.
-      // Optimistic messages were replaced with saved DB records (same message_id),
-      // so view is stable. Optionally refresh in background later if needed.
-      if (tempSessionId) {
-        // Clear temp session after first message successfully saved
+      // 4. If this was a temp session (first message), now it's persisted in DB
+      // Clear temp and set as active session
+      if (isFirstMessage) {
         clearTempSession();
-        // Update sessionStorage with the real session ID (it's the same, but now persisted)
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('kyrah_active_session_id', currentSessionId);
-        }
+        setActiveSessionId(currentSessionId);
+
         // Invalidate queries to refresh session list
         await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
         await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
@@ -324,95 +312,71 @@ export default function ChatPage() {
     }
   };
 
-  // Restore active session on page load/refresh
   useEffect(() => {
-    if (hasRestoredSessionRef.current) return;
-    if (loading || sessionsLoading) return; // Wait for auth and sessions to load
+    if (loading) return;
+    if (isInitialized) return;
 
-    hasRestoredSessionRef.current = true;
-
-    // Try to restore from sessionStorage
-    if (typeof window !== 'undefined') {
-      const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
-
-      if (savedSessionId) {
-        // Validate session access
-        if (user) {
-          // For authenticated users, check if session exists in their sessions list
-          const hasAccess = sessions.some(s => s.session_id === savedSessionId);
-          if (hasAccess) {
-            setActiveSessionId(savedSessionId);
-            setIsNewChat(false); // Loading existing session
-            setIsInitialized(true);
-            return;
-          } else {
-            // Session not accessible, clear it
-            sessionStorage.removeItem('kyrah_active_session_id');
-          }
-        } else {
-          // For anonymous users, check if we have a valid token
-          const anonToken = sessionStorage.getItem('kyrah_anonymous_token');
-          if (anonToken) {
-            // Assume valid for now, will be validated when fetching messages
-            setActiveSessionId(savedSessionId);
-            setIsNewChat(false); // Loading existing session
-            setIsInitialized(true);
-            return;
-          } else {
-            // No token, clear saved session
-            sessionStorage.removeItem('kyrah_active_session_id');
-          }
-        }
-      }
-
-      // Check if there's a temp session ID (for new anonymous sessions)
+    const initializePage = async () => {
       const tempSessionId = getTempSessionId();
+
+      // If we have a temp session (from BeginModal or previous new chat)
       if (tempSessionId) {
-        setActiveSessionId(tempSessionId);
-        setIsNewChat(true); // This is a new session
+        setIsNewChat(true);
+        setActiveSessionId(null); // No active session yet until first message
         setIsInitialized(true);
         return;
       }
-    }
 
-    // No session found - show new chat screen for authenticated users
-    if (user) {
-      setIsNewChat(true);
-      // Create a new temp session for authenticated users
-      createTempSession().then(temp => {
-        setActiveSessionId(temp.session_id);
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('kyrah_active_session_id', temp.session_id);
-        }
-      });
-    }
-
-    setIsInitialized(true);
-  }, [loading, user, sessions, sessionsLoading]);
-
-  // Additional effect to restore session when sessions data becomes available
-  useEffect(() => {
-    if (!isInitialized || !user || sessionsLoading || !sessions) return;
-
-    const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
-    if (savedSessionId && !activeSessionId) {
-      const hasAccess = sessions.some(s => s.session_id === savedSessionId);
-      if (hasAccess) {
-        setActiveSessionId(savedSessionId);
-      } else {
-        sessionStorage.removeItem('kyrah_active_session_id');
+      // For authenticated users: create new chat by default
+      if (user) {
+        const randomIndex = Math.floor(Math.random() * GREETING_MESSAGES.length);
+        setGreetingMessage(GREETING_MESSAGES[randomIndex]);
+        setIsNewChat(true);
+        setActiveSessionId(null);
+        await createTempSession();
+        setIsInitialized(true);
+        return;
       }
-    }
-  }, [isInitialized, user, sessions, sessionsLoading, activeSessionId]);
 
-  // Initialize anonymous session on first unauthenticated visit
+      // No temp session, no user - page is ready but waiting for anonymous init
+      setIsInitialized(true);
+    };
+
+    initializePage();
+  }, [loading, user, isInitialized]);
+
+
   useEffect(() => {
     if (hasInitializedAnonymousRef.current) return;
     if (!loading && !user) {
       hasInitializedAnonymousRef.current = true;
       startAnon.mutate();
     }
-  }, [loading, user]);
+  }, [loading, user, startAnon]);
+
+
+  useEffect(() => {
+    if (loading) return;
+
+    setIsInitialized(false);
+
+    // Clear active session when user changes
+    setActiveSessionId(null);
+    setOptimisticMessages([]);
+    setIsNewChat(false);
+
+    // Reset anonymous initialization when user signs in
+    if (user) {
+      hasInitializedAnonymousRef.current = false;
+    }
+  }, [user, loading]);
+
+  useEffect(() => {
+    return () => {
+      // Only clear temp session on unmount, keep active session
+      clearTempSession();
+    };
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">

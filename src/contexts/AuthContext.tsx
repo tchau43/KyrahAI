@@ -102,10 +102,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function handleSignIn(authSession: any): Promise<void> {
+    // Clear all previous session data (anonymous or old authenticated)
+    clearSessionState()
+
     setUser(authSession.user as SupabaseUser)
     setAuthType('authenticated')
 
-    // Create only a temp session id for authenticated user
+    // Create a new temp session for the authenticated user
     const temp = await auth.createTempSession()
     setSession({
       // minimal in-memory shape until persisted
@@ -128,12 +131,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setSession(null)
     setAuthType(null)
 
-    // Clear anonymous session data
+    // Clear ALL session data from storage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('kyrah_anonymous_session_id')
-      localStorage.removeItem('kyrah_anonymous_token')
-      // New temp session storage
-      sessionStorage.removeItem('kyrah_temp_session')
+      sessionStorage.removeItem('kyrah_temp_session_id')
       sessionStorage.removeItem('kyrah_anonymous_token')
     }
   }
@@ -171,7 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error('Not an anonymous session')
     }
 
-    const token = localStorage.getItem('kyrah_anonymous_token')
+    const token = sessionStorage.getItem('kyrah_anonymous_token')
     if (!token) {
       throw new Error('No anonymous token found')
     }
