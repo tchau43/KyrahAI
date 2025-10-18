@@ -14,6 +14,7 @@ import type { Message } from '@/features/chat/data';
 import { Menu } from '@/components/icons';
 import { useModalStore } from '@/store/useModalStore';
 import { getAuthToken } from '@/lib/auth-token';
+import { Resource } from '@/types/risk-assessment';
 
 interface OptimisticMessage {
   message_id: string;
@@ -25,6 +26,15 @@ interface OptimisticMessage {
   metadata: Record<string, unknown>;
   deleted_at: string | null;
   isOptimistic?: boolean;
+  isStreaming?: boolean;
+  resources?: Resource[];
+  riskLevel?: string;
+}
+
+// Add this interface for type safety
+interface MessageWithResources extends Message {
+  resources?: Resource[];
+  riskLevel?: string;
   isStreaming?: boolean;
 }
 
@@ -50,31 +60,36 @@ export default function ChatPage() {
         setActiveSessionId(savedSessionId);
       }
     }
-  }, []); // Run only once on mount
+  }, []);
 
   const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
-  // Fetch messages for active session
   const { data: messagesData, isLoading: messagesLoading } = useGetSessionMessages({
     sessionId: activeSessionId || '',
     limit: 30,
     offset: 0,
   });
 
-  // Merge DB messages with optimistic messages, dedupe by message_id (prefer optimistic during streaming)
+  // Merge DB messages with optimistic messages, dedupe by message_id
   const currentMessages = useMemo(() => {
     if (!activeSessionId) return null;
     const dbMessages = messagesData?.messages || [];
 
-    const byId = new Map<string, (Message & { isStreaming?: boolean })>();
+    const byId = new Map<string, MessageWithResources>();
 
-    // Start with DB messages
+    // Process DB messages and extract resources from metadata
     for (const m of dbMessages) {
-      byId.set(m.message_id, m as Message);
+      const messageWithResources: MessageWithResources = {
+        ...m,
+        // Extract resources from metadata if exists
+        resources: (m.metadata as any)?.resources || undefined,
+        riskLevel: (m.metadata as any)?.riskLevel || undefined,
+      };
+      byId.set(m.message_id, messageWithResources);
     }
 
     // Overlay optimistic messages (prefer optimistic if same id)
     for (const m of optimisticMessages) {
-      byId.set(m.message_id, m as unknown as Message & { isStreaming?: boolean });
+      byId.set(m.message_id, m as unknown as MessageWithResources);
     }
 
     const merged = Array.from(byId.values());
@@ -83,11 +98,10 @@ export default function ChatPage() {
 
   const handleNewChat = async () => {
     setIsSidebarOpen(false);
-    setOptimisticMessages([]); // Clear optimistic messages for new chat
-    clearTempSession(); // Clear old temp session before creating new one
+    setOptimisticMessages([]);
+    clearTempSession();
     const temp = await createTempSession();
     setActiveSessionId(temp.session_id);
-    // Save to sessionStorage for persistence on refresh
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('kyrah_active_session_id', temp.session_id);
     }
@@ -95,21 +109,19 @@ export default function ChatPage() {
 
   const handleSelectSession = (sessionId: string) => {
     setActiveSessionId(sessionId);
-    setOptimisticMessages([]); // Clear optimistic messages when switching sessions
-    clearTempSession(); // Clear temp session when selecting an existing session
+    setOptimisticMessages([]);
+    clearTempSession();
     setIsSidebarOpen(false);
-    // Save to sessionStorage for persistence on refresh
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('kyrah_active_session_id', sessionId);
     }
   };
 
   const handleSendMessage = async (content: string) => {
-    if (isProcessing) return; // Prevent multiple simultaneous requests
+    if (isProcessing) return;
 
     setIsProcessing(true);
 
-    // Check if this is a temp session (first message)
     const tempSessionId = getTempSessionId();
     const currentSessionId = tempSessionId || activeSessionId;
 
@@ -118,7 +130,7 @@ export default function ChatPage() {
       return;
     }
 
-    // 1. Immediately show user message (optimistic update)
+    // 1. User message
     const userMsgId = `temp-user-${Date.now()}`;
     const userMessage: OptimisticMessage = {
       message_id: userMsgId,
@@ -134,7 +146,7 @@ export default function ChatPage() {
 
     setOptimisticMessages(prev => [...prev, userMessage]);
 
-    // 2. Create placeholder for assistant message (will be streamed)
+    // 2. Assistant message placeholder
     const assistantMsgId = `temp-assistant-${Date.now()}`;
     const assistantMessage: OptimisticMessage = {
       message_id: assistantMsgId,
@@ -152,26 +164,18 @@ export default function ChatPage() {
     setOptimisticMessages(prev => [...prev, assistantMessage]);
 
     try {
-      // 3. Stream the response from API
       await streamChatResponse(currentSessionId, content, tempSessionId !== null, assistantMsgId, userMsgId);
 
-      // 4. After streaming completes, we do NOT immediately refetch.
-      // Optimistic messages were replaced with saved DB records (same message_id),
-      // so view is stable. Optionally refresh in background later if needed.
       if (tempSessionId) {
-        // Clear temp session after first message successfully saved
         clearTempSession();
-        // Update sessionStorage with the real session ID (it's the same, but now persisted)
         if (typeof window !== 'undefined') {
           sessionStorage.setItem('kyrah_active_session_id', currentSessionId);
         }
-        // Invalidate queries to refresh session list
         await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
         await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove optimistic messages on error
       setOptimisticMessages([]);
     } finally {
       setIsProcessing(false);
@@ -195,7 +199,6 @@ export default function ChatPage() {
       } catch { }
     }
 
-    // Prepare user info for server
     const userInfo = user ? {
       id: user.id,
       email: user.email,
@@ -230,6 +233,10 @@ export default function ChatPage() {
       throw new Error('No reader available');
     }
 
+    // Store resources and risk level temporarily
+    let currentResources: Resource[] = [];
+    let currentRiskLevel: string | undefined;
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -242,7 +249,7 @@ export default function ChatPage() {
           const data = JSON.parse(line.slice(6));
 
           if (data.type === 'token') {
-            // Update the streaming assistant message
+            // Update streaming assistant message
             setOptimisticMessages(prev =>
               prev.map(msg =>
                 msg.message_id === assistantMsgId
@@ -250,8 +257,34 @@ export default function ChatPage() {
                   : msg
               )
             );
-          } else if (data.type === 'done') {
-            // Replace optimistic temp messages with saved DB messages to keep message_id stable
+          }
+          // ============================================
+          // NEW: Handle resources event
+          // ============================================
+          else if (data.type === 'resources') {
+            currentResources = data.resources || [];
+            currentRiskLevel = data.risk_level;
+
+            // Immediately attach to assistant message
+            setOptimisticMessages(prev =>
+              prev.map(msg =>
+                msg.message_id === assistantMsgId
+                  ? {
+                    ...msg,
+                    resources: currentResources,
+                    riskLevel: currentRiskLevel
+                  }
+                  : msg
+              )
+            );
+          }
+          else if (data.type === 'risk_assessment') {
+            currentRiskLevel = data.risk_level;
+          }
+          else if (data.type === 'crisis_alert') {
+            console.warn('⚠️ CRISIS ALERT:', data.message);
+          }
+          else if (data.type === 'done') {
             const savedUser = data.userMessage as Message;
             const savedAssistant = data.assistantMessage as Message;
 
@@ -262,6 +295,8 @@ export default function ChatPage() {
                     ...savedAssistant,
                     isOptimistic: false,
                     isStreaming: false,
+                    resources: currentResources,
+                    riskLevel: currentRiskLevel,
                   } as unknown as OptimisticMessage;
                 }
                 if (msg.message_id === userMsgId) {
@@ -284,43 +319,35 @@ export default function ChatPage() {
   // Restore active session on page load/refresh
   useEffect(() => {
     if (hasRestoredSessionRef.current) return;
-    if (loading || sessionsLoading) return; // Wait for auth and sessions to load
+    if (loading || sessionsLoading) return;
 
     hasRestoredSessionRef.current = true;
 
-    // Try to restore from sessionStorage
     if (typeof window !== 'undefined') {
       const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
 
       if (savedSessionId) {
-        // Validate session access
         if (user) {
-          // For authenticated users, check if session exists in their sessions list
           const hasAccess = sessions.some(s => s.session_id === savedSessionId);
           if (hasAccess) {
             setActiveSessionId(savedSessionId);
             setIsInitialized(true);
             return;
           } else {
-            // Session not accessible, clear it
             sessionStorage.removeItem('kyrah_active_session_id');
           }
         } else {
-          // For anonymous users, check if we have a valid token
           const anonToken = sessionStorage.getItem('kyrah_anonymous_token');
           if (anonToken) {
-            // Assume valid for now, will be validated when fetching messages
             setActiveSessionId(savedSessionId);
             setIsInitialized(true);
             return;
           } else {
-            // No token, clear saved session
             sessionStorage.removeItem('kyrah_active_session_id');
           }
         }
       }
 
-      // Check if there's a temp session ID (for new anonymous sessions)
       const tempSessionId = getTempSessionId();
       if (tempSessionId) {
         setActiveSessionId(tempSessionId);
@@ -332,7 +359,6 @@ export default function ChatPage() {
     setIsInitialized(true);
   }, [loading, user, sessions, sessionsLoading]);
 
-  // Additional effect to restore session when sessions data becomes available
   useEffect(() => {
     if (!isInitialized || !user || sessionsLoading || !sessions) return;
 
@@ -347,7 +373,6 @@ export default function ChatPage() {
     }
   }, [isInitialized, user, sessions, sessionsLoading, activeSessionId]);
 
-  // Initialize anonymous session on first unauthenticated visit
   useEffect(() => {
     if (hasInitializedAnonymousRef.current) return;
     if (!loading && !user) {
@@ -383,15 +408,12 @@ export default function ChatPage() {
         />
       </div>
 
-
-      {/* Auth Status - Top Right (Responsive) */}
       {!loading && user && (
         <div className="fixed top-3 right-3 md:top-4 md:right-4 xl:top-6 xl:right-6 z-40">
           <AuthStatus />
         </div>
       )}
 
-      {/* Floating auth buttons (Responsive) */}
       {!loading && !user && (
         <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
           <button
@@ -414,7 +436,6 @@ export default function ChatPage() {
           </button>
         </div>
       )}
-      {/* Auth Modal is globally mounted via ModalProvider */}
     </div>
   );
 }

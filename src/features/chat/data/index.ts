@@ -1,3 +1,4 @@
+import { Resource } from "@/types/risk-assessment";
 export interface Message {
   message_id: string;
   session_id: string;
@@ -7,6 +8,8 @@ export interface Message {
   token_count: number | null;
   metadata: Record<string, unknown>;
   deleted_at: string | null;
+  resources?: Resource[];
+  riskLevel?: string;
 }
 
 export interface GetMessagesParams {

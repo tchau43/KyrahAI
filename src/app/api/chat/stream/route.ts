@@ -4,6 +4,12 @@ import { createClient, createAuthenticatedClient } from '@/utils/supabase/server
 import { runAssistantStream } from '@/lib/openai-helper';
 import { getAssistantId } from '@/lib/setup-assistant';
 import { hashToken } from '@/lib/crypto';
+import { assessRisk, containsCrisisKeywords } from '@/services/risk-assessment.service';
+import {
+  saveRiskAssessment,
+  fetchRelevantResources,
+  logResourceDisplay,
+} from '@/services/db-risk-assessment.service';
 
 interface ChatRequestBody {
   sessionId: string;
@@ -44,7 +50,6 @@ export async function POST(request: NextRequest) {
     const currentUserId = authenticatedUserId;
     const dbClient = currentUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
 
-
     if (!sessionId || !userMessage) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: sessionId or userMessage' }),
@@ -64,7 +69,6 @@ export async function POST(request: NextRequest) {
 
     // If session doesn't exist and this is first message, create it
     if (!sessionRow && isFirstMessage) {
-
       // Double-check session doesn't exist (in case of race condition)
       const { data: doubleCheckSession } = await dbClient
         .from('sessions')
@@ -73,12 +77,9 @@ export async function POST(request: NextRequest) {
         .maybeSingle();
 
       if (doubleCheckSession) {
-        // Session was created by another request, use it
         actualSessionRow = doubleCheckSession;
       } else {
-        // Safe to create now
         const isAnonymous = !currentUserId;
-        // Use authenticated client for authenticated users, regular client for anonymous
 
         const { data: newSession, error: createErr } = await dbClient
           .from('sessions')
@@ -96,19 +97,7 @@ export async function POST(request: NextRequest) {
           .select()
           .single();
 
-        if (createErr) {
-          console.error('Failed to create session:', createErr);
-          return new Response(
-            JSON.stringify({
-              error: 'Failed to create session',
-              details: createErr?.message,
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
-          );
-        }
-
-        if (!newSession) {
-          console.error('Session creation returned no data');
+        if (createErr || !newSession) {
           return new Response(
             JSON.stringify({ error: 'Failed to create session' }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -118,47 +107,25 @@ export async function POST(request: NextRequest) {
         actualSessionRow = newSession;
 
         // For anonymous sessions, create token record
-        if (isAnonymous) {
-          const tokenId = anonHeader || '';
-          if (tokenId) {
-            const hashedToken = hashToken(tokenId);
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-            const { error: tokenErr } = await dbClient
-              .from('anonymous_session_tokens')
-              .insert({
-                token_id: tokenId,
-                token_hash: hashedToken,
-                session_id: sessionId,
-                expires_at: expiresAt,
-                user_agent: request.headers.get('user-agent') || null,
-                ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null,
-              });
-
-            if (tokenErr) {
-              console.error('Failed to create anonymous token:', tokenErr);
-              // Don't fail the request, but log the error
-            }
-          } else {
-            console.warn('Anonymous session created but no token provided in X-Anonymous-Token header');
-          }
+        if (isAnonymous && anonHeader) {
+          const tokenId = anonHeader;
+          const hashedToken = hashToken(tokenId);
+          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+          await dbClient.from('anonymous_session_tokens').insert({
+            token_id: tokenId,
+            token_hash: hashedToken,
+            session_id: sessionId,
+            expires_at: expiresAt,
+            user_agent: request.headers.get('user-agent') || null,
+            ip_address: request.headers.get('x-forwarded-for') || null,
+          });
         }
       }
     }
 
-
     if (sessionErr && sessionErr.code !== 'PGRST116') {
-      console.error('Session query error:', {
-        code: sessionErr.code,
-        message: sessionErr.message,
-        details: sessionErr.details,
-        hint: sessionErr.hint,
-        sessionId,
-      });
       return new Response(
-        JSON.stringify({
-          error: 'Failed to get session',
-          details: sessionErr.message,
-        }),
+        JSON.stringify({ error: 'Failed to get session' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -172,25 +139,17 @@ export async function POST(request: NextRequest) {
 
     const isAnonymousSession = actualSessionRow?.is_anonymous ?? true;
 
-    // Authenticated pathway - check if user is authenticated and session belongs to them
+    // Validate session ownership
     if (!isAnonymousSession) {
-      if (!authenticatedUserId) {
+      if (!authenticatedUserId || actualSessionRow.user_id !== authenticatedUserId) {
         return new Response(
-          JSON.stringify({ error: 'User not authenticated' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // Verify session belongs to the authenticated user
-      if (actualSessionRow.user_id !== authenticatedUserId) {
-        return new Response(
-          JSON.stringify({ error: 'Session does not belong to user' }),
+          JSON.stringify({ error: 'Unauthorized' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    // Anonymous pathway - validate token (skip for first message, token will be created)
+    // Validate anonymous token (skip for first message)
     if (isAnonymousSession && !isFirstMessage) {
       const tokenId = anonHeader || '';
       if (!tokenId) {
@@ -200,7 +159,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Validate token for non-first messages
       const hashedToken = hashToken(tokenId);
       const { data: tokenRow } = await supabase
         .from('anonymous_session_tokens')
@@ -211,16 +169,16 @@ export async function POST(request: NextRequest) {
 
       if (!tokenRow || new Date(tokenRow.expires_at) < new Date()) {
         return new Response(
-          JSON.stringify({ error: 'Invalid or expired anonymous token' }),
+          JSON.stringify({ error: 'Invalid or expired token' }),
           { status: 401, headers: { 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    // Get assistant ID from environment
+    // Get assistant ID (your existing assistant)
     const assistantId = getAssistantId();
 
-    // Get thread ID from session (if exists)
+    // Get thread ID from session
     const threadId = actualSessionRow && 'thread_id' in actualSessionRow
       ? (actualSessionRow as { thread_id?: string }).thread_id || null
       : null;
@@ -233,14 +191,13 @@ export async function POST(request: NextRequest) {
           let promptTokens = 0;
           let completionTokens = 0;
 
-          // Stream the AI response using Assistant API
+          // Stream Kyrah's response using your existing assistant
           const streamResult = await runAssistantStream({
             assistantId,
             threadId: threadId || undefined,
             message: userMessage,
             onToken: (token: string) => {
               fullContent += token;
-              // Send token to client
               const data = JSON.stringify({ type: 'token', content: token });
               controller.enqueue(encoder.encode(`data: ${data}\n\n`));
             },
@@ -249,14 +206,8 @@ export async function POST(request: NextRequest) {
           fullContent = streamResult.content;
           promptTokens = streamResult.promptTokens;
           completionTokens = streamResult.completionTokens;
-          // newThreadId is tracked by streamResult but not used currently
 
-          // Save messages to database after streaming completes
-          // Use authenticated client for authenticated users, regular client for anonymous
-          const dbClient = authenticatedUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
-
-          // Save user message
-          const { data: savedUserMessage, error: userMsgErr } = await dbClient
+          const { data: savedUserMessage, error: userMsgErr } = await supabase
             .from('messages')
             .insert({
               session_id: sessionId,
@@ -268,48 +219,119 @@ export async function POST(request: NextRequest) {
             .single();
 
           if (userMsgErr || !savedUserMessage) {
-            console.error('Error saving user message:', userMsgErr);
-            throw new Error(`Failed to save user message: ${userMsgErr?.message || 'Unknown error'}`);
+            throw new Error('Failed to save user message');
           }
 
-          // Save assistant message
-          const { data: savedAssistantMessage, error: assistantMsgErr } = await dbClient
+          let resourcesData: any[] = [];
+          let riskLevel: string | null = null;
+
+          const hasCrisisKeywords = containsCrisisKeywords(userMessage);
+          if (hasCrisisKeywords) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  type: 'crisis_alert',
+                  message: 'Detecting potential crisis indicators...',
+                })}\n\n`
+              )
+            );
+          }
+
+          try {
+            const riskResult = await assessRisk(userMessage);
+
+            if (riskResult.success) {
+              const assessment = riskResult.data;
+              riskLevel = assessment.risk_level;
+
+              await saveRiskAssessment(
+                savedUserMessage.message_id,
+                sessionId,
+                assessment,
+                'v1.0'
+              );
+
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    type: 'risk_assessment',
+                    risk_level: assessment.risk_level,
+                    requires_immediate_cards: assessment.requires_immediate_cards,
+                    flags: assessment.flags,
+                  })}\n\n`
+                )
+              );
+
+              if (assessment.risk_level === 'high' || assessment.requires_immediate_cards) {
+                resourcesData = await fetchRelevantResources(
+                  assessment,
+                  5,
+                  currentUserId || undefined
+                );
+
+                if (resourcesData.length > 0) {
+                  controller.enqueue(
+                    encoder.encode(
+                      `data: ${JSON.stringify({
+                        type: 'resources',
+                        resources: resourcesData,
+                        risk_level: assessment.risk_level,
+                      })}\n\n`
+                    )
+                  );
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Risk assessment error:', error);
+          }
+
+          const { data: savedAssistantMessage, error: assistantMsgErr } = await supabase
             .from('messages')
             .insert({
               session_id: sessionId,
               role: 'assistant',
               content: fullContent,
               token_count: completionTokens,
+              metadata: {
+                resources: resourcesData,
+                riskLevel: riskLevel,
+              },
             })
             .select()
             .single();
 
           if (assistantMsgErr || !savedAssistantMessage) {
-            console.error('Error saving assistant message:', assistantMsgErr);
-            throw new Error(`Failed to save assistant message: ${assistantMsgErr?.message || 'Unknown error'}`);
+            throw new Error('Failed to save assistant message');
+          }
+          if (resourcesData.length > 0) {
+            resourcesData.forEach((resource) => {
+              logResourceDisplay(
+                sessionId,
+                savedAssistantMessage.message_id,
+                resource.resource_id,
+                'card'
+              ).catch((err) => {
+                console.warn('Failed to log resource display (non-critical):', err.message);
+              });
+            });
           }
 
-          // Update session last_activity_at, thread_id, and generate title from first message
+          // Update session (use service role client)
           const updateData: { last_activity_at: string; title?: string } = {
             last_activity_at: new Date().toISOString(),
           };
 
-          // If this is the first message, set a title based on the user message
           if (isFirstMessage) {
-            const title = `Conversation at ${new Date()}`;
-            updateData.title = title;
+            updateData.title = `Conversation at ${new Date().toLocaleString('vi-VN')}`;
           }
 
-          const { error: updateErr } = await dbClient
+          await supabase
             .from('sessions')
             .update(updateData)
             .eq('session_id', sessionId);
 
-          if (updateErr) {
-            console.error('Error updating session activity:', updateErr);
-          }
-
-          // Send completion event with saved message data
+          // Send completion event
           const doneData = JSON.stringify({
             type: 'done',
             userMessage: savedUserMessage,
@@ -320,7 +342,6 @@ export async function POST(request: NextRequest) {
 
           controller.close();
         } catch (error) {
-          console.error('Streaming error:', error);
           const errorData = JSON.stringify({
             type: 'error',
             error: error instanceof Error ? error.message : 'Unknown error',
@@ -335,11 +356,10 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
       },
     });
   } catch (error) {
-    console.error('Error in chat stream API:', error);
     return new Response(
       JSON.stringify({
         error: 'Failed to process chat request',
@@ -349,4 +369,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

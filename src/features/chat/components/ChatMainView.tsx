@@ -3,9 +3,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '../data';
 import ChatBubble from './ChatBubble';
+import { ResourceList } from '@/components/cards/ResourceCard';
+import { Resource } from '@/types/risk-assessment';
+
+// Extend Message type to include resources
+interface MessageWithResources extends Message {
+  isStreaming?: boolean;
+  resources?: Resource[];
+  riskLevel?: string;
+}
 
 interface ChatMainViewProps {
-  messages: (Message & { isStreaming?: boolean })[] | null;
+  messages: MessageWithResources[] | null;
   onSendMessage: (content: string) => void;
   onToggleSidebar: () => void;
 }
@@ -56,28 +65,49 @@ export default function ChatMainView({
     }
   };
 
+  const handleResourceClick = async (resourceId: string) => {
+    try {
+      await fetch('/api/resources/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resourceId,
+          sessionId: messages?.[0]?.session_id
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to track resource click:', err);
+    }
+  };
+
   const hasMessages = messages && messages.length > 0;
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-neutral relative overflow-hidden">
       {hasMessages ? (
         <>
-          {/* Messages */}
-          {/* <div className="flex h-full flex-col overflow-y-auto thread-xl:pt-(--header-height) [scrollbar-gutter:stable_both-edges]">
-            <div className="max-w-3xl mx-auto py-6 pb-32">
-              {messages && messages.length > 0 ? messages.map((message, idx) => (
-                <ChatBubble key={`${message.message_id}-${idx}`} message={message} />
-              )) : null}
-              <div ref={messagesEndRef} />
-            </div>
-          </div> */}
-
           <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
             <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 py-4 md:py-6 pb-[180px] md:pb-[200px] lg:pb-[220px]">
               <div className="max-w-full md:max-w-[85%] lg:max-w-[75%] xl:max-w-[70%] mx-auto">
-                {messages && messages.length > 0 ? messages.map((message, idx) => (
-                  <ChatBubble key={`${message.message_id}-${idx}`} message={message} />
-                )) : null}
+                {messages.map((message, idx) => {
+
+                  return (
+                    <div key={`${message.message_id}-${idx}`}>
+                      <ChatBubble message={message} />
+
+                      {/* CRITICAL: Render resources if available */}
+                      {message.resources && message.resources.length > 0 && (
+                        <div className="mt-4">
+                          <ResourceList
+                            resources={message.resources}
+                            riskLevel={message.riskLevel}
+                            onResourceClick={handleResourceClick}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
             </div>
