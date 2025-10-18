@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         clicked: true,
         clicked_at: new Date().toISOString(),
       })
-      .eq('id', latest.display_id);
+      .eq('display_id', latest.display_id);
 
     if (error) {
       return NextResponse.json(

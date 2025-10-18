@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export async function createClient(request: NextRequest) {
   const supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: request.headers },
   })
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {

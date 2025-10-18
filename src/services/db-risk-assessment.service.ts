@@ -259,15 +259,19 @@ export async function fetchRelevantResources(
         .eq('is_active', true)
         .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0])
         .eq('display_as_card', true)
-        .order('risk_band', { ascending: false })
         .limit(limit);
 
       if (error) {
         console.error('Error fetching UNICEF fallback resources:', error);
         return [];
       }
-
-      resources = data || [];
+      resources = data
+        ? [...data].sort(
+          (a, b) =>
+            rank(b.risk_band) - rank(a.risk_band) ||
+            new Date(b.last_verified).getTime() - new Date(a.last_verified).getTime()
+        )
+        : [];
     }
 
     return resources;

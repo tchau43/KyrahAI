@@ -1,5 +1,5 @@
-// src/app/api/prompt/getPromptComponents.ts
-
+// src/lib/prompt/getPromptComponents.ts
+import 'server-only';
 import { createClient } from '@/utils/supabase/server';
 
 export async function getPromptComponents() {

@@ -83,7 +83,7 @@ export default function ChatSidebarFooter({ isCollapsed = false }: ChatSidebarFo
     } catch (error) {
       console.error('Failed to update display name:', error);
       alert('Failed to update display name. Please try again.');
-      throw error;
+      return;
     }
   };
 

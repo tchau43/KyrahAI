@@ -120,7 +120,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       last_activity_at: new Date().toISOString(),
       deleted_at: null,
-      config: { retention_days: 30, language: 'vi', timezone: 'Asia/Ho_Chi_Minh' },
+      config: {
+        retention_days: 30,
+        language: typeof navigator !== 'undefined' ? (navigator.language?.split('-')[0] || 'en') : 'en',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
       metadata: {},
       title: '',
     } as Session)
@@ -154,7 +158,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           last_activity_at: new Date().toISOString(),
           deleted_at: null,
-          config: { retention_days: 1, language: 'vi', timezone: 'Asia/Ho_Chi_Minh' },
+          config: {
+            retention_days: 1,
+            language: typeof navigator !== 'undefined' ? (navigator.language?.split('-')[0] || 'en') : 'en',
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
           metadata: {},
           title: '',
         } as Session)

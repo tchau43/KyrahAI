@@ -8,7 +8,7 @@ interface ResourceCardProps {
   onCardClick?: (resourceId: string) => void;
 }
 
-export default function ResourceCard({
+export default function HotlineCard({
   resource,
   onCardClick
 }: ResourceCardProps) {
@@ -91,7 +91,7 @@ export function ResourceList({
     <div className="my-4 w-full">
       <div className="flex gap-2 w-full">
         {resources.map((resource) => (
-          <ResourceCard
+          <HotlineCard
             key={resource.resource_id}
             resource={resource}
             onCardClick={onResourceClick}

@@ -614,14 +614,15 @@ export const KyrahAI: React.FC<IconSvgProps> = ({
 );
 
 export const Settings: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
   ...props
 }) => (<svg
   xmlns="http://www.w3.org/2000/svg"
-  width={width}
-  height={height}
+  width={size ?? width}
+  height={size ?? height}
   viewBox="0 0 24 24"
   fill={fill}
   stroke="currentColor"
@@ -637,6 +638,7 @@ export const Settings: React.FC<IconSvgProps> = ({
 );
 
 export const LogOut: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
@@ -644,8 +646,8 @@ export const LogOut: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -662,6 +664,7 @@ export const LogOut: React.FC<IconSvgProps> = ({
 );
 
 export const UserCircle: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
@@ -669,8 +672,8 @@ export const UserCircle: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -687,6 +690,7 @@ export const UserCircle: React.FC<IconSvgProps> = ({
 );
 
 export const Shield: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
@@ -694,8 +698,8 @@ export const Shield: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -710,6 +714,7 @@ export const Shield: React.FC<IconSvgProps> = ({
 );
 
 export const Download: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
@@ -717,8 +722,8 @@ export const Download: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -735,6 +740,7 @@ export const Download: React.FC<IconSvgProps> = ({
 );
 
 export const MessageSquare: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
@@ -742,8 +748,8 @@ export const MessageSquare: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -758,6 +764,7 @@ export const MessageSquare: React.FC<IconSvgProps> = ({
 );
 
 export const Globe: React.FC<IconSvgProps> = ({
+  size,
   width = 20,
   height = 20,
   fill = 'none',
@@ -765,8 +772,8 @@ export const Globe: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -783,15 +790,17 @@ export const Globe: React.FC<IconSvgProps> = ({
 );
 
 export const Clock: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
   ...props
 }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock-icon lucide-clock"  {...props}><path d="M12 6v6l4 2" /><circle cx="12" cy="12" r="10" /></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width={size ?? width} height={size ?? height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock-icon lucide-clock"  {...props}><path d="M12 6v6l4 2" /><circle cx="12" cy="12" r="10" /></svg>
 );
 
 export const HeartHandshake: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
@@ -799,8 +808,8 @@ export const HeartHandshake: React.FC<IconSvgProps> = ({
 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width={width}
-    height={height}
+    width={size ?? width}
+    height={size ?? height}
     viewBox="0 0 24 24"
     fill={fill}
     stroke="currentColor"
@@ -825,11 +834,12 @@ export const Menu: React.FC<IconSvgProps> = ({
 );
 
 export const AlertTriangle: React.FC<IconSvgProps> = ({
+  size,
   width = 24,
   height = 24,
   fill = 'none',
 }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-triangle-alert-icon lucide-triangle-alert">
+  <svg xmlns="http://www.w3.org/2000/svg" width={size ?? width} height={size ?? height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-triangle-alert-icon lucide-triangle-alert">
     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
     <path d="M12 9v4" />
     <path d="M12 17h.01" />
