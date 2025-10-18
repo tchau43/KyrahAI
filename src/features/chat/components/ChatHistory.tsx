@@ -31,7 +31,6 @@ export default function ChatHistory({
         .from('messages')
         .select('session_id', { count: 'exact' })
         .in('session_id', ids)
-        .is('deleted_at', null);
 
       if (error) {
         if (isMounted) setNonEmptySessionIds(new Set(ids));

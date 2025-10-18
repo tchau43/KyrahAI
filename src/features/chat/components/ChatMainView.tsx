@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { Button } from '@heroui/react';
 import { Message } from '../data';
 import ChatBubble from './ChatBubble';
+import { KyrahAI } from '@/components/icons';
 import { Resource } from '@/types/risk-assessment';
 import { ResourceList } from '@/components/cards/HotlineCard';
 
@@ -17,11 +20,19 @@ interface ChatMainViewProps {
   messages: MessageWithResources[] | null;
   onSendMessage: (content: string) => void;
   onToggleSidebar: () => void;
+  onNewChat?: () => void;
+  greetingMessage?: string;
+  showHeader?: boolean;
+  suggestionMessages?: string[];
 }
 
 export default function ChatMainView({
   messages,
   onSendMessage,
+  onNewChat,
+  greetingMessage = "What can I help you with?",
+  showHeader = false,
+  suggestionMessages = [],
 }: ChatMainViewProps) {
   const [inputValue, setInputValue] = useState('');
   const [isMultiline, setIsMultiline] = useState(false);
@@ -40,7 +51,6 @@ export default function ChatMainView({
       const scrollHeight = textareaRef.current.scrollHeight;
       textareaRef.current.style.height = `${scrollHeight}px`;
 
-      // Check if multiline (height greater than single line or contains newline)
       setIsMultiline(scrollHeight > 36 || inputValue.includes('\n'));
     }
   }, [inputValue]);
@@ -51,7 +61,6 @@ export default function ChatMainView({
       onSendMessage(inputValue.trim());
       setInputValue('');
       setIsMultiline(false);
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -84,6 +93,42 @@ export default function ChatMainView({
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-neutral relative overflow-hidden">
+      {showHeader && (
+        <div className="absolute flex-col top-4 left-4 md:top-6 md:left-6 z-20 flex items-center gap-3 md:gap-4">
+          <Link href="/" className="flex items-center">
+            <KyrahAI height={40} width={170} className="md:h-12 md:w-[204px]" />
+          </Link>
+
+          {onNewChat && (
+            <Button
+              onPress={onNewChat}
+              className="justify-center w-full bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 px-0"
+              variant="light"
+              startContent={
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </div>
+              }
+            >
+              New chat
+            </Button>
+          )}
+        </div>
+      )}
+
       {hasMessages ? (
         <>
           <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
@@ -115,7 +160,7 @@ export default function ChatMainView({
 
           <div className="absolute bottom-0 left-0 right-0 pb-3 md:pb-4 lg:pb-6 bg-neutral">
             <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12">
-              <form onSubmit={handleSubmit} className="max-w-full md:max-w-[85%] lg:max-w-[75%] xl:max-w-[75%] mx-auto">
+              <form onSubmit={handleSubmit} className="max-w-full md:max-w-2xl lg:max-w-3xl xl:max-w-3xl mx-auto">
                 <div
                   className={`w-full bg-white border border-neutral-3 shadow-lg ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
                     } p-2 md:p-[0.625rem] min-h-[2.25rem] flex items-center`}
@@ -141,11 +186,11 @@ export default function ChatMainView({
       ) : (
         <>
           <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 lg:px-8 pb-[120px]">
-            <h1 className="heading-32 text-neutral-9 mb-8 md:mb-10 lg:mb-12 text-center">
-              What can I help you with?
+            <h1 className="heading-32 md:heading-40 text-neutral-9 mb-8 md:mb-10 lg:mb-12 text-center transition-all duration-300">
+              {greetingMessage}
             </h1>
             <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12">
-              <form onSubmit={handleSubmit} className="max-w-full md:max-w-[85%] lg:max-w-[75%] xl:max-w-[70%] mx-auto">
+              <form onSubmit={handleSubmit} className="max-w-full md:max-w-2xl lg:max-w-3xl xl:max-w-3xl mx-auto">
                 <div
                   className={`w-full bg-white border border-neutral-3 shadow-sm ${isMultiline ? 'rounded-[1.75rem]' : 'rounded-full'
                     } p-2 md:p-[0.625rem] min-h-[2.25rem] flex items-center`}
@@ -161,6 +206,22 @@ export default function ChatMainView({
                     className="flex-1 resize-none outline-none caption-14-regular md:!text-[16px] text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto px-3 md:px-4"
                   />
                 </div>
+
+                {/* Suggestion chips */}
+                {suggestionMessages.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                    {suggestionMessages.map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        onPress={() => onSendMessage(suggestion)}
+                        variant="flat"
+                        className="bg-white border border-neutral-3 text-neutral-8 hover:bg-neutral-1 hover:border-neutral-4 caption-14-regular md:!body-16-regular px-4 py-2 rounded-full transition-all duration-200"
+                      >
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </form>
             </div>
           </div>

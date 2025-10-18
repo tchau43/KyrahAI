@@ -35,26 +35,31 @@ async function generateUniqueSessionId(maxRetries: number = 5): Promise<string> 
   throw new AuthError('Failed to generate unique session id', 'UUID_COLLISION', 500);
 }
 
-const TEMP_SESSION_ID_KEY = 'kyrah_temp_session_id';
-
 export async function createTempSession(): Promise<{ session_id: string }> {
   const sessionId = await generateUniqueSessionId();
   if (isBrowser()) {
-    sessionStorage.setItem(TEMP_SESSION_ID_KEY, sessionId);
+    sessionStorage.setItem('kyrah_temp_session_id', sessionId);
   }
   return { session_id: sessionId };
 }
 
 export function getTempSessionId(): string | null {
   if (!isBrowser()) return null;
-  const id = sessionStorage.getItem(TEMP_SESSION_ID_KEY);
+  const id = sessionStorage.getItem('kyrah_temp_session_id');
   return id || null;
 }
 
 export function clearTempSession(): void {
   if (isBrowser()) {
-    sessionStorage.removeItem(TEMP_SESSION_ID_KEY);
+    sessionStorage.removeItem('kyrah_temp_session_id');
   }
+}
+
+export function clearAllSessionData(): void {
+  if (!isBrowser()) return;
+  sessionStorage.removeItem('kyrah_temp_session_id');
+  sessionStorage.removeItem('kyrah_anonymous_token');
+  localStorage.removeItem('kyrah_anonymous_session_id');
 }
 
 
@@ -255,6 +260,8 @@ export async function signInWithEmail(
   metadata: SignInMetadata = {}
 ): Promise<AuthResult> {
   try {
+    clearAllSessionData();
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -273,6 +280,7 @@ export async function signInWithEmail(
     }
 
     // Do not create Kyrah session here; defer until first message
+    // A new temp session will be created by AuthContext.handleSignIn
     const kyrahSession = undefined;
 
     // Log event without session id
@@ -316,13 +324,6 @@ export async function signOut(): Promise<void> {
     } = await supabase.auth.getUser();
 
     if (user) {
-      // Soft delete current sessions
-      await supabase
-        .from('sessions')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .is('deleted_at', null);
-
       // Log event
       await logAuthEvent('signout', user.id, null, {}, true);
     }
@@ -335,6 +336,8 @@ export async function signOut(): Promise<void> {
         error.status
       );
     }
+
+    clearAllSessionData();
   } catch (error) {
     console.error('Error signing out:', error);
     throw error instanceof AuthError
@@ -418,8 +421,9 @@ export async function getUserSessions(userId: string): Promise<Session[]> {
     .from('sessions')
     .select('*')
     .eq('user_id', userId)
-    .is('deleted_at', null)
     .order('last_activity_at', { ascending: false })
+    .gt('expires_at', new Date().toISOString());
+
 
   if (error) {
     throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
