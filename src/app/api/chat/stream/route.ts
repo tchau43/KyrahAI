@@ -265,7 +265,7 @@ export async function POST(request: NextRequest) {
               if (assessment.risk_level === 'high' || assessment.requires_immediate_cards) {
                 resourcesData = await fetchRelevantResources(
                   assessment,
-                  5,
+                  3,
                   currentUserId || undefined
                 );
 

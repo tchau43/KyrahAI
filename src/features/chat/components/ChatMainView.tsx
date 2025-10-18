@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '../data';
 import ChatBubble from './ChatBubble';
-import { ResourceList } from '@/components/cards/ResourceCard';
 import { Resource } from '@/types/risk-assessment';
+import { ResourceList } from '@/components/cards/HotlineCard';
 
 // Extend Message type to include resources
 interface MessageWithResources extends Message {
