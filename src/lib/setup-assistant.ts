@@ -58,6 +58,7 @@ export async function setupAssistant(options?: AssistantSetupOptions): Promise<s
       name,
       model,
       instructions: systemInstruction,
+      temperature,
     });
 
     return assistant.id;

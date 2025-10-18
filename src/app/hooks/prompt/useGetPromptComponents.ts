@@ -1,6 +1,6 @@
 // src/app/hooks/prompt/useGetPromptComponents.ts
 
-import { getPromptComponents } from "@/app/api/prompt/getPromptComponents";
+import { getPromptComponents } from "@/lib/prompt/getPromptComponents";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetPromptComponents = () => {

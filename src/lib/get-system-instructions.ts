@@ -26,7 +26,7 @@ export async function getSystemInstructionsFromDB(): Promise<string> {
     // }
 
     // 3. Build system instruction
-    const systemInstruction = systemPromptData?.content
+    const systemInstruction = systemPromptData?.content || 'You are Kyrah, a helpful AI assistant.';
 
     return systemInstruction;
   } catch (error) {

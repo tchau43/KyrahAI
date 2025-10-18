@@ -153,16 +153,21 @@ Analyze the user message above for risk indicators. Match phrases from the messa
     }
 
     // Get messages
-    const messages = await openai.beta.threads.messages.list(thread.id);
-    const lastMessage = messages.data[0];
-
-    if (lastMessage.content[0].type !== 'text') {
-      throw new Error('Unexpected message format from Risk Assessor');
+    const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 10 });
+    const lastAssistant = messages.data.find((m) => m.role === 'assistant');
+    if (!lastAssistant || !Array.isArray(lastAssistant.content) || lastAssistant.content.length === 0) {
+      throw new Error('No assistant message found');
     }
-
-    const assessmentOutput: RiskAssessmentOutput = JSON.parse(
-      lastMessage.content[0].text.value
-    );
+    const textPart = lastAssistant.content.find((c) => c.type === 'text');
+    if (!textPart || textPart.type !== 'text') {
+      throw new Error('Assistant response missing text content');
+    }
+    let assessmentOutput: RiskAssessmentOutput;
+    try {
+      assessmentOutput = JSON.parse(textPart.text.value);
+    } catch {
+      throw new Error('Failed to parse assessment JSON');
+    }
 
     // Validate the output
     validateRiskAssessment(assessmentOutput);

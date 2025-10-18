@@ -152,7 +152,8 @@ export async function verifyAnonymousToken(
     await supabase
       .from('anonymous_session_tokens')
       .update({ last_used_at: new Date().toISOString() })
-      .eq('session_id', sessionId);
+      .eq('session_id', sessionId)
+      .eq('token_hash', tokenHash);
 
     return true;
   } catch (error) {
@@ -174,25 +175,6 @@ export async function signUpWithEmail(
   metadata: SignUpMetadata = {}
 ): Promise<AuthResult> {
   try {
-    // Check if email already exists in 'auth.users'
-    const { data: existingUser, error: existingUserError } = await supabase
-      .from('v_active_authenticated_users')
-      .select('email')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (existingUserError) {
-      console.error('Error checking existing user:', existingUserError);
-      throw new AuthError(
-        existingUserError.message,
-        'CHECK_EMAIL_ERROR',
-        500
-      );
-    }
-    if (existingUser) {
-      throw new AuthError('Email already exists', 'EMAIL_EXISTS', 409);
-    }
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -218,7 +200,14 @@ export async function signUpWithEmail(
       throw new AuthError('Signup returned no user', 'NO_USER', 500);
     }
 
-    // Do not create Kyrah session here; defer until first message
+    if (data.user && (!data.user.identities || data.user.identities.length === 0)) {
+      throw new AuthError(
+        'An account with this email already exists.',
+        'EMAIL_EXISTS',
+        409
+      );
+    }
+
     if (data.user && data.session) {
       await logAuthEvent(
         'email_signup',

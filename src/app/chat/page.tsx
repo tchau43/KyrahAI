@@ -7,7 +7,7 @@ import ChatMainView from '@/features/chat/components/ChatMainView';
 import AuthStatus from '@/components/auth/AuthStatus';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStartAnonymousSession } from '@/features/auth/hooks/useStartAnonymousSession';
-import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSesssions';
+import { useGetUserSessions } from '@/features/chat/hooks/useGetUserSessions';
 import { useGetSessionMessages } from '@/features/chat/hooks/useGetSessionMessages';
 import { createTempSession, getTempSessionId, clearTempSession } from '@/lib/auth';
 import type { Message } from '@/features/chat/data';
@@ -98,6 +98,15 @@ export default function ChatPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (activeSessionId) {
+      sessionStorage.setItem('kyrah_active_session_id', activeSessionId);
+    } else {
+      sessionStorage.removeItem('kyrah_active_session_id');
+    }
+  }, [activeSessionId]);
 
   const { data: sessions = [], isLoading: sessionsLoading } = useGetUserSessions(user?.id || '');
   const { data: messagesData, isLoading: messagesLoading } = useGetSessionMessages({
@@ -288,16 +297,38 @@ export default function ChatPage() {
     let currentResources: Resource[] = [];
     let currentRiskLevel: string | undefined;
 
+    let buffer = '';
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) {
+        // process any remaining buffered line
+        if (buffer) {
+          const line = buffer;
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              // handle one last event if needed
+            } catch { /* ignore partial */ }
+          }
+        }
+        break;
+      }
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      // keep the last partial line in buffer
+      buffer = lines.pop() ?? '';
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
+      for (const raw of lines) {
+        const line = raw.trim();
         if (line.startsWith('data: ')) {
-          const data = JSON.parse(line.slice(6));
+          let data: any;
+          try {
+            data = JSON.parse(line.slice(6));
+          } catch {
+            // Put back into buffer if partial and continue
+            buffer = line + '\n' + buffer;
+            continue;
+          }
 
           if (data.type === 'token') {
             // Update streaming assistant message

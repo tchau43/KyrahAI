@@ -29,9 +29,15 @@ export async function createClient(request: NextRequest) {
     },
   })
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser()
+    user = authUser
+  } catch (error) {
+    console.error('Error fetching user in middleware:', error)
+  }
 
   return { supabase, response: supabaseResponse, user }
 }

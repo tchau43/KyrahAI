@@ -182,7 +182,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Clear anonymous data
     if (typeof window !== 'undefined') {
       localStorage.removeItem('kyrah_anonymous_session_id')
-      localStorage.removeItem('kyrah_anonymous_token')
+      sessionStorage.removeItem('kyrah_anonymous_token')
     }
 
     // Refresh session

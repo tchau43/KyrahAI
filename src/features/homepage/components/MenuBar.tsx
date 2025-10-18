@@ -83,29 +83,34 @@ const MenuBar = ({ setIsMenuOpen, isMenuOpen }: MenuBarProps) => {
           </div>
           {/* Items */}
           <div className="flex flex-col gap-4 px-4 py-4">
-            {navigationItems.map((item, index) => (
-              <div
-                key={item.href}
-                className={`relative transition-all duration-300 ${isMenuOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-                  }`}
-                style={{
-                  transitionDelay: isMenuOpen ? `${index * 80 + 150}ms` : '0ms'
-                }}
-              >
-                {item.comingSoon && (
-                  <span className="absolute -top-4 left-4 bg-secondary-3 text-xs px-2 rounded-full text-black font-inter caption-14-semi">
-                    Soon
-                  </span>
-                )}
-                <Link
-                  href={item.href}
-                  className={`body-16-semi font-inter text-neutral-9 transition-colors hover:text-neutral-7 ${item.comingSoon ? 'text-secondary-2 cursor-not-allowed' : ''}`}
-                  onClick={(e) => item.comingSoon ? e.preventDefault() : undefined}
+            {navigationItems.map((item, index) => {
+              const isDisabled = !!(item.disabled || item.comingSoon);
+              return (
+                <div
+                  key={item.href}
+                  className={`relative transition-all duration-300 ${isMenuOpen ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}`}
+                  style={{ transitionDelay: isMenuOpen ? `${index * 80 + 150}ms` : '0ms' }}
                 >
-                  {item.label}
-                </Link>
-              </div>
-            ))}
+                  {item.comingSoon && (
+                    <span className="absolute -top-4 left-4 bg-secondary-3 text-xs px-2 rounded-full text-black font-inter caption-14-semi">
+                      Soon
+                    </span>
+                  )}
+                  <Link
+                    href={item.href}
+                    aria-disabled={isDisabled || undefined}
+                    tabIndex={isDisabled ? -1 : undefined}
+                    className={`body-16-semi font-inter text-neutral-9 transition-colors hover:text-neutral-7 ${isDisabled ? 'text-secondary-2 cursor-not-allowed' : ''}`}
+                    onClick={(e) => {
+                      if (isDisabled) { e.preventDefault(); return; }
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    {item.label}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
 

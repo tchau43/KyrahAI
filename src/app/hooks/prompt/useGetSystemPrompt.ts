@@ -1,6 +1,6 @@
-// src/app/hooks/prompt/useGetSystemPrompt.ts
+'use client';
 
-import { getSystemPrompt } from "@/app/api/prompt/getSystemPrompt";
+import { getSystemPrompt } from "@/lib/prompt/getSystemPrompt";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetSystemPrompt = () => {

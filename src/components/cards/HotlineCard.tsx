@@ -29,7 +29,8 @@ export default function ResourceCard({
   const handleClick = () => {
     onCardClick?.(resource_id);
     if (source_url) {
-      window.open(source_url, '_blank', 'noopener noreferrer');
+      const win = window.open(source_url, '_blank', 'noopener,noreferrer');
+      if (win) win.opener = null;
     }
   };
 
@@ -38,6 +39,7 @@ export default function ResourceCard({
   return (
     <div className="relative flex-1 min-w-0">
       <button
+        type="button"
         className={`w-full flex flex-col gap-1.5 px-3 py-2.5 rounded-lg border border-secondary-3 bg-neutral hover:bg-neutral-1 transition-colors text-left ${isClickable ? 'cursor-pointer' : 'cursor-default'
           }`}
         onClick={handleClick}

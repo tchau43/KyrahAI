@@ -19,10 +19,15 @@ export default function BeginModal() {
   const isOpen = isModalOpen('begin-modal');
   const handleClose = () => closeModal('begin-modal');
   const handleContinue = async () => {
-    // Create a new temp session before navigating to chat
-    await createTempSession();
-    router.push('/chat');
-    closeModal('begin-modal');
+    try {
+      // Create a new temp session before navigating to chat
+      await createTempSession();
+      router.push('/chat');
+      closeModal('begin-modal');
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      // Optionally show error to user or keep modal open
+    }
   };
   const handleExit = () => handleClose();
 

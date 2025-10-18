@@ -2,15 +2,12 @@
 import { createClient } from '@/utils/supabase/server';
 import type { RiskAssessmentOutput, Resource, RiskLevel } from '@/types/risk-assessment';
 
-/**
- * Map jurisdiction codes to display names
- */
-const JURISDICTION_MAP: Record<string, string> = {
-  'US': 'United States',
-  'VN': 'Vietnam',
-  'CN': 'China',
-  'JP': 'Japan',
-  'international': 'International (UNICEF/UN)',
+// Define once near top (after imports)
+const RISK_ORDER: RiskLevel[] = ['low', 'medium', 'high'] as const;
+const rank = (b: RiskLevel) => RISK_ORDER.indexOf(b);
+const bandsAtOrBelow = (level: RiskLevel) => {
+  const idx = rank(level);
+  return RISK_ORDER.slice(0, Math.max(0, idx + 1));
 };
 
 /**
@@ -208,10 +205,9 @@ export async function fetchRelevantResources(
         .in('topic', topics)
         .eq('jurisdiction', jurisdiction)
         .eq('is_active', true)
-        .lte('risk_band', assessment.risk_level) // risk_band ≤ current risk
+        .in('risk_band', bandsAtOrBelow(assessment.risk_level)) // risk band at or below
         .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0]) // Not expired
         .eq('display_as_card', true) // Only displayable cards
-        .order('risk_band', { ascending: false }) // Prioritize higher risk resources
         .limit(limit);
 
       if (error) {
@@ -243,7 +239,11 @@ export async function fetchRelevantResources(
         }
 
         if (data && data.length > 0) {
-          resources = data;
+          resources = [...data].sort(
+            (a, b) =>
+              rank(b.risk_band) - rank(a.risk_band) ||
+              new Date(b.last_verified).getTime() - new Date(a.last_verified).getTime()
+          );
           break;
         }
       }

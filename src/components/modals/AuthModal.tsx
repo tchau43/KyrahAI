@@ -68,8 +68,14 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
   }, [signUp.isSuccess, signIn.isSuccess]);
 
   const isPending = signUp.isPending || signIn.isPending;
-  const error = signUp.error || signIn.error;
-  const displayError = formError || error;
+  const mutationError = signUp.error ?? signIn.error;
+  const mutationErrorMessage =
+    mutationError instanceof Error
+      ? mutationError.message
+      : typeof mutationError === 'string'
+        ? mutationError
+        : null;
+  const displayError = formError ?? mutationErrorMessage;
 
   return (
     <Modal
@@ -149,7 +155,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
               {displayError && (
                 <div className="p-3 rounded-xl bg-error-4 border border-error-3 mt-2">
                   <p className="caption-14-regular text-error-1">
-                    {formError || (error?.message || 'Something went wrong. Please try again.')}
+                    {displayError || 'Something went wrong. Please try again.'}
                   </p>
                 </div>
               )}

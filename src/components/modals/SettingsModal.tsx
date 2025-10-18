@@ -116,13 +116,13 @@ export default function SettingsModal({
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     setDetectedTimezone(tz);
 
-    if (user.preferences.timezone === 'auto') {
+    if (preferences.timezone === 'auto') {
       setPreferences(prev => ({
         ...prev,
         timezone: tz
       }));
     }
-  }, [user.preferences.timezone]);
+  }, [preferences.timezone]);
 
   const handleUserNameChange = (value: string) => {
     setUserName(value);
@@ -156,7 +156,8 @@ export default function SettingsModal({
       const changes: Partial<UserPreferences> = {};
       (Object.keys(preferences) as Array<keyof UserPreferences>).forEach((key) => {
         if (JSON.stringify(preferences[key]) !== JSON.stringify(user.preferences[key])) {
-          changes[key] = preferences[key] as any;
+          // TypeScript correctly ensures preferences[key] matches UserPreferences[key]
+          (changes as any)[key] = preferences[key];
         }
       });
 

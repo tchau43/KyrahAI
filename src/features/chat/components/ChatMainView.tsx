@@ -76,14 +76,22 @@ export default function ChatMainView({
 
   const handleResourceClick = async (resourceId: string) => {
     try {
-      await fetch('/api/resources/track-click', {
+      const sessionId =
+        messages?.[0]?.session_id ??
+        (messages && messages[messages.length - 1]?.session_id) ??
+        null;
+      if (!sessionId) {
+        console.warn('No sessionId available for resource click');
+        return;
+      }
+      const res = await fetch('/api/resources/track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resourceId,
-          sessionId: messages?.[0]?.session_id
-        }),
+        body: JSON.stringify({ resourceId, sessionId }),
       });
+      if (!res.ok) {
+        console.warn('Track click failed', res.status, await res.text());
+      }
     } catch (err) {
       console.error('Failed to track resource click:', err);
     }

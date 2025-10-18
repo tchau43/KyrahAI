@@ -191,22 +191,6 @@ export async function POST(request: NextRequest) {
           let promptTokens = 0;
           let completionTokens = 0;
 
-          // Stream Kyrah's response using your existing assistant
-          const streamResult = await runAssistantStream({
-            assistantId,
-            threadId: threadId || undefined,
-            message: userMessage,
-            onToken: (token: string) => {
-              fullContent += token;
-              const data = JSON.stringify({ type: 'token', content: token });
-              controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-            },
-          });
-
-          fullContent = streamResult.content;
-          promptTokens = streamResult.promptTokens;
-          completionTokens = streamResult.completionTokens;
-
           const { data: savedUserMessage, error: userMsgErr } = await supabase
             .from('messages')
             .insert({
@@ -221,6 +205,27 @@ export async function POST(request: NextRequest) {
           if (userMsgErr || !savedUserMessage) {
             throw new Error('Failed to save user message');
           }
+
+          const streamResult = await runAssistantStream({
+            assistantId,
+            threadId: threadId || undefined,
+            message: userMessage,
+            onToken: (token: string) => {
+              fullContent += token;
+              controller.enqueue(encoder.encode(
+                `data: ${JSON.stringify({ type: 'token', content: token })}\n\n`
+              ));
+            },
+          });
+          fullContent = streamResult.content;
+          promptTokens = streamResult.promptTokens;
+          completionTokens = streamResult.completionTokens;
+
+          // 3) Update prompt token_count on saved user message
+          await supabase
+            .from('messages')
+            .update({ token_count: promptTokens })
+            .eq('message_id', savedUserMessage.message_id);
 
           let resourcesData: any[] = [];
           let riskLevel: string | null = null;
