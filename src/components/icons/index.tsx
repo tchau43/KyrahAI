@@ -593,8 +593,9 @@ export const KyrahAI: React.FC<IconSvgProps> = ({
   width = 182,
   height = 45.021053314208984,
   fill = 'none',
+  ...props
 }) => (
-  <svg width={width} height={height} viewBox="0 0 552 139" fill={fill} xmlns="http://www.w3.org/2000/svg">
+  <svg width={width} height={height} viewBox="0 0 552 139" fill={fill} xmlns="http://www.w3.org/2000/svg" {...props}>
     <g clipPath="url(#clip0_3731_2507)">
       <path d="M145 0.333008L86.5293 69.9404L147 139.333H50L13 95.5361V130.333H0V44.333L43 0.333008H145ZM13 76.333L57 126.333H120L75.4912 75.333H13V76.333ZM49 14.333L13 51.2559V61.333H77L117 14.333H49Z" fill="#4E5180" />
       <path d="M551.966 43.4291V95.9611C551.966 97.7397 551.322 99.2731 550.034 100.561C548.807 101.788 547.305 102.401 545.526 102.401C543.747 102.401 542.214 101.788 540.926 100.561C539.699 99.2731 539.086 97.7397 539.086 95.9611V43.4291C539.086 41.6504 539.699 40.1477 540.926 38.9211C542.214 37.6944 543.747 37.0811 545.526 37.0811C547.305 37.0811 548.807 37.6944 550.034 38.9211C551.322 40.1477 551.966 41.6504 551.966 43.4291Z" fill="#4E5180" />
@@ -838,8 +839,9 @@ export const AlertTriangle: React.FC<IconSvgProps> = ({
   width = 24,
   height = 24,
   fill = 'none',
+  ...props
 }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size ?? width} height={size ?? height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-triangle-alert-icon lucide-triangle-alert">
+  <svg xmlns="http://www.w3.org/2000/svg" width={size ?? width} height={size ?? height} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-triangle-alert-icon lucide-triangle-alert" {...props}>
     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
     <path d="M12 9v4" />
     <path d="M12 17h.01" />
