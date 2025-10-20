@@ -15,9 +15,9 @@ export default function HeroSection() {
               Your Quiet Ally in Emotional Awareness
             </p>
             <h1 className="text-neutral-9 heading-32 md:!text-[3.375rem] xl:!text-[4.5rem] xl:!tracking-[-0.06rem] text-center xl:text-left">
-              We make <span className="text-neutral-10">AI safer</span>
+              We make <span className="text-neutral-10 whitespace-nowrap">AI safer</span>
               <br />
-              for humanity
+              <span className="whitespace-nowrap">for humanity</span>
             </h1>
             <p className="text-neutral-9 body-18-regular max-w-lg text-center xl:text-left">
               Kyrah.ai offers compassionate and confidential support for anyone
@@ -31,7 +31,7 @@ export default function HeroSection() {
               onClick={() => openModal('begin-modal')}
               className="px-8 py-3 md:col-span-3 bg-neutral-10 text-white rounded-full font-inter body-16-semi hover:bg-neutral-9 transition-colors cursor-pointer"
             >
-              Chat with Kyrah (Alpha test)
+              Chat with Kyrah <span className="whitespace-nowrap">(Alpha test)</span>
             </button>
             <button className="px-8 py-3 md:col-span-3 bg-transparent border border-neutral-6 text-neutral-10 rounded-full font-inter body-16-semi hover:bg-neutral-1 transition-colors cursor-pointer">
               Watch Demo
@@ -40,13 +40,13 @@ export default function HeroSection() {
         </div>
 
 
-        <div className="xl:col-span-5 xl:col-start-8 xl:h-full relative h-80 md:h-100 w-full">
-          <div className="absolute bottom-[-20] md:bottom-[-10] xl:bottom-[0] 2xl:bottom-[-30] right-0 w-full h-full">
+        <div className="xl:col-span-5 xl:col-start-8 xl:h-full relative h-70 md:h-100 w-full">
+          <div className="absolute bottom-[-20] md:bottom-[-10] xl:bottom-[-10] 2xl:bottom-[-40] 3xl:bottom-[-30] right-0 w-full h-full">
             <Image
               src="/hero-image.png"
               alt="Hero Image"
               fill
-              className="object-contain scale-[2] md:scale-150 xl:scale-[2.1]" />
+              className="object-contain scale-[1.8] md:scale-150 xl:scale-[2.2] 2xl:scale-[2.3]" />
           </div>
         </div>
       </div>

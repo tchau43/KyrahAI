@@ -29,8 +29,18 @@ export default function ResourceCard({
       aria-label={`Open ${title} in new tab`}
     >
       <div className="flex flex-col gap-2.5">
-        <div className="font-spectral font-semibold text-[1.25rem] leading-[1.1] tracking-[-0.02rem] md:text-[1.5rem] xl:text-[1.75rem] xl:tracking-[-0.04rem] text-neutral">{title}</div>
-        <div className="font-inter leading-[1.6] text-neutral">
+        <div
+          data-rc-title
+          className="font-spectral font-semibold text-[1.25rem] leading-[1.1] tracking-[-0.02rem] md:text-[1.5rem] xl:text-[1.75rem] xl:tracking-[-0.04rem] text-neutral"
+          style={{ minHeight: 'var(--rc-title-min-h, auto)' }}
+        >
+          {title}
+        </div>
+        <div
+          data-rc-desc
+          className="font-inter leading-[1.6] text-neutral"
+          style={{ minHeight: 'var(--rc-desc-min-h, auto)' }}
+        >
           {description}
         </div>
         <div className="absolute top-5 right-5">

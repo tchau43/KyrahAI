@@ -22,6 +22,7 @@ export interface SessionConfig {
   retention_days: number;
   language: string;
   timezone: string;
+  timezone_offset: string;
 }
 
 export interface AnonymousSessionToken {
@@ -40,6 +41,7 @@ export interface UserPreferences {
   retention_days: number;
   language: string;
   timezone: string;
+  timezone_offset: string;
   allow_analytics: boolean;
   allow_improvement_research: boolean;
   notifications: NotificationPreferences;
@@ -134,6 +136,7 @@ export interface UserPreferencesUpdate {
   retention_days?: number;
   language?: string;
   timezone?: string;
+  timezone_offset?: string;
   allow_analytics?: boolean;
   allow_improvement_research?: boolean;
   notifications?: Partial<NotificationPreferences>;

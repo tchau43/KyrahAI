@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { setupAssistant, getAssistant } from '../src/lib/setup-assistant';
 
 async function main() {

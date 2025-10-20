@@ -17,6 +17,7 @@ import {
 } from '@heroui/react';
 import { useState, useEffect } from 'react';
 import { Clock, Download, Globe, HeartHandshake, MessageSquare, Shield } from '../icons';
+import { getTimezoneOffset } from '@/lib/auth';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -117,9 +118,11 @@ export default function SettingsModal({
     setDetectedTimezone(tz);
 
     if (preferences.timezone === 'auto') {
+      const timezoneOffset = getTimezoneOffset(tz);
       setPreferences(prev => ({
         ...prev,
-        timezone: tz
+        timezone: tz,
+        timezone_offset: timezoneOffset
       }));
     }
   }, [preferences.timezone]);
@@ -134,14 +137,29 @@ export default function SettingsModal({
     value: string | number | boolean | { weekly_check_in: boolean; resource_updates: boolean }
   ) => {
     let finalValue = value;
-    if (key === 'timezone' && value === 'auto') {
-      finalValue = detectedTimezone || value;
+    let timezoneOffset = null;
+
+    if (key === 'timezone') {
+      if (value === 'auto') {
+        finalValue = detectedTimezone || value;
+      }
+      // Calculate timezone_offset when timezone changes
+      timezoneOffset = getTimezoneOffset(finalValue as string);
     }
 
-    setPreferences((prev) => ({
-      ...prev,
-      [key]: finalValue,
-    }));
+    setPreferences((prev) => {
+      const updated = {
+        ...prev,
+        [key]: finalValue,
+      };
+
+      // Also update timezone_offset if timezone changed
+      if (timezoneOffset !== null) {
+        updated.timezone_offset = timezoneOffset;
+      }
+
+      return updated;
+    });
     setHasChanges(true);
   };
 
