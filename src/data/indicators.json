@@ -1,0 +1,694 @@
+[
+  {
+    "id": "indicator_self_harm_crisis",
+    "flag": "self_harm",
+    "indicators": [
+      "can't do this anymore",
+      "wish I wasn't here",
+      "better without me",
+      "everyone would be better off without me",
+      "no point in living",
+      "life has no meaning",
+      "no reason to live",
+      "I hate my life",
+      "I shouldn't have been born",
+      "I'm a failure",
+      "I'm worthless",
+      "I am useless",
+      "feeling trapped",
+      "feeling stuck",
+      "feeling like a burden",
+      "tired and discouraged",
+      "life is a dead end",
+      "I'm done",
+      "I'm tired",
+      "no future",
+      "it will never get better",
+
+      "want the pain to stop",
+      "end the pain",
+      "want to die",
+      "want to kill myself",
+      "ending my life",
+      "going for a long sleep",
+      "want to disappear",
+      "return to the ancestors",
+      "want to hurt myself",
+      "think about cutting",
+      "think about jumping",
+
+      "I have a plan",
+      "know how I would do it",
+      "painless way to commit suicide",
+      "searching for suicide methods",
+      "searching for suicide hotline",
+      "overdosing on sleeping pills",
+      "hanging",
+      "poison",
+      "jumping",
+      "collecting pills",
+      "I bought a blade/razor",
+      "I have the rope ready",
+      "I'm somewhere high up",
+      "saying goodbye",
+      "giving away possessions",
+      "sudden calm after depression",
+      "writing a will",
+      "isolating myself",
+      "stopping medication"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_danger_crisis",
+    "flag": "imminent_danger",
+    "indicators": [
+      "going to kill me",
+      "I'm going to kill you",
+      "threatened to hurt me",
+      "he said he's going to end me",
+      "seeking revenge",
+      "want to make someone suffer",
+      "abuser threatens suicide",
+      "want me to live with him forever",
+      "want me to die",
+      "this is my last chance to call",
+      "I won't make it through the night",
+      "I'll beat you to death",
+      "threatens to kill",
+      "threatened me for trying to leave",
+      "has a gun",
+      "has a knife",
+      "he's got a weapon",
+      "he's loading his gun",
+      "used a weapon on me",
+      "hit me with an object",
+      "coming at me with a knife",
+      "threatening me with a gun",
+      "looking for a weapon",
+      "buying a gun/knife",
+      "smashed my phone",
+      "tried to choke me",
+      "strangulation",
+      "destroys property",
+      "violence is getting worse",
+      "violence is escalating",
+      "he's kicking down the door",
+      "I'm locked in a room",
+      "he won't let me leave",
+      "he's drunk/high and violent",
+      "history of violence",
+
+      "hurt the children",
+      "go after my family",
+      "the kids are hiding",
+      "he's threatening our pets",
+
+      "not safe here",
+      "waiting for me outside",
+      "I'm hiding from him right now",
+      "he's following me",
+      "stalking me",
+      "walking on eggshells",
+      "he broke the restraining order",
+      "I'm scared of what he'll do next",
+      "I feel like a hostage"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_gaslighting_low",
+    "flag": "gaslighting_subtle",
+    "indicators": [
+      "you're too sensitive",
+      "you're overreacting",
+      "I was just kidding",
+      "you can't take a joke",
+      "lighten up",
+      "it wasn't that bad",
+      "don't worry so much about it",
+      "you're being dramatic",
+      "it's not a big deal",
+      "just let it go"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_gaslighting_medium",
+    "flag": "gaslighting_denial",
+    "indicators": [
+      "that never happened",
+      "you're imagining things",
+      "that's not what I meant",
+      "you're remembering it wrong",
+      "I never said that",
+      "if you really cared, you would...",
+      "you heard me wrong",
+      "that's not how it happened",
+      "you're putting words in my mouth",
+      "I do everything for you",
+      "if you loved me",
+      "you're twisting my words"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_gaslighting_high",
+    "flag": "gaslighting_destructive",
+    "indicators": [
+      "you're crazy",
+      "you made me do it",
+      "I only did it because of you",
+      "who do you think they'll believe",
+      "everyone knows you're unstable",
+      "you need help",
+      "no one else would put up with you",
+      "you're paranoid",
+      "your friends think you're crazy too",
+      "you're the abusive one",
+      "why can't you be more like...",
+      "you're twisting my words"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_physical_medium",
+    "flag": "physical_intimidation",
+    "indicators": [
+      "blocked the doorway",
+      "spit on me",
+      "threw something near me",
+      "destroying property",
+      "smashing things",
+      "aggressive yelling",
+      "punching the wall",
+      "getting in my face",
+      "making threatening gestures",
+      "driving recklessly to scare me",
+      "restraining me"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_physical_high",
+    "flag": "physical_violence",
+    "indicators": [
+      "hit me",
+      "slapped me",
+      "punched me",
+      "kicked me",
+      "I have bruises",
+      "pulled my hair",
+      "pushing and shoving",
+      "grabbing",
+      "throwing things at me",
+      "biting me",
+      "scratching me",
+      "tripping me",
+      "shaking me",
+      "destroys property"
+    ],
+    "risk_meter": "high"
+  },
+  {
+    "id": "indicator_physical_crisis",
+    "flag": "physical_severe_violence",
+    "indicators": [
+      "choke me",
+      "strangle me",
+      "beat me up",
+      "used a weapon",
+      "broke my arm",
+      "burned me",
+      "causing serious injury",
+      "torturing me",
+      "slamming my head against something",
+      "suffocating me",
+      "stabbing me",
+      "drowning"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_financial_low",
+    "flag": "financial_warning_signs",
+    "indicators": [
+      "bad with money",
+      "see all my receipts",
+      "asks about every purchase",
+      "manages the joint account",
+      "criticizes my spending",
+      "secretive about money",
+      "tells me I can't be trusted with money"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_financial_medium",
+    "flag": "financial_control",
+    "indicators": [
+      "keeps all my cards",
+      "have to ask for money",
+      "gives me an allowance",
+      "takes my money",
+      "paycheck goes to his account",
+      "forced me to quit my job",
+      "harasses me at work",
+      "prevents me from working",
+      "not allowed to know finances",
+      "makes me provide receipts for everything",
+      "puts all assets in his name",
+      "sabotages my job opportunities",
+      "hiding assets",
+      "doesn't let me see bank accounts",
+      "hides financial statements",
+      "interfering with my education"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_financial_high",
+    "flag": "financial_sabotage",
+    "indicators": [
+      "loans in my name",
+      "stole money",
+      "uses my name to take out loans",
+      "ruining my credit",
+      "forced to sell assets",
+      "forces me to sign papers",
+      "runs up debt on my cards",
+      "uses my credit card without asking",
+      "withholds child support",
+      "forces me to commit fraud",
+      "steals my identity",
+      "refuses to pay child support",
+      "gambling away family savings"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_digital_low",
+    "flag": "digital_monitoring",
+    "indicators": [
+      "who I'm talking to",
+      "share our locations",
+      "reply to texts immediately",
+      "asks to see my phone",
+      "checks my likes and comments",
+      "tells me what I can post",
+      "accuses me of cheating online"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_digital_medium",
+    "flag": "digital_control",
+    "indicators": [
+      "checks my texts daily",
+      "checking phone/Zalo/Facebook",
+      "demands my passwords",
+      "deletes contacts",
+      "posts on my profile",
+      "not allowed to be friends with",
+      "forbidding contact with friends",
+      "changes my passwords",
+      "blocks my family and friends",
+      "insists we share an account",
+      "sends messages as me",
+      "abnormal battery drain"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_digital_high",
+    "flag": "digital_stalking_threats",
+    "indicators": [
+      "installed spyware",
+      "GPS tracker",
+      "created a fake profile",
+      "threatens to share private photos",
+      "impersonating me",
+      "non-stop harassing messages",
+      "uses smart home devices to spy",
+      "security camera is being controlled",
+      "doxxing",
+      "shares my private information",
+      "publicly expose/shame",
+      "posted my private photos",
+      "tracks my location without consent",
+      "sending harassing messages to my boss/family",
+      "revenge porn",
+      "sextortion"
+    ],
+    "risk_meter": "high"
+  },
+  {
+    "id": "indicator_sexual_medium",
+    "flag": "sexual_coercion_harassment",
+    "indicators": [
+      "unwanted comments about my body",
+      "pressures me to send photos",
+      "repeatedly asks for sex",
+      "makes me feel guilty",
+      "exposes himself",
+      "unwanted sexual jokes or stories",
+      "pressures me to watch porn",
+      "stealthing",
+      "removed condom without consent",
+      "sabotaging birth control"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_sexual_high",
+    "flag": "sexual_assault",
+    "indicators": [
+      "touched me without consent",
+      "forced me to perform a sex act",
+      "doesn't stop when I say no",
+      "afraid to say no",
+      "when I was drunk/drugged/asleep",
+      "sexual contact while I was passed out",
+      "coerced me into sex",
+      "violating me",
+      "groping me"
+    ],
+    "risk_meter": "high"
+  },
+  {
+    "id": "indicator_sexual_crisis",
+    "flag": "sexual_severe_violence",
+    "indicators": [
+      "raped me",
+      "used a weapon",
+      "choked me during sex",
+      "threatened to share private videos",
+      "intentionally gave me an STD",
+      "drugged me",
+      "filmed the assault",
+      "forced pregnancy",
+      "human trafficking"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_legal_low",
+    "flag": "legal_information",
+    "indicators": [
+      "what is a restraining order",
+      "what does child custody mean",
+      "grounds for divorce",
+      "explain marital property",
+      "what is domestic violence",
+      "explain child support",
+      "what are my rights"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_legal_medium",
+    "flag": "legal_procedure",
+    "indicators": [
+      "how do I file for divorce",
+      "process for getting a restraining order",
+      "where can I find a lawyer",
+      "how to report domestic violence",
+      "how to prove domestic abuse",
+      "what evidence do I need",
+      "how to get a protection order"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_legal_high",
+    "flag": "legal_advice_seeking",
+    "indicators": [
+      "should I leave",
+      "what should I do",
+      "will I win custody",
+      "is it illegal if",
+      "how can I get him kicked out",
+      "can I sue him for",
+      "what will happen if I call the police",
+      "do I have a case"
+    ],
+    "risk_meter": "high"
+  },
+  {
+    "id": "indicator_emotional_low",
+    "flag": "emotional_manipulation",
+    "indicators": [
+      "makes me feel guilty all the time",
+      "always blames me",
+      "never apologizes",
+      "ignores me when angry",
+      "gives me the silent treatment",
+      "pretends everything is fine to avoid talking",
+      "rolls eyes or mocks me",
+      "criticizes me in front of others",
+      "makes me doubt myself",
+      "changes mood suddenly for no reason",
+      "treats me like I'm stupid"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_emotional_medium",
+    "flag": "emotional_abuse",
+    "indicators": [
+      "calls me names",
+      "insults my appearance or intelligence",
+      "makes me feel worthless",
+      "humiliates me in front of others",
+      "constantly belittles my opinions",
+      "says no one else would want me",
+      "makes fun of my emotions",
+      "threatens to leave to scare me",
+      "says I can't do anything right",
+      "tells me I'm crazy or broken"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_emotional_high",
+    "flag": "emotional_terrorizing",
+    "indicators": [
+      "screams at me daily",
+      "threatens to destroy my belongings",
+      "uses fear to control me",
+      "threatens to expose my secrets",
+      "makes me beg for forgiveness",
+      "uses emotional blackmail",
+      "forces me to apologize for things I didn't do",
+      "says I'm worthless and deserve punishment",
+      "makes me relive trauma on purpose"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_verbal_low",
+    "flag": "verbal_disrespect",
+    "indicators": [
+      "speaks harshly when upset",
+      "uses sarcasm to put me down",
+      "makes rude jokes about me",
+      "talks over me constantly",
+      "calls me lazy or annoying",
+      "makes negative comments about my family"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_verbal_medium",
+    "flag": "verbal_abuse",
+    "indicators": [
+      "yells at me frequently",
+      "swears at me",
+      "calls me stupid or pathetic",
+      "says I'm crazy or useless",
+      "shouts to scare me",
+      "uses degrading language during arguments",
+      "says I deserve to be hurt"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_verbal_high",
+    "flag": "verbal_threats",
+    "indicators": [
+      "threatens to hit me",
+      "threatens to ruin my reputation",
+      "threatens to tell lies about me",
+      "threatens to embarrass me publicly",
+      "uses threats to get what they want",
+      "tells me I should die",
+      "tells me no one would care if I disappeared"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_social_low",
+    "flag": "social_monitoring",
+    "indicators": [
+      "wants to know where I am all the time",
+      "gets jealous when I talk to others",
+      "checks who I hang out with",
+      "complains when I see friends",
+      "texts me constantly to check up"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_social_medium",
+    "flag": "social_isolation",
+    "indicators": [
+      "stopped me from seeing my family",
+      "makes me cancel plans",
+      "controls who I talk to",
+      "doesn't let me have friends",
+      "makes me feel guilty for socializing",
+      "spreads rumors to isolate me",
+      "makes others avoid me",
+      "controls what I wear to limit attention"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_social_high",
+    "flag": "social_total_control",
+    "indicators": [
+      "won't let me leave the house alone",
+      "confiscated my phone",
+      "cuts off communication with everyone",
+      "makes me dependent for everything",
+      "forces me to stay home all day",
+      "took away my social media",
+      "locks me inside",
+      "threatens anyone who tries to contact me"
+    ],
+    "risk_meter": "high"
+  },
+
+  {
+    "id": "indicator_neglect_low",
+    "flag": "neglect_warning_signs",
+    "indicators": [
+      "stops caring about my needs",
+      "forgets important dates on purpose",
+      "refuses to help when I’m sick",
+      "ignores my messages for days",
+      "avoids emotional connection",
+      "refuses to spend time with me"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_neglect_medium",
+    "flag": "neglect_emotional_withholding",
+    "indicators": [
+      "denies affection as punishment",
+      "ignores me after arguments for days",
+      "withholds love until I do what they want",
+      "makes me beg for attention",
+      "pretends I don’t exist"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_neglect_high",
+    "flag": "neglect_abandonment_risk",
+    "indicators": [
+      "left me without warning",
+      "stopped responding completely",
+      "abandons me in unsafe situations",
+      "disappears for days as punishment",
+      "withdraws all support suddenly"
+    ],
+    "risk_meter": "high"
+  },
+  {
+    "id": "indicator_emotional_low_v2",
+    "flag": "emotional",
+    "indicators": [
+      "i'm feeling down",
+      "i feel down",
+      "i'm sad",
+      "feeling sad",
+      "so sad",
+      "feeling blue",
+      "a little sad",
+      "feeling low",
+      "i'm a bit down",
+      "felt sad today",
+      "feeling gloomy",
+      "not feeling great",
+      "feeling emotional",
+      "i feel emotional",
+      "emotionally low"
+    ],
+    "risk_meter": "low"
+  },
+  {
+    "id": "indicator_emotional_medium_v2",
+    "flag": "emotional",
+    "indicators": [
+      "i can't stop crying",
+      "crying all the time",
+      "i'm overwhelmed",
+      "i'm emotionally exhausted",
+      "feeling empty inside",
+      "i feel numb",
+      "lost interest in everything",
+      "i don't enjoy anything anymore",
+      "can't find joy",
+      "can't feel anything",
+      "i feel hopeless but not suicidal",
+      "feeling hopeless about things",
+      "i'm isolated",
+      "i feel so alone",
+      "i have no friends",
+      "no one understands me",
+      "i'm losing myself",
+      "i'm not myself anymore",
+      "i can't cope",
+      "i'm drained",
+      "i'm burnt out",
+      "having anxiety attacks",
+      "panic attack",
+      "i feel broken",
+      "i'm emotionally unstable"
+    ],
+    "risk_meter": "medium"
+  },
+  {
+    "id": "indicator_emotional_high_v2",
+    "flag": "emotional",
+    "indicators": [
+      "i can't go on with this sadness",
+      "everything feels meaningless but not suicidal",
+      "i'm in deep despair",
+      "i'm emotionally breaking down",
+      "i feel completely hopeless and crushed",
+      "i'm losing control of my emotions",
+      "i'm trapped in my feelings",
+      "i can't function because of how i feel",
+      "i can't face another day but not suicidal",
+      "i'm having severe panic attacks",
+      "i'm emotionally abused and broken",
+      "i feel destroyed inside",
+      "i'm in emotional crisis",
+      "i'm emotionally shattered",
+      "my emotions are out of control",
+      "i can't bear this pain anymore but not suicidal"
+    ],
+    "risk_meter": "high"
+  }
+]

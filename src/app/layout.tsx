@@ -5,6 +5,7 @@ import ConditionalNavbar from '@/components/ConditionalNavbar';
 import ConditionalFooter from '@/components/ConditionalFooter';
 import { spectral, inter, inder } from '@/config/fonts';
 import ModalProvider from '@/components/provider/ModalProvider';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
   title: 'KyrahAI',
@@ -17,17 +18,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
       >
         {/* <div className="max-w-9xl mx-auto"> */}
-        <ThemeProviders>
-          <ConditionalNavbar />
-          {children}
-          <ConditionalFooter />
-          <ModalProvider />
-        </ThemeProviders>
+        <AuthProvider>
+          <ThemeProviders>
+            <ConditionalNavbar />
+            {children}
+            <ConditionalFooter />
+            <ModalProvider />
+          </ThemeProviders>
+        </AuthProvider>
         {/* </div> */}
       </body>
     </html>
