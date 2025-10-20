@@ -1,6 +1,7 @@
 // src/app/api/chat/stream/route.ts
 import { NextRequest } from 'next/server';
-import { createClient, createAuthenticatedClient } from '@/utils/supabase/server';
+import { createClient } from '@/utils/supabase/server';
+import { getCurrentUser } from '@/lib/supabase/auth-helpers';
 import { runAssistantStream } from '@/lib/openai-helper';
 import { getAssistantId } from '@/lib/setup-assistant';
 import { hashToken } from '@/lib/crypto';
@@ -21,34 +22,18 @@ export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
 
   try {
-    const authHeader = request.headers.get('Authorization');
-    const authToken = authHeader?.startsWith('Bearer ')
-      ? authHeader.replace('Bearer ', '')
-      : null;
+    // Get anonymous token header (for anonymous users only)
     const anonHeader = request.headers.get('X-Anonymous-Token') || request.headers.get('x-anonymous-token');
 
-    // Create appropriate Supabase client
-    const authenticatedSupabase = authToken ? await createAuthenticatedClient(authToken) : null;
+    // Create Supabase client - automatically reads JWT from cookies for authenticated users
     const supabase = await createClient();
 
     const body: ChatRequestBody = await request.json();
     const { sessionId, userMessage, isFirstMessage = false } = body;
 
-    // Authenticate user from JWT token if present
-    let authenticatedUserId: string | null = null;
-    if (authToken && authenticatedSupabase) {
-      const { data: userResponse, error: userErr } = await authenticatedSupabase.auth.getUser();
-      if (userErr) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid auth token' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-      authenticatedUserId = userResponse.user?.id ?? null;
-    }
-
-    const currentUserId = authenticatedUserId;
-    const dbClient = currentUserId && authenticatedSupabase ? authenticatedSupabase : supabase;
+    // Check if user is authenticated (JWT in cookies) using helper function
+    const currentUser = await getCurrentUser();
+    const currentUserId = currentUser?.id ?? null;
 
     if (!sessionId || !userMessage) {
       return new Response(
@@ -58,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate session ownership/access - for first message, create session if doesn't exist
-    const { data: sessionRow, error: sessionErr } = await dbClient
+    const { data: sessionRow, error: sessionErr } = await supabase
       .from('sessions')
       .select('*')
       .eq('session_id', sessionId)
@@ -70,7 +55,7 @@ export async function POST(request: NextRequest) {
     // If session doesn't exist and this is first message, create it
     if (!sessionRow && isFirstMessage) {
       // Double-check session doesn't exist (in case of race condition)
-      const { data: doubleCheckSession } = await dbClient
+      const { data: doubleCheckSession } = await supabase
         .from('sessions')
         .select('session_id, user_id, is_anonymous, auth_type')
         .eq('session_id', sessionId)
@@ -81,7 +66,7 @@ export async function POST(request: NextRequest) {
       } else {
         const isAnonymous = !currentUserId;
 
-        const { data: newSession, error: createErr } = await dbClient
+        const { data: newSession, error: createErr } = await supabase
           .from('sessions')
           .insert({
             session_id: sessionId,
@@ -111,7 +96,7 @@ export async function POST(request: NextRequest) {
           const tokenId = anonHeader;
           const hashedToken = hashToken(tokenId);
           const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-          await dbClient.from('anonymous_session_tokens').insert({
+          await supabase.from('anonymous_session_tokens').insert({
             token_id: tokenId,
             token_hash: hashedToken,
             session_id: sessionId,
@@ -141,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     // Validate session ownership
     if (!isAnonymousSession) {
-      if (!authenticatedUserId || actualSessionRow.user_id !== authenticatedUserId) {
+      if (!currentUserId || actualSessionRow.user_id !== currentUserId) {
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
           { status: 403, headers: { 'Content-Type': 'application/json' } }

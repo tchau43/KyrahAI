@@ -14,8 +14,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /**
- * Create a Supabase client for Server Components and Route Handlers
- * This client handles cookies for session management on the server
+ * Create a Supabase client for Server Components, Route Handlers, and Server Actions
+ * This client handles cookies for session management on the server.
+ *
+ * For authenticated users: JWT tokens are automatically read from httpOnly cookies
+ * For anonymous users: Use custom X-Anonymous-Token header validation (separate from Supabase auth)
  */
 export async function createClient() {
   const cookieStore = await cookies()
@@ -35,36 +38,6 @@ export async function createClient() {
           // This can be ignored if you have middleware refreshing
           // user sessions.
         }
-      },
-    },
-  })
-}
-
-/**
- * Create an authenticated Supabase client with a specific auth token
- * Useful for API routes that receive auth tokens from headers
- */
-export async function createAuthenticatedClient(authToken: string) {
-  const cookieStore = await cookies()
-
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
-        } catch {
-          // Ignore cookie setting errors in Server Components
-        }
-      },
-    },
-    global: {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
       },
     },
   })
