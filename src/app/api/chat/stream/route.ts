@@ -202,9 +202,19 @@ export async function POST(request: NextRequest) {
               ));
             },
           });
-          fullContent = streamResult.content;
-          promptTokens = streamResult.promptTokens;
-          completionTokens = streamResult.completionTokens;
+
+          const { content, promptTokens: streamPromptTokens, completionTokens: streamCompletionTokens, threadId: newThreadId } = streamResult;
+          fullContent = content;
+          promptTokens = streamPromptTokens;
+          completionTokens = streamCompletionTokens;
+
+          // Persist new thread ID to session if this is a new thread
+          if (newThreadId && !threadId) {
+            await supabase
+              .from('sessions')
+              .update({ thread_id: newThreadId })
+              .eq('session_id', sessionId);
+          }
 
           // 3) Update prompt token_count on saved user message
           await supabase
