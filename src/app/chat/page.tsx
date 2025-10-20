@@ -117,6 +117,10 @@ export default function ChatPage() {
 
   // Merge DB messages with optimistic messages, dedupe by message_id
   const currentMessages = useMemo(() => {
+    if (optimisticMessages.length > 0 && !activeSessionId) {
+      return optimisticMessages.map(m => m as unknown as MessageWithResources);
+    }
+
     if (!activeSessionId) return null;
     if (isNewChat) return null;
 
@@ -220,15 +224,19 @@ export default function ChatPage() {
 
     setOptimisticMessages(prev => [...prev, assistantMessage]);
 
+    // 3. For first message, immediately set activeSessionId to enable message display
+    if (isFirstMessage) {
+      setActiveSessionId(currentSessionId);
+    }
+
     try {
-      // 3. Stream the response from API
+      // 4. Stream the response from API
       await streamChatResponse(currentSessionId, content, isFirstMessage, assistantMsgId, userMsgId);
 
-      // 4. If this was a temp session (first message), now it's persisted in DB
-      // Clear temp and set as active session
+      // 5. If this was a temp session (first message), now it's persisted in DB
+      // Clear temp session
       if (isFirstMessage) {
         clearTempSession();
-        setActiveSessionId(currentSessionId);
 
         // Invalidate queries to refresh session list
         await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
