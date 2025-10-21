@@ -1,6 +1,11 @@
 // src/services/risk-assessment.service.ts
 import openai from '@/lib/openai';
-import { RiskAssessmentOutput, RiskAssessmentResponse } from '@/types/risk-assessment';
+import {
+  RiskAssessmentOutput,
+  RiskAssessmentResponse,
+  AUDIENCES,
+  normalizeAudiences,
+} from '@/types/risk-assessment';
 import indicatorsData from '@/data/indicators.json';
 
 /**
@@ -15,7 +20,8 @@ function getRiskAssessmentAssistantId(): string {
 }
 
 /**
- * JSON Schema for structured output
+ * JSON Schema for structured output (WITH AUDIENCE DETECTION)
+ * ⭐ FIXED: Uses centralized AUDIENCES constant
  */
 const RISK_ASSESSMENT_SCHEMA = {
   name: 'risk_assessment_output',
@@ -81,6 +87,14 @@ const RISK_ASSESSMENT_SCHEMA = {
         items: { type: 'string' },
       },
       requires_immediate_cards: { type: 'boolean' },
+      detected_audiences: {
+        type: 'array',
+        items: {
+          type: 'string',
+          enum: AUDIENCES as unknown as string[],
+        },
+        minItems: 1,
+      },
     },
     required: [
       'flags',
@@ -90,6 +104,7 @@ const RISK_ASSESSMENT_SCHEMA = {
       'analysis_notes',
       'recommended_resource_topics',
       'requires_immediate_cards',
+      'detected_audiences',
     ],
     additionalProperties: false,
   },
@@ -100,7 +115,7 @@ const RISK_ASSESSMENT_SCHEMA = {
  */
 export async function assessRisk(userMessage: string): Promise<RiskAssessmentResponse> {
   try {
-    // Get Assistant ID từ environment (đã setup trên OpenAI Platform)
+    // Get Assistant ID
     const assistantId = getRiskAssessmentAssistantId();
 
     // Create a thread
@@ -114,7 +129,14 @@ ${JSON.stringify(indicatorsData, null, 2)}
 ${userMessage}
 
 # Instructions
-Analyze the user message above for risk indicators. Match phrases from the message against the indicator database and return a structured risk assessment following the JSON schema.`;
+Analyze the user message above for risk indicators AND detect vulnerable audience groups.
+
+CRITICAL: You MUST detect audience tags from the message:
+- Look for explicit mentions: "I am gay", "tôi là gay", "I'm 16", "em 15 tuổi"
+- Contextual clues: "my husband" → women, "my kids" → parents
+- Default to ["general"] if no specific audience detected
+
+Return a structured risk assessment following the JSON schema.`;
 
     // Add message to thread
     await openai.beta.threads.messages.create(thread.id, {
@@ -139,10 +161,12 @@ Analyze the user message above for risk indicators. Match phrases from the messa
     let attempts = 0;
 
     while (runStatus.status !== 'completed' && attempts < maxAttempts) {
-      if (runStatus.status === 'failed' || runStatus.status === 'cancelled') {
+      if (['failed', 'cancelled', 'expired'].includes(runStatus.status as string)) {
         throw new Error(`Risk assessment run ${runStatus.status}: ${runStatus.last_error?.message}`);
       }
-
+      if (runStatus.status === 'requires_action') {
+        throw new Error('Risk assessment run requires tool outputs but none are provided');
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
       runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
       attempts++;
@@ -154,19 +178,43 @@ Analyze the user message above for risk indicators. Match phrases from the messa
 
     // Get messages
     const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 10 });
-    const lastAssistant = messages.data.find((m) => m.role === 'assistant');
+    // Prefer the message from the current run, fallback to any assistant message
+    const lastAssistant = messages.data.find((m) => m.role === 'assistant' && m.run_id === run.id)
+      ?? messages.data.find((m) => m.role === 'assistant');
+
     if (!lastAssistant || !Array.isArray(lastAssistant.content) || lastAssistant.content.length === 0) {
       throw new Error('No assistant message found');
     }
-    const textPart = lastAssistant.content.find((c) => c.type === 'text');
-    if (!textPart || textPart.type !== 'text') {
-      throw new Error('Assistant response missing text content');
-    }
+
     let assessmentOutput: RiskAssessmentOutput;
+
     try {
-      assessmentOutput = JSON.parse(textPart.text.value);
-    } catch {
-      throw new Error('Failed to parse assessment JSON');
+      // Extract text content (json_schema returns JSON as a string in text type)
+      const textContent = lastAssistant.content.find(
+        (c): c is Extract<typeof c, { type: 'text' }> => c.type === 'text'
+      );
+
+      if (!textContent) {
+        throw new Error('Assistant response missing text content');
+      }
+
+      const jsonStr = textContent.text.value;
+
+      if (!jsonStr || jsonStr.trim() === '') {
+        throw new Error('Assistant response has empty text value');
+      }
+
+      assessmentOutput = JSON.parse(jsonStr);
+    } catch (error) {
+      throw new Error(
+        `Failed to parse assessment: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+
+    if (assessmentOutput.detected_audiences) {
+      assessmentOutput.detected_audiences = normalizeAudiences(
+        assessmentOutput.detected_audiences as string[]
+      );
     }
 
     // Validate the output
@@ -186,7 +234,7 @@ Analyze the user message above for risk indicators. Match phrases from the messa
 }
 
 /**
- * Validate risk assessment output
+ * Validate risk assessment output (WITH AUDIENCE CHECK)
  */
 function validateRiskAssessment(data: any): void {
   const requiredFlags = [
@@ -226,10 +274,27 @@ function validateRiskAssessment(data: any): void {
   if (!Array.isArray(data.indicators)) {
     throw new Error('indicators must be an array');
   }
+
+  if (!Array.isArray(data.detected_audiences) || data.detected_audiences.length === 0) {
+    data.detected_audiences = ['general'];
+  }
+
+  // Validate all audiences are in the enum
+  const invalidAudiences = data.detected_audiences.filter(
+    (a: string) => !AUDIENCES.includes(a as any)
+  );
+  if (invalidAudiences.length > 0) {
+    data.detected_audiences = data.detected_audiences.filter((a: string) =>
+      AUDIENCES.includes(a as any)
+    );
+    if (data.detected_audiences.length === 0) {
+      data.detected_audiences = ['general'];
+    }
+  }
 }
 
 /**
- * Fallback assessment for when the AI fails
+ * Fallback assessment for when the AI fails (WITH AUDIENCES)
  */
 function getFallbackAssessment(): RiskAssessmentOutput {
   return {
@@ -250,6 +315,7 @@ function getFallbackAssessment(): RiskAssessmentOutput {
     analysis_notes: 'Fallback assessment due to system error',
     recommended_resource_topics: ['general_support'],
     requires_immediate_cards: false,
+    detected_audiences: ['general'],
   };
 }
 

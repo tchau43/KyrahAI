@@ -50,9 +50,9 @@ export default function ResourcesPage() {
             resource.country === 'Coming soon' ? (
               <li key={index}>
                 <div className="flex items-center gap-2">
-                  <div className="body-18-semi text-neutral-9">
+                  <div className="body-16-semi md:!text-[18px] lg:!text-[18px] xl:!text-[18px] text-neutral-9">
                     {hotline.label}:{' '}
-                    <span className="body-18-regular">{hotline.contact}</span>
+                    <span className="body-16-regular md:!text-[18px] lg:!text-[18px] xl:!text-[18px]">{hotline.contact}</span>
                   </div>
                 </div>
               </li>

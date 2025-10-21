@@ -1,8 +1,12 @@
 // src/services/db-risk-assessment.service.ts
 import { createClient } from '@/utils/supabase/server';
-import type { RiskAssessmentOutput, Resource, RiskLevel } from '@/types/risk-assessment';
+import type {
+  RiskAssessmentOutput,
+  Resource,
+  RiskLevel,
+  Audience,
+} from '@/types/risk-assessment';
 
-// Define once near top (after imports)
 const RISK_ORDER: RiskLevel[] = ['low', 'medium', 'high'] as const;
 const rank = (b: RiskLevel) => RISK_ORDER.indexOf(b);
 const bandsAtOrBelow = (level: RiskLevel) => {
@@ -47,6 +51,7 @@ export async function saveRiskAssessment(
           analysis_notes: assessment.analysis_notes,
           recommended_resource_topics: assessment.recommended_resource_topics,
           requires_immediate_cards: assessment.requires_immediate_cards,
+          detected_audiences: assessment.detected_audiences,
         },
       })
       .select()
@@ -68,11 +73,10 @@ export async function saveRiskAssessment(
 async function getUserLocale(userId?: string): Promise<{ language: string; timezone: string; jurisdiction: string[] }> {
   const supabase = await createClient();
 
-  // Default to Vietnamese locale
   const defaultLocale = {
-    language: 'vi',
-    timezone: 'Asia/Ho_Chi_Minh',
-    jurisdiction: LANGUAGE_TO_JURISDICTION['vi'],
+    language: 'en',
+    timezone: 'America/New_York',
+    jurisdiction: LANGUAGE_TO_JURISDICTION['en'],
   };
 
   if (!userId) {
@@ -91,9 +95,9 @@ async function getUserLocale(userId?: string): Promise<{ language: string; timez
     }
 
     return {
-      language: data.language || 'vi',
-      timezone: data.timezone || 'Asia/Ho_Chi_Minh',
-      jurisdiction: LANGUAGE_TO_JURISDICTION[data.language] || LANGUAGE_TO_JURISDICTION['vi'],
+      language: data.language || 'en',
+      timezone: data.timezone || 'America/New_York',
+      jurisdiction: LANGUAGE_TO_JURISDICTION[data.language] || LANGUAGE_TO_JURISDICTION['en'],
     };
   } catch (error) {
     console.error('Error fetching user locale:', error);
@@ -101,13 +105,82 @@ async function getUserLocale(userId?: string): Promise<{ language: string; timez
   }
 }
 
+const AUDIENCE_TOPIC_MAP: Record<Audience, string[]> = {
+  // LGBTQ+ Community
+  'lgbtq+': ['culturally_specific_support', 'advocacy_resources', 'sogi_protection'],
+  'lgbtqi_youth': ['culturally_specific_support', 'advocacy_resources', 'sogi_protection', 'child_protection'],
+  'transgender': ['culturally_specific_support', 'advocacy_resources', 'sogi_protection'],
+  'general_lgbtq+': ['culturally_specific_support', 'advocacy_resources'],
+
+  // Children & Youth
+  'youth': ['child_protection', 'mental_health', 'digital_safety'],
+  'youth_teens': ['child_protection', 'mental_health', 'digital_safety'],
+  'children_youth': ['child_protection', 'mental_health', 'digital_safety'],
+
+  // Elderly
+  'elderly': ['elder_care', 'mental_health', 'health_equity'],
+
+  // People with Disabilities
+  'disabled': ['culturally_specific_support', 'accessibility_services', 'health_equity'],
+  'disabilities': ['culturally_specific_support', 'accessibility_services', 'health_equity'],
+  'deaf_hard_of_hearing': ['culturally_specific_support', 'accessibility_services', 'health_equity'],
+
+  // Racial & Ethnic Minorities
+  'racial_minorities': ['culturally_specific_support', 'racial_justice', 'health_equity'],
+  'ethnic_minorities': ['culturally_specific_support', 'racial_justice', 'health_equity'],
+  'indigenous': ['culturally_specific_support', 'racial_justice', 'indigenous_rights', 'health_equity'],
+  'indigenous_native_american': ['culturally_specific_support', 'racial_justice', 'indigenous_rights', 'health_equity'],
+  'black_african_american': ['culturally_specific_support', 'racial_justice', 'health_equity'],
+
+  // Asian American & Pacific Islander
+  'aapi': ['culturally_specific_support', 'advocacy_resources'],
+
+  // Refugees & Immigrants
+  'refugees': ['refugee_protection', 'culturally_specific_support', 'legal_help', 'mental_health'],
+  'immigrants': ['refugee_protection', 'culturally_specific_support', 'legal_help', 'mental_health'],
+
+  // Women & Girls
+  'women': ['women_protection', 'advocacy_resources', 'safety_planning'],
+  'women_girls': ['women_protection', 'advocacy_resources', 'safety_planning', 'child_protection'],
+  'women_children': ['women_protection', 'advocacy_resources', 'safety_planning', 'child_protection'],
+
+  // Men & Boys
+  'men': ['prevention', 'cultural_transformation', 'gender_equality'],
+  'men_boys': ['prevention', 'cultural_transformation', 'gender_equality', 'child_protection'],
+  'men_fathers': ['prevention', 'cultural_transformation', 'gender_equality', 'parenting_support'],
+
+  // Male Survivors
+  'male_survivors': ['conflict_violence', 'mental_health', 'culturally_specific_support'],
+
+  // Parents & Caregivers
+  'parents': ['parenting_support', 'prevention', 'child_protection'],
+
+  // Workers & Employment
+  'workers': ['workplace_rights', 'employment', 'prevention'],
+
+  // Veterans & Military
+  'veterans_military': ['crisis_intervention', 'mental_health', 'veteran_services'],
+
+  // Sexual Assault Survivors
+  'sexual_assault_survivors': ['crisis_intervention', 'medical_response', 'legal_help', 'safety_planning'],
+
+  // Low Income
+  'low_income': ['financial_assistance', 'financial_abuse', 'legal_help'],
+
+  // General
+  'general': ['safety_planning', 'awareness', 'crisis_intervention'],
+};
+
 /**
- * Map risk assessment flags to resource topics (matching ACTUAL DB schema from Resources.json)
+ * Map risk assessment flags to resource topics with audience-specific support
  */
 function mapFlagsToTopics(assessment: RiskAssessmentOutput): string[] {
   const topics: string[] = [];
+  const detectedAudiences = assessment.detected_audiences;
 
+  // ========================================
   // HIGH PRIORITY TOPICS (life-threatening)
+  // ========================================
   if (assessment.flags.self_harm || assessment.requires_immediate_cards) {
     topics.push(
       'crisis_intervention',
@@ -127,7 +200,9 @@ function mapFlagsToTopics(assessment: RiskAssessmentOutput): string[] {
     );
   }
 
+  // ========================================
   // MEDIUM PRIORITY TOPICS
+  // ========================================
   if (assessment.flags.sexual) {
     topics.push(
       'crisis_intervention',
@@ -145,29 +220,37 @@ function mapFlagsToTopics(assessment: RiskAssessmentOutput): string[] {
   if (assessment.flags.digital) {
     topics.push(
       'digital_safety',
+      'digital_violence',
       'safety_planning'
     );
   }
 
+  // ========================================
   // LOW PRIORITY TOPICS
+  // ========================================
   if (assessment.flags.legal) {
-    topics.push(
-      'legal_help'
-    );
+    topics.push('legal_help');
   }
 
   if (assessment.flags.financial) {
-    topics.push(
-      'financial_abuse'
-    );
+    topics.push('financial_abuse');
   }
 
+  // ========================================
+  // Uses centralized mapping (no more scattered string literals)
+  // ========================================
+  for (const audience of detectedAudiences) {
+    const audienceTopics = AUDIENCE_TOPIC_MAP[audience];
+    if (audienceTopics) {
+      topics.push(...audienceTopics);
+    }
+  }
+
+  // ========================================
   // FALLBACK
+  // ========================================
   if (topics.length === 0) {
-    topics.push(
-      'safety_planning',
-      'awareness'
-    );
+    topics.push('safety_planning', 'awareness', 'crisis_intervention');
   }
 
   // Remove duplicates and return
@@ -191,6 +274,8 @@ export async function fetchRelevantResources(
     // Map flags to topics
     const topics = mapFlagsToTopics(assessment);
 
+    const detectedAudiences = assessment.detected_audiences;
+
     // Check if resources are expired (> 12 months old)
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
@@ -199,23 +284,39 @@ export async function fetchRelevantResources(
     let resources: Resource[] = [];
 
     for (const jurisdiction of jurisdictionPriority) {
+      const audienceFilter = [...detectedAudiences, 'general'];
+
       const { data, error } = await supabase
         .from('resources')
         .select('*')
         .in('topic', topics)
         .eq('jurisdiction', jurisdiction)
+        .in('audience', audienceFilter)
         .eq('is_active', true)
-        .in('risk_band', bandsAtOrBelow(assessment.risk_level)) // risk band at or below
-        .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0]) // Not expired
-        .eq('display_as_card', true) // Only displayable cards
+        .in('risk_band', bandsAtOrBelow(assessment.risk_level))
+        .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0])
+        .eq('display_as_card', true)
         .limit(limit);
 
       if (error) {
+        console.error(`Error fetching resources for ${jurisdiction}:`, error);
         continue;
       }
 
+      function shuffleArray<T>(array: T[]): T[] {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      }
+
       if (data && data.length > 0) {
-        resources = data;
+        const shuffledData = shuffleArray(data);
+        const audienceSpecific = shuffledData.filter(r => detectedAudiences.includes(r.audience as Audience));
+        const general = shuffledData.filter(r => r.audience === 'general');
+        resources = [...audienceSpecific, ...general].slice(0, limit);
         break;
       }
     }
@@ -223,11 +324,13 @@ export async function fetchRelevantResources(
     // Priority 2: If no exact match, try without risk_band filter
     if (resources.length === 0) {
       for (const jurisdiction of jurisdictionPriority) {
+        const audienceFilter = [...detectedAudiences, 'general'];
         const { data, error } = await supabase
           .from('resources')
           .select('*')
           .in('topic', topics)
           .eq('jurisdiction', jurisdiction)
+          .in('audience', audienceFilter)
           .eq('is_active', true)
           .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0])
           .eq('display_as_card', true)
@@ -239,11 +342,9 @@ export async function fetchRelevantResources(
         }
 
         if (data && data.length > 0) {
-          resources = [...data].sort(
-            (a, b) =>
-              rank(b.risk_band) - rank(a.risk_band) ||
-              new Date(b.last_verified).getTime() - new Date(a.last_verified).getTime()
-          );
+          const audienceSpecific = data.filter(r => detectedAudiences.includes(r.audience as Audience));
+          const general = data.filter(r => r.audience === 'general');
+          resources = [...audienceSpecific, ...general].slice(0, limit);
           break;
         }
       }
@@ -251,29 +352,28 @@ export async function fetchRelevantResources(
 
     // Priority 3: Fallback to UNICEF/International resources
     if (resources.length === 0) {
+      const audienceFilter = [...detectedAudiences, 'general'];
+
       const { data, error } = await supabase
         .from('resources')
         .select('*')
         .in('topic', topics)
         .eq('jurisdiction', 'international')
+        .in('audience', audienceFilter)
         .eq('is_active', true)
         .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0])
         .eq('display_as_card', true)
+        .order('risk_band', { ascending: false })
         .limit(limit);
 
       if (error) {
         console.error('Error fetching UNICEF fallback resources:', error);
         return [];
       }
-      resources = data
-        ? [...data].sort(
-          (a, b) =>
-            rank(b.risk_band) - rank(a.risk_band) ||
-            new Date(b.last_verified).getTime() - new Date(a.last_verified).getTime()
-        )
-        : [];
+      const audienceSpecific = (data || []).filter(r => detectedAudiences.includes(r.audience as Audience));
+      const general = (data || []).filter(r => r.audience === 'general');
+      resources = [...audienceSpecific, ...general].slice(0, limit);
     }
-
     return resources;
   } catch (error) {
     console.error('Failed to fetch resources:', error);

@@ -150,7 +150,7 @@ export default function Footer() {
               About
             </Link>
             <Link
-              href="/how-it-works"
+              href="/#how-it-works"
               className="body-16-regular text-neutral hover:opacity-80 transition-opacity md:text-[1.125rem]"
             >
               How It Works

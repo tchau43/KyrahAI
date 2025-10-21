@@ -31,7 +31,7 @@ export default function SupportedSection() {
             <div className="text-neutral-9 heading-28 md:!text-[32px] lg:!text-[32px] xl:!text-[54px]">
               Countless
             </div>
-            <div className="caption-14-regular text-neutral-9 md:!text-[16px] lg:!text-[16px] xl:!text-[18px]">
+            <div className="caption-14-regular text-neutral-9 md:!text-[16px] lg:!text-[16px] xl:!text-[18px] xl:whitespace-nowrap">
               Safer conversations every day
             </div>
           </div>
