@@ -151,7 +151,7 @@ export default function ChatMainView({
       )}
 
       {isLoading ? (
-        <MessageListSkeleton messageCount={4} />
+        <MessageListSkeleton messageCount={3} />
       ) : hasMessages ? (
         <>
           <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
