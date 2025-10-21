@@ -708,7 +708,7 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
       throw new AuthError('Failed to get preferences', error.code, 500);
     }
 
-    return data as UserPreferences | null;
+    return data;
   } catch (error) {
     console.error('Error getting preferences:', error);
     return null;
@@ -773,7 +773,6 @@ export function validatePassword(password: string): {
  */
 export function getTimezoneOffset(timezone: string): string {
   try {
-    console.log('>>>>>>>>>>>>>>>>>>>>>Timezone:', timezone);
     if (timezone === 'auto') {
       // Use browser's detected timezone
       const now = new Date();

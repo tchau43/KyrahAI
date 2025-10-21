@@ -66,6 +66,30 @@ export async function POST(request: NextRequest) {
       } else {
         const isAnonymous = !currentUserId;
 
+        // Fetch user preferences for authenticated users
+        let userPreferences = null;
+        if (currentUserId) {
+          try {
+            // Fetch user preferences directly using server client
+            const { data: userPrefs } = await supabase
+              .from('user_preferences')
+              .select('*')
+              .eq('user_id', currentUserId)
+              .maybeSingle();
+            userPreferences = userPrefs ?? null;
+          } catch (error) {
+            console.warn('Failed to fetch user preferences, using defaults:', error);
+          }
+        }
+
+        // Build config based on user preferences or defaults
+        const config = {
+          language: userPreferences?.language || 'vi',
+          timezone: userPreferences?.timezone || 'Asia/Ho_Chi_Minh',
+          timezone_offset: userPreferences?.timezone_offset || 'UTC+7',
+          retention_days: userPreferences?.retention_days || (currentUserId ? 30 : 1),
+        };
+
         const { data: newSession, error: createErr } = await supabase
           .from('sessions')
           .insert({
@@ -73,11 +97,7 @@ export async function POST(request: NextRequest) {
             user_id: currentUserId,
             is_anonymous: isAnonymous,
             auth_type: currentUserId ? 'email' : 'anonymous',
-            config: {
-              language: 'vi',
-              timezone: 'Asia/Ho_Chi_Minh',
-              retention_days: currentUserId ? 30 : 1,
-            },
+            config,
           })
           .select()
           .single();
@@ -323,7 +343,47 @@ export async function POST(request: NextRequest) {
           };
 
           if (isFirstMessage) {
-            updateData.title = `Conversation at ${new Date().toLocaleString('vi-VN')}`;
+            // Format timestamp with user's timezone
+            const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {
+              try {
+                const date = new Date(timestamp);
+                const userTimezone = timezone || 'UTC';
+                const lang = language || 'en';
+                const userLanguage =
+                  lang.includes('-')
+                    ? lang
+                    : ({
+                      en: 'en-US',
+                      vi: 'vi-VN',
+                      fr: 'fr-FR',
+                      es: 'es-ES',
+                      pt: 'pt-BR',
+                      de: 'de-DE',
+                    } as Record<string, string>)[lang] ?? 'en-US';
+
+                return date.toLocaleString(userLanguage, {
+                  timeZone: userTimezone,
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                });
+              } catch (error) {
+                console.error('Error formatting timestamp:', error);
+                return new Date(timestamp).toLocaleString();
+              }
+            };
+
+            const sessionConfig = actualSessionRow?.config as any;
+            const formattedTime = formatTimestampWithTimezone(
+              new Date().toISOString(),
+              sessionConfig?.timezone,
+              sessionConfig?.language
+            );
+
+            updateData.title = `Conversation at ${formattedTime}`;
           }
 
           await supabase

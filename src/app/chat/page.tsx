@@ -85,6 +85,7 @@ export default function ChatPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [greetingMessage, setGreetingMessage] = useState(GREETING_MESSAGES[0]);
   const [isNewChat, setIsNewChat] = useState(false);
+  const [isSelectingSession, setIsSelectingSession] = useState(false);
 
   const hasInitializedAnonymousRef = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -114,6 +115,13 @@ export default function ChatPage() {
     limit: 30,
     offset: 0,
   });
+
+  // Reset selecting session state when messages are loaded
+  useEffect(() => {
+    if (!messagesLoading && isSelectingSession) {
+      setIsSelectingSession(false);
+    }
+  }, [messagesLoading, isSelectingSession]);
 
   // Merge DB messages with optimistic messages, dedupe by message_id
   const currentMessages = useMemo(() => {
@@ -167,6 +175,7 @@ export default function ChatPage() {
   };
 
   const handleSelectSession = (sessionId: string) => {
+    setIsSelectingSession(true);
     setActiveSessionId(sessionId);
     setOptimisticMessages([]);
     setIsNewChat(false);
@@ -482,6 +491,7 @@ export default function ChatPage() {
           onNewChat={handleNewChat}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
+          isLoading={isSelectingSession || sessionsLoading}
         />
       )}
 
@@ -504,6 +514,8 @@ export default function ChatPage() {
           greetingMessage={greetingMessage}
           showHeader={!user}
           suggestionMessages={SUGGESTION_MESSAGES}
+          isLoading={isSelectingSession || (messagesLoading && !!activeSessionId)}
+          isProcessing={isProcessing}
         />
       </div>
 

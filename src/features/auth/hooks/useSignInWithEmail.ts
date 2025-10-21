@@ -19,6 +19,7 @@ export function useSignInWithEmail() {
     onSuccess: async () => {
       try {
         const supabase = createClient();
+        closeModal('auth-modal')
 
         // Ensure session query updates
         await queryClient.invalidateQueries({ queryKey: ['session'] })
@@ -43,7 +44,6 @@ export function useSignInWithEmail() {
         await queryClient.refetchQueries({ predicate })
 
         // Close auth modal before navigating
-        closeModal('auth-modal')
         router.push('/chat')
       } catch (error) {
         console.error('Post sign-in orchestration failed:', error)

@@ -8,7 +8,7 @@ export default function DiscoverSection() {
       {/* Left image */}
       <div className="relative col-span-12 xl:col-span-6">
         <Image
-          src="/coach.jpg"
+          src="/coach2.jpg"
           alt="coach"
           width={720}
           height={880}
