@@ -151,7 +151,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         retention_days: 30,
         language: typeof navigator !== 'undefined' ? (navigator.language?.split('-')[0] || 'en') : 'en',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timezone_offset: 'UTC+0',
+        timezone_offset: auth.getTimezoneOffset(Intl.DateTimeFormat().resolvedOptions().timeZone),
       },
       metadata: {},
       title: '',
@@ -191,7 +191,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             retention_days: 1,
             language: typeof navigator !== 'undefined' ? (navigator.language?.split('-')[0] || 'en') : 'en',
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            timezone_offset: 'UTC+0',
+            timezone_offset: auth.getTimezoneOffset(Intl.DateTimeFormat().resolvedOptions().timeZone),
           },
           metadata: {},
           title: '',
@@ -261,7 +261,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut: handleSignOut,
     startAnonymous,
     convertToAuthenticated,
-    updatePreferences: auth.updateUserPreferences,
+    updatePreferences: async (prefs) => {
+      const updated = await auth.updateUserPreferences(prefs);
+      setUserPreferences(updated);
+      return updated;
+    },
     getPreferences: auth.getUserPreferences,
   }
 

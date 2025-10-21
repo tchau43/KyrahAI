@@ -776,7 +776,6 @@ export function validatePassword(password: string): {
  */
 export function getTimezoneOffset(timezone: string): string {
   try {
-    console.log('>>>>>>>>>>>>>>>>>>>>>Timezone:', timezone);
     if (timezone === 'auto') {
       // Use browser's detected timezone
       const now = new Date();

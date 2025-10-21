@@ -1,6 +1,5 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/react';
 
 interface MessageListSkeletonProps {
   messageCount?: number;
@@ -26,7 +25,6 @@ export default function MessageListSkeleton({
                           <div className="space-y-2 flex flex-col items-end">
                             <div className="h-4 bg-neutral-7 rounded animate-pulse w-full"></div>
                             <div className="h-4 bg-neutral-7 rounded animate-pulse w-[80%]"></div>
-                            {/* <div className="h-4 bg-neutral-7 rounded animate-pulse w-1/2"></div> */}
                           </div>
                         </div>
                       </div>

@@ -1,21 +1,8 @@
 import { createClient } from '../utils/supabase/server';
-import { createClient as createClientDirect } from '@supabase/supabase-js';
 
 export async function getSystemInstructionsFromDB(): Promise<string> {
   try {
-    // Try to use server client first (for Next.js context)
-    let supabase;
-    try {
-      supabase = await createClient();
-    } catch (error) {
-      // Fallback to direct client for standalone scripts
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY for direct client fallback');
-      }
-      supabase = createClientDirect(supabaseUrl, supabaseKey);
-    }
+    const supabase = await createClient();
     const { data: systemPromptData, error: systemPromptError } = await supabase
       .from('system_prompts')
       .select('*')
@@ -28,13 +15,11 @@ export async function getSystemInstructionsFromDB(): Promise<string> {
     if (systemPromptError) {
       console.error('Error fetching system prompt:', systemPromptError);
     }
-    // 3. Build system instruction
-    const systemInstruction = systemPromptData?.content || 'You are Kyrah, a helpful AI assistant.';
 
+    const systemInstruction = systemPromptData?.content || 'You are Kyrah, a helpful AI assistant.';
     return systemInstruction;
   } catch (error) {
     console.error('Error getting system instructions:', error);
-    // Return fallback instruction
     return 'You are Kyrah, a helpful AI assistant.';
   }
 }

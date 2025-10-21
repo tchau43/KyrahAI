@@ -71,15 +71,12 @@ export async function POST(request: NextRequest) {
         if (currentUserId) {
           try {
             // Fetch user preferences directly using server client
-            const { data: userPrefs, error: prefError } = await supabase
+            const { data: userPrefs } = await supabase
               .from('user_preferences')
               .select('*')
               .eq('user_id', currentUserId)
-              .single();
-
-            if (!prefError || prefError.code === 'PGRST116') {
-              userPreferences = userPrefs;
-            }
+              .maybeSingle();
+            userPreferences = userPrefs ?? null;
           } catch (error) {
             console.warn('Failed to fetch user preferences, using defaults:', error);
           }
