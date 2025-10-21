@@ -15,9 +15,9 @@ const bandsAtOrBelow = (level: RiskLevel) => {
  */
 const LANGUAGE_TO_JURISDICTION: Record<string, string[]> = {
   'en': ['US', 'international'],
-  'vi': ['VN', 'international'],
-  'zh': ['CN', 'international'],
-  'ja': ['JP', 'international'],
+  'vi': ['Vietnam', 'international'],
+  'zh': ['China', 'international'],
+  'ja': ['Japan', 'international'],
 };
 
 /**
