@@ -407,6 +407,9 @@ export default function ChatPage() {
                 return msg;
               }),
             );
+            queryClient.invalidateQueries({
+              queryKey: ['session-messages', sessionId]
+            });
           } else if (data.type === 'error') {
             throw new Error(data.error);
           }
@@ -491,7 +494,7 @@ export default function ChatPage() {
           onNewChat={handleNewChat}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          isLoading={isSelectingSession || sessionsLoading}
+          isLoading={sessionsLoading}
         />
       )}
 
