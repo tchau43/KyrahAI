@@ -1,8 +1,18 @@
 import { createClient } from '../utils/supabase/server';
+import { createClient as createClientDirect } from '@supabase/supabase-js';
 
 export async function getSystemInstructionsFromDB(): Promise<string> {
   try {
-    const supabase = await createClient();
+    // Try to use server client first (for Next.js context)
+    let supabase;
+    try {
+      supabase = await createClient();
+    } catch (error) {
+      // Fallback to direct client for standalone scripts
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      supabase = createClientDirect(supabaseUrl, supabaseKey);
+    }
     const { data: systemPromptData, error: systemPromptError } = await supabase
       .from('system_prompts')
       .select('*')
@@ -15,16 +25,6 @@ export async function getSystemInstructionsFromDB(): Promise<string> {
     if (systemPromptError) {
       console.error('Error fetching system prompt:', systemPromptError);
     }
-    // const { data: promptComponents, error: componentsError } = await supabase
-    //   .from('prompt_components')
-    //   .select('*')
-    //   .eq('is_active', true)
-    //   .order('component_name');
-
-    // if (componentsError) {
-    //   console.error('Error fetching prompt components:', componentsError);
-    // }
-
     // 3. Build system instruction
     const systemInstruction = systemPromptData?.content || 'You are Kyrah, a helpful AI assistant.';
 

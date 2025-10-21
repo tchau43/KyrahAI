@@ -2,6 +2,7 @@
 
 import ResourceCard from '../cards/ResourceCard';
 import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef } from 'react';
 
 const resourcesData = [
   {
@@ -24,6 +25,68 @@ const resourcesData = [
 
 export default function ResourceSection() {
   const router = useRouter();
+  const gridRef = useRef<HTMLDivElement | null>(null);
+
+  // Recalculate and sync min-heights so all cards have the same title/desc line counts
+  useEffect(() => {
+    const measureAndSync = () => {
+      const container = gridRef.current;
+      if (!container) return;
+
+      const titleNodes = container.querySelectorAll<HTMLElement>('[data-rc-title]');
+      const descNodes = container.querySelectorAll<HTMLElement>('[data-rc-desc]');
+
+      // Reset before measuring to get natural heights
+      container.style.removeProperty('--rc-title-min-h');
+      container.style.removeProperty('--rc-desc-min-h');
+
+      let maxTitle = 0;
+      titleNodes.forEach((n) => {
+        // Temporarily clear minHeight if inherited via parent var
+        const prev = n.style.minHeight;
+        n.style.minHeight = 'auto';
+        const h = n.scrollHeight;
+        if (h > maxTitle) maxTitle = h;
+        n.style.minHeight = prev;
+      });
+
+      let maxDesc = 0;
+      descNodes.forEach((n) => {
+        const prev = n.style.minHeight;
+        n.style.minHeight = 'auto';
+        const h = n.scrollHeight;
+        if (h > maxDesc) maxDesc = h;
+        n.style.minHeight = prev;
+      });
+
+      if (maxTitle > 0) container.style.setProperty('--rc-title-min-h', `${maxTitle}px`);
+      if (maxDesc > 0) container.style.setProperty('--rc-desc-min-h', `${maxDesc}px`);
+    };
+
+    measureAndSync();
+
+    // Observe resizes of window and content
+    let resizeTimer: number | undefined;
+    const onResize = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(measureAndSync, 50);
+    };
+    window.addEventListener('resize', onResize);
+
+    // ResizeObserver on title/desc nodes
+    const ro = new ResizeObserver(() => measureAndSync());
+    const container = gridRef.current;
+    const titleNodes = container?.querySelectorAll<HTMLElement>('[data-rc-title]') ?? [];
+    const descNodes = container?.querySelectorAll<HTMLElement>('[data-rc-desc]') ?? [];
+    titleNodes.forEach((n) => ro.observe(n));
+    descNodes.forEach((n) => ro.observe(n));
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      ro.disconnect();
+      if (typeof resizeTimer !== 'undefined') window.clearTimeout(resizeTimer);
+    };
+  }, []);
 
   return (
     <section className="col-span-12 w-full bg-secondary-1 z-60 py-20">
@@ -66,7 +129,7 @@ export default function ResourceSection() {
         {/* Global Resources Section */}
         <div className="flex flex-col gap-6">
           <div className="body-18-semi md:!text-[1.375rem] md:!font-bold md:!leading-[160%] pt-8 xl:!pt-15 text-neutral">Global Resources</div>
-          <div className="flex flex-col xl:grid xl:grid-cols-9 gap-10">
+          <div ref={gridRef} className="flex flex-col xl:grid xl:grid-cols-9 gap-10">
             {resourcesData.map((resource, index) => (
               <ResourceCard
                 key={index}

@@ -183,6 +183,7 @@ export async function signUpWithEmail(
           display_name: metadata.displayName || null,
           language: metadata.language || 'vi',
           timezone: metadata.timezone || 'Asia/Ho_Chi_Minh',
+          timezone_offset: metadata.timezone ? getTimezoneOffset(metadata.timezone) : 'UTC+0',
           ...metadata,
         },
       },
@@ -581,7 +582,7 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           last_activity_at: new Date().toISOString(),
           deleted_at: null,
-          config: { retention_days: 1, language: 'vi', timezone: 'Asia/Ho_Chi_Minh' },
+          config: { retention_days: 1, language: 'vi', timezone: 'UTC', timezone_offset: 'UTC+0' },
           metadata: {},
           title: '',
         } as Session,
@@ -765,4 +766,54 @@ export function validatePassword(password: string): {
     return { valid: false, error: 'Password must be at least 6 characters' };
   }
   return { valid: true };
+}
+
+/**
+ * Convert timezone to UTC offset format (e.g., "UTC+7", "UTC-5")
+ */
+export function getTimezoneOffset(timezone: string): string {
+  try {
+    console.log('>>>>>>>>>>>>>>>>>>>>>Timezone:', timezone);
+    if (timezone === 'auto') {
+      // Use browser's detected timezone
+      const now = new Date();
+      const offset = -now.getTimezoneOffset() / 60; // Convert minutes to hours
+      return offset >= 0 ? `UTC+${offset}` : `UTC${offset}`;
+    }
+
+    // Create a date in the specified timezone
+    const now = new Date();
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const targetTime = new Date(utcTime + (new Date().getTimezoneOffset() * 60000));
+
+    // Get the offset for the specific timezone
+    const formatter = new Intl.DateTimeFormat('en', {
+      timeZone: timezone,
+      timeZoneName: 'longOffset'
+    });
+
+    const parts = formatter.formatToParts(targetTime);
+    const offsetPart = parts.find(part => part.type === 'timeZoneName');
+
+    if (offsetPart && offsetPart.value) {
+      // Convert from "GMT+07:00" format to "UTC+7" format
+      const offsetMatch = offsetPart.value.match(/GMT([+-])(\d{1,2}):?(\d{2})?/);
+      if (offsetMatch) {
+        const sign = offsetMatch[1];
+        const hours = parseInt(offsetMatch[2]);
+        return `UTC${sign}${hours}`;
+      }
+    }
+
+    // Fallback: calculate offset manually
+    const utcDate = new Date(now.toLocaleString("en-US", { timeZone: "UTC" }));
+    const localDate = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
+    const offset = (localDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
+
+    return offset >= 0 ? `UTC+${Math.round(offset)}` : `UTC${Math.round(offset)}`;
+  } catch (error) {
+    console.error('Error calculating timezone offset:', error);
+    // Fallback to UTC+0
+    return 'UTC+0';
+  }
 }
