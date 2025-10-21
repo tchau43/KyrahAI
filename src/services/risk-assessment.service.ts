@@ -3,8 +3,8 @@ import openai from '@/lib/openai';
 import {
   RiskAssessmentOutput,
   RiskAssessmentResponse,
-  AUDIENCES, // ⭐ FIXED: Import centralized constant
-  normalizeAudiences, // ⭐ FIXED: Import normalization helper
+  AUDIENCES,
+  normalizeAudiences,
 } from '@/types/risk-assessment';
 import indicatorsData from '@/data/indicators.json';
 
@@ -87,7 +87,6 @@ const RISK_ASSESSMENT_SCHEMA = {
         items: { type: 'string' },
       },
       requires_immediate_cards: { type: 'boolean' },
-      // ⭐ FIXED: Use centralized AUDIENCES constant
       detected_audiences: {
         type: 'array',
         items: {
@@ -183,8 +182,6 @@ Return a structured risk assessment following the JSON schema.`;
       throw new Error('No assistant message found');
     }
 
-    // ⭐ FIXED: Resilient parser supporting multiple content types
-    // Handle both text content and potential future structured output formats
     let assessmentOutput: RiskAssessmentOutput;
 
     try {
@@ -192,15 +189,12 @@ Return a structured risk assessment following the JSON schema.`;
 
       if (!textContent) {
         // Fallback: try to extract JSON from any content type
-        console.error('❌ No text content found, attempting fallback extraction');
-        console.error('Content types present:', lastAssistant.content.map(c => c.type));
         throw new Error('Assistant response missing text content');
       }
 
       const jsonStr = textContent.text.value;
 
       if (!jsonStr || jsonStr.trim() === '') {
-        console.error('❌ Empty text content');
         throw new Error('Assistant response has empty text value');
       }
 
@@ -208,17 +202,12 @@ Return a structured risk assessment following the JSON schema.`;
       try {
         assessmentOutput = JSON.parse(jsonStr);
       } catch (parseError) {
-        console.error('❌ JSON parse error:', parseError);
-        console.error('Raw payload (first 500 chars):', jsonStr.substring(0, 500));
         throw new Error(`Failed to parse assessment JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
       }
     } catch (extractionError) {
-      console.error('❌ Content extraction error:', extractionError);
-      console.error('Full assistant content:', JSON.stringify(lastAssistant.content, null, 2));
       throw extractionError;
     }
 
-    // ⭐ FIXED: Normalize audiences before validation
     if (assessmentOutput.detected_audiences) {
       assessmentOutput.detected_audiences = normalizeAudiences(
         assessmentOutput.detected_audiences as string[]
@@ -228,24 +217,11 @@ Return a structured risk assessment following the JSON schema.`;
     // Validate the output
     validateRiskAssessment(assessmentOutput);
 
-    console.log('✅ Risk assessment completed:', {
-      risk_level: assessmentOutput.risk_level,
-      confidence: assessmentOutput.confidence,
-      detected_audiences: assessmentOutput.detected_audiences,
-      flags: Object.entries(assessmentOutput.flags)
-        .filter(([_, value]) => value)
-        .map(([key]) => key),
-    });
-
-    // ⭐ OPTIONAL: Clean up thread to prevent storage growth
-    // await openai.beta.threads.del(thread.id).catch(() => {});
-
     return {
       success: true,
       data: assessmentOutput,
     };
   } catch (error) {
-    console.error('❌ Risk assessment error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error in risk assessment',
@@ -296,9 +272,7 @@ function validateRiskAssessment(data: any): void {
     throw new Error('indicators must be an array');
   }
 
-  // ⭐ FIXED: Enforce required audiences with proper type checking
   if (!Array.isArray(data.detected_audiences) || data.detected_audiences.length === 0) {
-    console.warn('⚠️ No audiences detected, defaulting to ["general"]');
     data.detected_audiences = ['general'];
   }
 
@@ -307,7 +281,6 @@ function validateRiskAssessment(data: any): void {
     (a: string) => !AUDIENCES.includes(a as any)
   );
   if (invalidAudiences.length > 0) {
-    console.warn('⚠️ Invalid audiences detected:', invalidAudiences);
     data.detected_audiences = data.detected_audiences.filter((a: string) =>
       AUDIENCES.includes(a as any)
     );

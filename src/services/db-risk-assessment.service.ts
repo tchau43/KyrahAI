@@ -7,7 +7,6 @@ import type {
   Audience,
 } from '@/types/risk-assessment';
 
-// Define once near top (after imports)
 const RISK_ORDER: RiskLevel[] = ['low', 'medium', 'high'] as const;
 const rank = (b: RiskLevel) => RISK_ORDER.indexOf(b);
 const bandsAtOrBelow = (level: RiskLevel) => {
@@ -52,7 +51,7 @@ export async function saveRiskAssessment(
           analysis_notes: assessment.analysis_notes,
           recommended_resource_topics: assessment.recommended_resource_topics,
           requires_immediate_cards: assessment.requires_immediate_cards,
-          detected_audiences: assessment.detected_audiences, // ⭐ FIXED: Now guaranteed to exist
+          detected_audiences: assessment.detected_audiences,
         },
       })
       .select()
@@ -277,16 +276,6 @@ export async function fetchRelevantResources(
 
     const detectedAudiences = assessment.detected_audiences;
 
-    console.log('🔍 Fetching resources:', {
-      risk_level: assessment.risk_level,
-      topics,
-      jurisdiction_priority: jurisdictionPriority,
-      audiences: detectedAudiences,
-      flags: Object.entries(assessment.flags)
-        .filter(([_, value]) => value)
-        .map(([key]) => key),
-    });
-
     // Check if resources are expired (> 12 months old)
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
@@ -295,7 +284,6 @@ export async function fetchRelevantResources(
     let resources: Resource[] = [];
 
     for (const jurisdiction of jurisdictionPriority) {
-      console.log(`🔍 Trying jurisdiction: ${jurisdiction} with audiences: ${detectedAudiences.join(', ')}`);
       const audienceFilter = [...detectedAudiences, 'general'];
 
       const { data, error } = await supabase
@@ -325,19 +313,10 @@ export async function fetchRelevantResources(
       }
 
       if (data && data.length > 0) {
-        // ⭐ Shuffle before categorizing
         const shuffledData = shuffleArray(data);
-
         const audienceSpecific = shuffledData.filter(r => detectedAudiences.includes(r.audience as Audience));
         const general = shuffledData.filter(r => r.audience === 'general');
-
-        // Mix: prefer audience-specific, then general
         resources = [...audienceSpecific, ...general].slice(0, limit);
-
-        console.log(`✅ Found ${resources.length} resources for ${jurisdiction}`, {
-          audience_specific: audienceSpecific.length,
-          general: general.length,
-        });
         break;
       }
     }
@@ -366,7 +345,6 @@ export async function fetchRelevantResources(
           const audienceSpecific = data.filter(r => detectedAudiences.includes(r.audience as Audience));
           const general = data.filter(r => r.audience === 'general');
           resources = [...audienceSpecific, ...general].slice(0, limit);
-          console.log(`✅ Found ${resources.length} resources (no risk filter) for ${jurisdiction}`);
           break;
         }
       }
@@ -395,24 +373,7 @@ export async function fetchRelevantResources(
       const audienceSpecific = (data || []).filter(r => detectedAudiences.includes(r.audience as Audience));
       const general = (data || []).filter(r => r.audience === 'general');
       resources = [...audienceSpecific, ...general].slice(0, limit);
-
-      console.log(`✅ Found ${resources.length} UNICEF fallback resources`);
     }
-
-    // Log final result
-    console.log('📚 Resources fetched:', {
-      count: resources.length,
-      topics_requested: topics,
-      audiences_detected: detectedAudiences,
-      resources: resources.map(r => ({
-        title: r.title,
-        topic: r.topic,
-        jurisdiction: r.jurisdiction,
-        audience: r.audience,
-        risk_band: r.risk_band,
-      })),
-    });
-
     return resources;
   } catch (error) {
     console.error('Failed to fetch resources:', error);

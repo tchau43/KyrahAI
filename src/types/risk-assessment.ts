@@ -22,7 +22,6 @@ export interface RiskIndicator {
   severity: Severity;
 }
 
-// ⭐ FIXED: Centralized audience constant (single source of truth)
 export const AUDIENCES = [
   'general',
   'youth',
@@ -60,7 +59,6 @@ export const AUDIENCES = [
 
 export type Audience = (typeof AUDIENCES)[number];
 
-// ⭐ FIXED: Audience alias mapping for normalization
 export const AUDIENCE_ALIASES: Record<string, Audience[]> = {
   'latinx_hispanic': ['ethnic_minorities', 'racial_minorities'],
   'elderly_general': ['elderly'],
@@ -89,13 +87,11 @@ export function normalizeAudiences(raw: string[]): Audience[] {
   const normalized = new Set<Audience>();
 
   for (const label of raw) {
-    // Direct match
     if (AUDIENCES.includes(label as Audience)) {
       normalized.add(label as Audience);
       continue;
     }
 
-    // Alias match
     const aliases = AUDIENCE_ALIASES[label];
     if (aliases) {
       aliases.forEach((a) => normalized.add(a));
@@ -116,7 +112,7 @@ export interface RiskAssessmentOutput {
   analysis_notes: string;
   recommended_resource_topics: string[];
   requires_immediate_cards: boolean;
-  detected_audiences: Audience[]; // ⭐ FIXED: Now required and strongly typed
+  detected_audiences: Audience[];
 }
 
 export interface RiskAssessmentResponse {
@@ -140,7 +136,7 @@ export interface RiskAssessmentDB {
     analysis_notes: string;
     recommended_resource_topics: string[];
     requires_immediate_cards: boolean;
-    detected_audiences: Audience[]; // ⭐ FIXED: Strongly typed
+    detected_audiences: Audience[];
   };
 }
 
