@@ -22,6 +22,34 @@ export interface RiskIndicator {
   severity: Severity;
 }
 
+export type Audience =
+  | 'general'
+  | 'youth'
+  | 'children_youth'
+  | 'lgbtq+'
+  | 'lgbtqi_youth'
+  | 'transgender'
+  | 'women'
+  | 'women_girls'
+  | 'men'
+  | 'men_boys'
+  | 'elderly'
+  | 'disabled'
+  | 'disabilities'
+  | 'refugees'
+  | 'immigrants'
+  | 'indigenous'
+  | 'ethnic_minorities'
+  | 'racial_minorities'
+  | 'workers'
+  | 'parents'
+  | 'women_children'
+  | 'general_lgbtq+'
+  | 'black_african_american'
+  | 'aapi'
+  | 'deaf_hard_of_hearing'
+  | 'low_income';
+
 export interface RiskAssessmentOutput {
   flags: RiskFlags;
   risk_level: RiskLevel;
@@ -30,6 +58,7 @@ export interface RiskAssessmentOutput {
   analysis_notes: string;
   recommended_resource_topics: string[];
   requires_immediate_cards: boolean;
+  detected_audiences?: string[];
 }
 
 export interface RiskAssessmentResponse {
@@ -53,6 +82,7 @@ export interface RiskAssessmentDB {
     analysis_notes: string;
     recommended_resource_topics: string[];
     requires_immediate_cards: boolean;
+    detected_audiences?: string[];
   };
 }
 
