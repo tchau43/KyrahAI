@@ -10,7 +10,12 @@ export default function MessageListSkeleton({
 }: MessageListSkeletonProps) {
   return (
     <>
-      <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
+      <div
+        className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]"
+        role="status"
+        aria-label="Loading messages"
+        aria-busy="true"
+      >
         <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 py-4 md:py-6 pb-[180px] md:pb-[200px] lg:pb-[220px]">
           <div className="max-w-full md:max-w-2xl lg:max-w-3xl xl:max-w-3xl mx-auto pb-25 pt-25">
             {Array.from({ length: messageCount }).map((_, index) => {

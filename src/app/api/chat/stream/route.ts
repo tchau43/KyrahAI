@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         const config = {
           language: userPreferences?.language || 'vi',
           timezone: userPreferences?.timezone || 'Asia/Ho_Chi_Minh',
-          timezone_offset: userPreferences?.timezone_offset || '+UTC+7',
+          timezone_offset: userPreferences?.timezone_offset || 'UTC+7',
           retention_days: userPreferences?.retention_days || (currentUserId ? 30 : 1),
         };
 
