@@ -491,7 +491,7 @@ export default function ChatPage() {
           onNewChat={handleNewChat}
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          isLoading={sessionsLoading}
+          isLoading={isSelectingSession || sessionsLoading}
         />
       )}
 

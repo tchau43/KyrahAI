@@ -24,9 +24,18 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
         const timezone = userPreferences?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // Use user's language preference, fallback to browser locale
-        const locale = userPreferences?.language
-          ? `${userPreferences.language}-${userPreferences.language.toUpperCase()}`
-          : Intl.DateTimeFormat().resolvedOptions().locale;
+        const lang = userPreferences?.language || Intl.DateTimeFormat().resolvedOptions().locale || 'en-US';
+        const locale =
+          lang.includes('-')
+            ? lang
+            : ({
+              en: 'en-US',
+              vi: 'vi-VN',
+              fr: 'fr-FR',
+              es: 'es-ES',
+              pt: 'pt-BR',
+              de: 'de-DE',
+            } as Record<string, string>)[lang] ?? lang;
 
         return date.toLocaleTimeString(locale, {
           timeZone: timezone,

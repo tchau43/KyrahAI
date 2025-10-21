@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         const config = {
           language: userPreferences?.language || 'vi',
           timezone: userPreferences?.timezone || 'Asia/Ho_Chi_Minh',
-          timezone_offset: userPreferences?.timezone_offset || '+07:00',
+          timezone_offset: userPreferences?.timezone_offset || '+UTC+7',
           retention_days: userPreferences?.retention_days || (currentUserId ? 30 : 1),
         };
 
@@ -350,12 +350,19 @@ export async function POST(request: NextRequest) {
             const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {
               try {
                 const date = new Date(timestamp);
-
-                // Use session timezone if available, otherwise fallback to UTC
                 const userTimezone = timezone || 'UTC';
-
-                // Use session language if available, otherwise fallback to English
-                const userLanguage = language ? `${language}-${language.toUpperCase()}` : 'en-US';
+                const lang = language || 'en';
+                const userLanguage =
+                  lang.includes('-')
+                    ? lang
+                    : ({
+                      en: 'en-US',
+                      vi: 'vi-VN',
+                      fr: 'fr-FR',
+                      es: 'es-ES',
+                      pt: 'pt-BR',
+                      de: 'de-DE',
+                    } as Record<string, string>)[lang] ?? 'en-US';
 
                 return date.toLocaleString(userLanguage, {
                   timeZone: userTimezone,
