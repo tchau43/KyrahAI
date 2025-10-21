@@ -9,8 +9,11 @@ export async function getSystemInstructionsFromDB(): Promise<string> {
       supabase = await createClient();
     } catch (error) {
       // Fallback to direct client for standalone scripts
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY for direct client fallback');
+      }
       supabase = createClientDirect(supabaseUrl, supabaseKey);
     }
     const { data: systemPromptData, error: systemPromptError } = await supabase

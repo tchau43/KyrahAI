@@ -22,6 +22,8 @@ interface AuthContextType {
   session: Session | null
   authType: 'authenticated' | 'anonymous' | null
   loading: boolean
+  userPreferences: UserPreferences | null
+  preferencesLoading: boolean
 
   // Auth methods
   signInWithEmail: (email: string, password: string) => Promise<void>
@@ -58,6 +60,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [authType, setAuthType] = useState<'authenticated' | 'anonymous' | null>(
     null
   )
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null)
+  const [preferencesLoading, setPreferencesLoading] = useState<boolean>(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -79,6 +83,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
       subscription?.unsubscribe()
     }
   }, [])
+
+  // Load preferences when user changes
+  useEffect(() => {
+    if (user && !preferencesLoading && !userPreferences) {
+      loadUserPreferences()
+    } else if (!user) {
+      setUserPreferences(null)
+    }
+  }, [user, preferencesLoading, userPreferences])
+
+  async function loadUserPreferences(): Promise<void> {
+    if (preferencesLoading) return
+
+    setPreferencesLoading(true)
+    try {
+      const prefs = await auth.getUserPreferences()
+      setUserPreferences(prefs)
+    } catch (error) {
+      console.error('Error loading user preferences:', error)
+    } finally {
+      setPreferencesLoading(false)
+    }
+  }
 
   async function checkSession(): Promise<void> {
     try {
@@ -135,6 +162,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null)
     setSession(null)
     setAuthType(null)
+    setUserPreferences(null)
 
     // Clear ALL session data from storage
     if (typeof window !== 'undefined') {
@@ -226,6 +254,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     session,
     authType,
     loading,
+    userPreferences,
+    preferencesLoading,
     signInWithEmail: handleSignInWithEmail,
     signUpWithEmail: handleSignUpWithEmail,
     signOut: handleSignOut,

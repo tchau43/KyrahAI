@@ -688,6 +688,7 @@ export async function updateUserDisplayName(displayName: string): Promise<Supaba
  * Get user preferences
  */
 export async function getUserPreferences(): Promise<UserPreferences | null> {
+  console.log('>>>>>>>>>>>>>>>>>>>getUserPreferences');
   try {
     const {
       data: { user },
@@ -703,12 +704,14 @@ export async function getUserPreferences(): Promise<UserPreferences | null> {
       .eq('user_id', user.id)
       .single();
 
+    console.log('>>>>>>>>>>>>>>>>>>>data', data);
+
     // PGRST116 = no rows found (user has no preferences yet)
     if (error && error.code !== 'PGRST116') {
       throw new AuthError('Failed to get preferences', error.code, 500);
     }
 
-    return data as UserPreferences | null;
+    return data;
   } catch (error) {
     console.error('Error getting preferences:', error);
     return null;

@@ -8,6 +8,7 @@ import ChatBubble from './ChatBubble';
 import { KyrahAI } from '@/components/icons';
 import { Resource } from '@/types/risk-assessment';
 import { ResourceList } from '@/components/cards/HotlineCard';
+import MessageListSkeleton from '@/components/skeletons/MessageListSkeleton';
 
 // Extend Message type to include resources
 interface MessageWithResources extends Message {
@@ -24,6 +25,8 @@ interface ChatMainViewProps {
   greetingMessage?: string;
   showHeader?: boolean;
   suggestionMessages?: string[];
+  isLoading?: boolean;
+  isProcessing?: boolean;
 }
 
 export default function ChatMainView({
@@ -33,6 +36,8 @@ export default function ChatMainView({
   greetingMessage = "What can I help you with?",
   showHeader = false,
   suggestionMessages = [],
+  isLoading = false,
+  isProcessing = false,
 }: ChatMainViewProps) {
   const [inputValue, setInputValue] = useState('');
   const [isMultiline, setIsMultiline] = useState(false);
@@ -57,6 +62,10 @@ export default function ChatMainView({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Don't send if currently processing/streaming
+    if (isProcessing) {
+      return;
+    }
     if (inputValue.trim()) {
       onSendMessage(inputValue.trim());
       setInputValue('');
@@ -70,6 +79,10 @@ export default function ChatMainView({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      // Don't submit if currently processing/streaming
+      if (isProcessing) {
+        return;
+      }
       handleSubmit(e);
     }
   };
@@ -137,7 +150,9 @@ export default function ChatMainView({
         </div>
       )}
 
-      {hasMessages ? (
+      {isLoading ? (
+        <MessageListSkeleton messageCount={4} />
+      ) : hasMessages ? (
         <>
           <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable_both-edges]">
             <div className="w-full px-4 md:px-6 lg:px-8 xl:px-12 py-4 md:py-6 pb-[180px] md:pb-[200px] lg:pb-[220px]">
@@ -179,7 +194,7 @@ export default function ChatMainView({
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type your message..."
+                    placeholder={isProcessing ? "Please wait for response..." : "Type your message..."}
                     rows={1}
                     className="flex-1 resize-none outline-none caption-14-regular md:!text-[16px] text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto pl-3 md:pl-4"
                   />
@@ -209,7 +224,7 @@ export default function ChatMainView({
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Ask anything..."
+                    placeholder={isProcessing ? "Please wait for response..." : "Ask anything..."}
                     rows={1}
                     className="flex-1 resize-none outline-none caption-14-regular md:!text-[16px] text-neutral-9 placeholder:text-neutral-5 bg-transparent max-h-[9rem] overflow-y-auto px-3 md:px-4"
                   />
