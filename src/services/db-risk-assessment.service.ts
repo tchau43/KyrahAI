@@ -1,6 +1,11 @@
 // src/services/db-risk-assessment.service.ts
 import { createClient } from '@/utils/supabase/server';
-import type { RiskAssessmentOutput, Resource, RiskLevel } from '@/types/risk-assessment';
+import type {
+  RiskAssessmentOutput,
+  Resource,
+  RiskLevel,
+  Audience,
+} from '@/types/risk-assessment';
 
 // Define once near top (after imports)
 const RISK_ORDER: RiskLevel[] = ['low', 'medium', 'high'] as const;
@@ -47,7 +52,7 @@ export async function saveRiskAssessment(
           analysis_notes: assessment.analysis_notes,
           recommended_resource_topics: assessment.recommended_resource_topics,
           requires_immediate_cards: assessment.requires_immediate_cards,
-          detected_audiences: assessment.detected_audiences || ['general'],
+          detected_audiences: assessment.detected_audiences, // ⭐ FIXED: Now guaranteed to exist
         },
       })
       .select()
@@ -69,11 +74,10 @@ export async function saveRiskAssessment(
 async function getUserLocale(userId?: string): Promise<{ language: string; timezone: string; jurisdiction: string[] }> {
   const supabase = await createClient();
 
-  // Default to Vietnamese locale
   const defaultLocale = {
-    language: 'vi',
-    timezone: 'Asia/Ho_Chi_Minh',
-    jurisdiction: LANGUAGE_TO_JURISDICTION['vi'],
+    language: 'en',
+    timezone: 'America/New_York',
+    jurisdiction: LANGUAGE_TO_JURISDICTION['en'],
   };
 
   if (!userId) {
@@ -92,9 +96,9 @@ async function getUserLocale(userId?: string): Promise<{ language: string; timez
     }
 
     return {
-      language: data.language || 'vi',
-      timezone: data.timezone || 'Asia/Ho_Chi_Minh',
-      jurisdiction: LANGUAGE_TO_JURISDICTION[data.language] || LANGUAGE_TO_JURISDICTION['vi'],
+      language: data.language || 'en',
+      timezone: data.timezone || 'America/New_York',
+      jurisdiction: LANGUAGE_TO_JURISDICTION[data.language] || LANGUAGE_TO_JURISDICTION['en'],
     };
   } catch (error) {
     console.error('Error fetching user locale:', error);
@@ -102,12 +106,78 @@ async function getUserLocale(userId?: string): Promise<{ language: string; timez
   }
 }
 
+const AUDIENCE_TOPIC_MAP: Record<Audience, string[]> = {
+  // LGBTQ+ Community
+  'lgbtq+': ['culturally_specific_support', 'advocacy_resources', 'sogi_protection'],
+  'lgbtqi_youth': ['culturally_specific_support', 'advocacy_resources', 'sogi_protection', 'child_protection'],
+  'transgender': ['culturally_specific_support', 'advocacy_resources', 'sogi_protection'],
+  'general_lgbtq+': ['culturally_specific_support', 'advocacy_resources'],
+
+  // Children & Youth
+  'youth': ['child_protection', 'mental_health', 'digital_safety'],
+  'youth_teens': ['child_protection', 'mental_health', 'digital_safety'],
+  'children_youth': ['child_protection', 'mental_health', 'digital_safety'],
+
+  // Elderly
+  'elderly': ['elder_care', 'mental_health', 'health_equity'],
+
+  // People with Disabilities
+  'disabled': ['culturally_specific_support', 'accessibility_services', 'health_equity'],
+  'disabilities': ['culturally_specific_support', 'accessibility_services', 'health_equity'],
+  'deaf_hard_of_hearing': ['culturally_specific_support', 'accessibility_services', 'health_equity'],
+
+  // Racial & Ethnic Minorities
+  'racial_minorities': ['culturally_specific_support', 'racial_justice', 'health_equity'],
+  'ethnic_minorities': ['culturally_specific_support', 'racial_justice', 'health_equity'],
+  'indigenous': ['culturally_specific_support', 'racial_justice', 'indigenous_rights', 'health_equity'],
+  'indigenous_native_american': ['culturally_specific_support', 'racial_justice', 'indigenous_rights', 'health_equity'],
+  'black_african_american': ['culturally_specific_support', 'racial_justice', 'health_equity'],
+
+  // Asian American & Pacific Islander
+  'aapi': ['culturally_specific_support', 'advocacy_resources'],
+
+  // Refugees & Immigrants
+  'refugees': ['refugee_protection', 'culturally_specific_support', 'legal_help', 'mental_health'],
+  'immigrants': ['refugee_protection', 'culturally_specific_support', 'legal_help', 'mental_health'],
+
+  // Women & Girls
+  'women': ['women_protection', 'advocacy_resources', 'safety_planning'],
+  'women_girls': ['women_protection', 'advocacy_resources', 'safety_planning', 'child_protection'],
+  'women_children': ['women_protection', 'advocacy_resources', 'safety_planning', 'child_protection'],
+
+  // Men & Boys
+  'men': ['prevention', 'cultural_transformation', 'gender_equality'],
+  'men_boys': ['prevention', 'cultural_transformation', 'gender_equality', 'child_protection'],
+  'men_fathers': ['prevention', 'cultural_transformation', 'gender_equality', 'parenting_support'],
+
+  // Male Survivors
+  'male_survivors': ['conflict_violence', 'mental_health', 'culturally_specific_support'],
+
+  // Parents & Caregivers
+  'parents': ['parenting_support', 'prevention', 'child_protection'],
+
+  // Workers & Employment
+  'workers': ['workplace_rights', 'employment', 'prevention'],
+
+  // Veterans & Military
+  'veterans_military': ['crisis_intervention', 'mental_health', 'veteran_services'],
+
+  // Sexual Assault Survivors
+  'sexual_assault_survivors': ['crisis_intervention', 'medical_response', 'legal_help', 'safety_planning'],
+
+  // Low Income
+  'low_income': ['financial_assistance', 'financial_abuse', 'legal_help'],
+
+  // General
+  'general': ['safety_planning', 'awareness', 'crisis_intervention'],
+};
+
 /**
  * Map risk assessment flags to resource topics with audience-specific support
  */
 function mapFlagsToTopics(assessment: RiskAssessmentOutput): string[] {
   const topics: string[] = [];
-  const detectedAudiences = assessment.detected_audiences || [];
+  const detectedAudiences = assessment.detected_audiences;
 
   // ========================================
   // HIGH PRIORITY TOPICS (life-threatening)
@@ -160,210 +230,28 @@ function mapFlagsToTopics(assessment: RiskAssessmentOutput): string[] {
   // LOW PRIORITY TOPICS
   // ========================================
   if (assessment.flags.legal) {
-    topics.push(
-      'legal_help'
-    );
+    topics.push('legal_help');
   }
 
   if (assessment.flags.financial) {
-    topics.push(
-      'financial_abuse'
-    );
+    topics.push('financial_abuse');
   }
 
   // ========================================
-  // AUDIENCE-SPECIFIC TOPICS
+  // Uses centralized mapping (no more scattered string literals)
   // ========================================
-
-  // LGBTQ+ Community
-  if (detectedAudiences.some(a => ['lgbtq+', 'lgbtqi_youth', 'transgender', 'lgbtq_refugees'].includes(a))) {
-    topics.push(
-      'culturally_specific_support',
-      'advocacy_resources',
-      'sogi_protection'
-    );
-  }
-
-  // Children & Youth
-  if (detectedAudiences.some(a => ['children', 'youth', 'youth_teens', 'children_youth'].includes(a))) {
-    topics.push(
-      'child_protection',
-      'mental_health',
-      'digital_safety'
-    );
-  }
-
-  // Elderly
-  if (detectedAudiences.some(a => ['elderly', 'elderly_general'].includes(a))) {
-    topics.push(
-      'elder_care',
-      'mental_health',
-      'health_equity'
-    );
-  }
-
-  // People with Disabilities
-  if (detectedAudiences.some(a => ['disabled', 'disabled_adolescents', 'disabilities', 'deaf_hard_of_hearing'].includes(a))) {
-    topics.push(
-      'culturally_specific_support',
-      'accessibility_services',
-      'health_equity'
-    );
-  }
-
-  // Racial & Ethnic Minorities
-  if (detectedAudiences.some(a => ['racial_minorities', 'ethnic_minorities', 'indigenous', 'indigenous_native_american', 'african_descent', 'black_african_american'].includes(a))) {
-    topics.push(
-      'culturally_specific_support',
-      'racial_justice',
-      'indigenous_rights',
-      'health_equity'
-    );
-  }
-
-  // Asian American & Pacific Islander (AAPI)
-  if (detectedAudiences.includes('aapi')) {
-    topics.push(
-      'culturally_specific_support',
-      'advocacy_resources'
-    );
-  }
-
-  // Latinx & Hispanic
-  if (detectedAudiences.includes('latinx_hispanic')) {
-    topics.push(
-      'culturally_specific_support',
-      'advocacy_resources'
-    );
-  }
-
-  // Refugees & Immigrants
-  if (detectedAudiences.some(a => ['refugees', 'men_refugees', 'immigrants', 'lgbtq_refugees', 'refugees_minorities_disabled'].includes(a))) {
-    topics.push(
-      'refugee_protection',
-      'culturally_specific_support',
-      'legal_help',
-      'mental_health'
-    );
-  }
-
-  // Women & Girls
-  if (detectedAudiences.some(a => ['women', 'women_children', 'women_girls', 'women_youth_lowincome', 'women_activists', 'women_journalists'].includes(a))) {
-    topics.push(
-      'women_protection',
-      'advocacy_resources',
-      'safety_planning'
-    );
-  }
-
-  // Men & Boys (Prevention & Engagement)
-  if (detectedAudiences.some(a => ['men_boys', 'men_fathers'].includes(a))) {
-    topics.push(
-      'prevention',
-      'cultural_transformation',
-      'gender_equality'
-    );
-  }
-
-  // Male Survivors
-  if (detectedAudiences.includes('male_survivors')) {
-    topics.push(
-      'conflict_violence',
-      'mental_health',
-      'culturally_specific_support'
-    );
-  }
-
-  // Parents & Caregivers
-  if (detectedAudiences.includes('parents')) {
-    topics.push(
-      'parenting_support',
-      'prevention',
-      'child_protection'
-    );
-  }
-
-  // Workers & Employment
-  if (detectedAudiences.some(a => ['workers', 'employers'].includes(a))) {
-    topics.push(
-      'workplace_rights',
-      'employment',
-      'prevention'
-    );
-  }
-
-  // Veterans & Military
-  if (detectedAudiences.includes('veterans_military')) {
-    topics.push(
-      'crisis_intervention',
-      'mental_health',
-      'veteran_services'
-    );
-  }
-
-  // Crisis & Emergency Situations
-  if (detectedAudiences.includes('crisis')) {
-    topics.push(
-      'emergency_response',
-      'crisis_intervention',
-      'shelter_housing'
-    );
-  }
-
-  // Sexual Assault Survivors
-  if (detectedAudiences.includes('sexual_assault_survivors')) {
-    topics.push(
-      'crisis_intervention',
-      'medical_response',
-      'legal_help',
-      'safety_planning'
-    );
-  }
-
-  // Healthcare Professionals
-  if (detectedAudiences.includes('healthcare')) {
-    topics.push(
-      'medical_response',
-      'training_resources'
-    );
-  }
-
-  // Policymakers & Advocates
-  if (detectedAudiences.some(a => ['policymakers', 'researchers', 'advocates_providers'].includes(a))) {
-    topics.push(
-      'policy_framework',
-      'policy_advocacy',
-      'data_measurement',
-      'prevention_framework'
-    );
-  }
-
-  // Low Income & Financial Hardship
-  if (detectedAudiences.includes('low_income')) {
-    topics.push(
-      'financial_assistance',
-      'financial_abuse',
-      'legal_help'
-    );
-  }
-
-  // Expats & International Communities
-  if (detectedAudiences.includes('expats')) {
-    topics.push(
-      'crisis_intervention',
-      'culturally_specific_support'
-    );
+  for (const audience of detectedAudiences) {
+    const audienceTopics = AUDIENCE_TOPIC_MAP[audience];
+    if (audienceTopics) {
+      topics.push(...audienceTopics);
+    }
   }
 
   // ========================================
   // FALLBACK
   // ========================================
   if (topics.length === 0) {
-    topics.push(
-      'safety_planning',
-      'awareness',
-      'crisis_intervention'
-    );
+    topics.push('safety_planning', 'awareness', 'crisis_intervention');
   }
 
   // Remove duplicates and return
@@ -387,13 +275,13 @@ export async function fetchRelevantResources(
     // Map flags to topics
     const topics = mapFlagsToTopics(assessment);
 
-    const detectedAudiences = assessment.detected_audiences || ['general'];
+    const detectedAudiences = assessment.detected_audiences;
 
     console.log('🔍 Fetching resources:', {
       risk_level: assessment.risk_level,
       topics,
       jurisdiction_priority: jurisdictionPriority,
-      audiences: detectedAudiences, // ← NEW LOG
+      audiences: detectedAudiences,
       flags: Object.entries(assessment.flags)
         .filter(([_, value]) => value)
         .map(([key]) => key),
@@ -415,16 +303,18 @@ export async function fetchRelevantResources(
         .select('*')
         .in('topic', topics)
         .eq('jurisdiction', jurisdiction)
-        .in('audience', audienceFilter) // Filter by audience
+        .in('audience', audienceFilter)
         .eq('is_active', true)
-        .in('risk_band', bandsAtOrBelow(assessment.risk_level)) // risk band at or below
-        .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0]) // Not expired
-        .eq('display_as_card', true) // Only displayable cards
+        .in('risk_band', bandsAtOrBelow(assessment.risk_level))
+        .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0])
+        .eq('display_as_card', true)
         .limit(limit);
 
       if (error) {
+        console.error(`Error fetching resources for ${jurisdiction}:`, error);
         continue;
       }
+
       function shuffleArray<T>(array: T[]): T[] {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -433,11 +323,12 @@ export async function fetchRelevantResources(
         }
         return shuffled;
       }
+
       if (data && data.length > 0) {
-        // ⭐ Shuffle trước khi phân loại
+        // ⭐ Shuffle before categorizing
         const shuffledData = shuffleArray(data);
 
-        const audienceSpecific = shuffledData.filter(r => detectedAudiences.includes(r.audience));
+        const audienceSpecific = shuffledData.filter(r => detectedAudiences.includes(r.audience as Audience));
         const general = shuffledData.filter(r => r.audience === 'general');
 
         // Mix: prefer audience-specific, then general
@@ -460,7 +351,7 @@ export async function fetchRelevantResources(
           .select('*')
           .in('topic', topics)
           .eq('jurisdiction', jurisdiction)
-          .in('audience', audienceFilter) // Filter by audience
+          .in('audience', audienceFilter)
           .eq('is_active', true)
           .gte('last_verified', twelveMonthsAgo.toISOString().split('T')[0])
           .eq('display_as_card', true)
@@ -472,7 +363,7 @@ export async function fetchRelevantResources(
         }
 
         if (data && data.length > 0) {
-          const audienceSpecific = data.filter(r => detectedAudiences.includes(r.audience));
+          const audienceSpecific = data.filter(r => detectedAudiences.includes(r.audience as Audience));
           const general = data.filter(r => r.audience === 'general');
           resources = [...audienceSpecific, ...general].slice(0, limit);
           console.log(`✅ Found ${resources.length} resources (no risk filter) for ${jurisdiction}`);
@@ -501,7 +392,7 @@ export async function fetchRelevantResources(
         console.error('Error fetching UNICEF fallback resources:', error);
         return [];
       }
-      const audienceSpecific = (data || []).filter(r => detectedAudiences.includes(r.audience));
+      const audienceSpecific = (data || []).filter(r => detectedAudiences.includes(r.audience as Audience));
       const general = (data || []).filter(r => r.audience === 'general');
       resources = [...audienceSpecific, ...general].slice(0, limit);
 
@@ -517,7 +408,7 @@ export async function fetchRelevantResources(
         title: r.title,
         topic: r.topic,
         jurisdiction: r.jurisdiction,
-        audience: r.audience, // ⭐ Log audience
+        audience: r.audience,
         risk_band: r.risk_band,
       })),
     });

@@ -22,33 +22,91 @@ export interface RiskIndicator {
   severity: Severity;
 }
 
-export type Audience =
-  | 'general'
-  | 'youth'
-  | 'children_youth'
-  | 'lgbtq+'
-  | 'lgbtqi_youth'
-  | 'transgender'
-  | 'women'
-  | 'women_girls'
-  | 'men'
-  | 'men_boys'
-  | 'elderly'
-  | 'disabled'
-  | 'disabilities'
-  | 'refugees'
-  | 'immigrants'
-  | 'indigenous'
-  | 'ethnic_minorities'
-  | 'racial_minorities'
-  | 'workers'
-  | 'parents'
-  | 'women_children'
-  | 'general_lgbtq+'
-  | 'black_african_american'
-  | 'aapi'
-  | 'deaf_hard_of_hearing'
-  | 'low_income';
+// ⭐ FIXED: Centralized audience constant (single source of truth)
+export const AUDIENCES = [
+  'general',
+  'youth',
+  'youth_teens',
+  'children_youth',
+  'lgbtq+',
+  'lgbtqi_youth',
+  'transgender',
+  'women',
+  'women_girls',
+  'women_children',
+  'men',
+  'men_boys',
+  'men_fathers',
+  'elderly',
+  'disabled',
+  'disabilities',
+  'deaf_hard_of_hearing',
+  'refugees',
+  'immigrants',
+  'indigenous',
+  'indigenous_native_american',
+  'ethnic_minorities',
+  'racial_minorities',
+  'black_african_american',
+  'aapi',
+  'workers',
+  'parents',
+  'veterans_military',
+  'sexual_assault_survivors',
+  'male_survivors',
+  'general_lgbtq+',
+  'low_income',
+] as const;
+
+export type Audience = (typeof AUDIENCES)[number];
+
+// ⭐ FIXED: Audience alias mapping for normalization
+export const AUDIENCE_ALIASES: Record<string, Audience[]> = {
+  'latinx_hispanic': ['ethnic_minorities', 'racial_minorities'],
+  'elderly_general': ['elderly'],
+  'men_refugees': ['men', 'refugees'],
+  'advocates_providers': ['general'],
+  'policymakers': ['general'],
+  'expats': ['general'],
+  'lgbtq_refugees': ['lgbtq+', 'refugees'],
+  'disabled_adolescents': ['disabled', 'youth'],
+  'african_descent': ['black_african_american'],
+  'women_youth_lowincome': ['women', 'youth', 'low_income'],
+  'women_activists': ['women'],
+  'women_journalists': ['women'],
+  'refugees_minorities_disabled': ['refugees', 'ethnic_minorities', 'disabled'],
+  'crisis': ['general'],
+  'healthcare': ['general'],
+  'researchers': ['general'],
+  'employers': ['general'],
+  'children': ['children_youth'],
+};
+
+/**
+ * Normalize audience labels to canonical set
+ */
+export function normalizeAudiences(raw: string[]): Audience[] {
+  const normalized = new Set<Audience>();
+
+  for (const label of raw) {
+    // Direct match
+    if (AUDIENCES.includes(label as Audience)) {
+      normalized.add(label as Audience);
+      continue;
+    }
+
+    // Alias match
+    const aliases = AUDIENCE_ALIASES[label];
+    if (aliases) {
+      aliases.forEach((a) => normalized.add(a));
+    } else {
+      console.warn(`⚠️ Unknown audience label: ${label}, defaulting to 'general'`);
+      normalized.add('general');
+    }
+  }
+
+  return [...normalized];
+}
 
 export interface RiskAssessmentOutput {
   flags: RiskFlags;
@@ -58,7 +116,7 @@ export interface RiskAssessmentOutput {
   analysis_notes: string;
   recommended_resource_topics: string[];
   requires_immediate_cards: boolean;
-  detected_audiences?: string[];
+  detected_audiences: Audience[]; // ⭐ FIXED: Now required and strongly typed
 }
 
 export interface RiskAssessmentResponse {
@@ -82,7 +140,7 @@ export interface RiskAssessmentDB {
     analysis_notes: string;
     recommended_resource_topics: string[];
     requires_immediate_cards: boolean;
-    detected_audiences?: string[];
+    detected_audiences: Audience[]; // ⭐ FIXED: Strongly typed
   };
 }
 

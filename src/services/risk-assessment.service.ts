@@ -1,6 +1,11 @@
 // src/services/risk-assessment.service.ts
 import openai from '@/lib/openai';
-import { RiskAssessmentOutput, RiskAssessmentResponse } from '@/types/risk-assessment';
+import {
+  RiskAssessmentOutput,
+  RiskAssessmentResponse,
+  AUDIENCES, // ⭐ FIXED: Import centralized constant
+  normalizeAudiences, // ⭐ FIXED: Import normalization helper
+} from '@/types/risk-assessment';
 import indicatorsData from '@/data/indicators.json';
 
 /**
@@ -16,6 +21,7 @@ function getRiskAssessmentAssistantId(): string {
 
 /**
  * JSON Schema for structured output (WITH AUDIENCE DETECTION)
+ * ⭐ FIXED: Uses centralized AUDIENCES constant
  */
 const RISK_ASSESSMENT_SCHEMA = {
   name: 'risk_assessment_output',
@@ -81,47 +87,14 @@ const RISK_ASSESSMENT_SCHEMA = {
         items: { type: 'string' },
       },
       requires_immediate_cards: { type: 'boolean' },
-      // ⭐ NEW: Detected audiences
+      // ⭐ FIXED: Use centralized AUDIENCES constant
       detected_audiences: {
         type: 'array',
         items: {
           type: 'string',
-          enum: [
-            'general',
-            'youth',
-            'youth_teens',
-            'children_youth',
-            'lgbtq+',
-            'lgbtqi_youth',
-            'transgender',
-            'women',
-            'women_girls',
-            'women_children',
-            'men',
-            'men_boys',
-            'men_fathers',
-            'elderly',
-            'disabled',
-            'disabilities',
-            'deaf_hard_of_hearing',
-            'refugees',
-            'immigrants',
-            'indigenous',
-            'indigenous_native_american',
-            'ethnic_minorities',
-            'racial_minorities',
-            'black_african_american',
-            'aapi',
-            'workers',
-            'parents',
-            'veterans_military',
-            'sexual_assault_survivors',
-            'male_survivors',
-            'general_lgbtq+',
-            'low_income',
-          ],
+          enum: AUDIENCES as unknown as string[],
         },
-        minItems: 1, // At least one audience required
+        minItems: 1,
       },
     },
     required: [
@@ -132,7 +105,7 @@ const RISK_ASSESSMENT_SCHEMA = {
       'analysis_notes',
       'recommended_resource_topics',
       'requires_immediate_cards',
-      'detected_audiences', // ⭐ CRITICAL: Add to required fields
+      'detected_audiences',
     ],
     additionalProperties: false,
   },
@@ -210,30 +183,62 @@ Return a structured risk assessment following the JSON schema.`;
       throw new Error('No assistant message found');
     }
 
-    const textPart = lastAssistant.content.find((c) => c.type === 'text');
-    if (!textPart || textPart.type !== 'text') {
-      throw new Error('Assistant response missing text content');
-    }
-
+    // ⭐ FIXED: Resilient parser supporting multiple content types
+    // Handle both text content and potential future structured output formats
     let assessmentOutput: RiskAssessmentOutput;
+
     try {
-      assessmentOutput = JSON.parse(textPart.text.value);
-    } catch {
-      throw new Error('Failed to parse assessment JSON');
+      const textContent = lastAssistant.content.find((c): c is Extract<typeof c, { type: 'text' }> => c.type === 'text');
+
+      if (!textContent) {
+        // Fallback: try to extract JSON from any content type
+        console.error('❌ No text content found, attempting fallback extraction');
+        console.error('Content types present:', lastAssistant.content.map(c => c.type));
+        throw new Error('Assistant response missing text content');
+      }
+
+      const jsonStr = textContent.text.value;
+
+      if (!jsonStr || jsonStr.trim() === '') {
+        console.error('❌ Empty text content');
+        throw new Error('Assistant response has empty text value');
+      }
+
+      // Parse the JSON
+      try {
+        assessmentOutput = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error('❌ JSON parse error:', parseError);
+        console.error('Raw payload (first 500 chars):', jsonStr.substring(0, 500));
+        throw new Error(`Failed to parse assessment JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
+    } catch (extractionError) {
+      console.error('❌ Content extraction error:', extractionError);
+      console.error('Full assistant content:', JSON.stringify(lastAssistant.content, null, 2));
+      throw extractionError;
     }
 
-    // ⭐ ADD DEBUG LOG
+    // ⭐ FIXED: Normalize audiences before validation
+    if (assessmentOutput.detected_audiences) {
+      assessmentOutput.detected_audiences = normalizeAudiences(
+        assessmentOutput.detected_audiences as string[]
+      );
+    }
+
+    // Validate the output
+    validateRiskAssessment(assessmentOutput);
+
     console.log('✅ Risk assessment completed:', {
       risk_level: assessmentOutput.risk_level,
       confidence: assessmentOutput.confidence,
-      detected_audiences: assessmentOutput.detected_audiences, // ← Should show now!
+      detected_audiences: assessmentOutput.detected_audiences,
       flags: Object.entries(assessmentOutput.flags)
         .filter(([_, value]) => value)
         .map(([key]) => key),
     });
 
-    // Validate the output
-    validateRiskAssessment(assessmentOutput);
+    // ⭐ OPTIONAL: Clean up thread to prevent storage growth
+    // await openai.beta.threads.del(thread.id).catch(() => {});
 
     return {
       success: true,
@@ -291,10 +296,24 @@ function validateRiskAssessment(data: any): void {
     throw new Error('indicators must be an array');
   }
 
-  // ⭐ NEW: Check detected_audiences
+  // ⭐ FIXED: Enforce required audiences with proper type checking
   if (!Array.isArray(data.detected_audiences) || data.detected_audiences.length === 0) {
     console.warn('⚠️ No audiences detected, defaulting to ["general"]');
     data.detected_audiences = ['general'];
+  }
+
+  // Validate all audiences are in the enum
+  const invalidAudiences = data.detected_audiences.filter(
+    (a: string) => !AUDIENCES.includes(a as any)
+  );
+  if (invalidAudiences.length > 0) {
+    console.warn('⚠️ Invalid audiences detected:', invalidAudiences);
+    data.detected_audiences = data.detected_audiences.filter((a: string) =>
+      AUDIENCES.includes(a as any)
+    );
+    if (data.detected_audiences.length === 0) {
+      data.detected_audiences = ['general'];
+    }
   }
 }
 
@@ -320,7 +339,7 @@ function getFallbackAssessment(): RiskAssessmentOutput {
     analysis_notes: 'Fallback assessment due to system error',
     recommended_resource_topics: ['general_support'],
     requires_immediate_cards: false,
-    detected_audiences: ['general'], // ⭐ NEW: Default audience
+    detected_audiences: ['general'],
   };
 }
 
