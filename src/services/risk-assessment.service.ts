@@ -161,10 +161,12 @@ Return a structured risk assessment following the JSON schema.`;
     let attempts = 0;
 
     while (runStatus.status !== 'completed' && attempts < maxAttempts) {
-      if (runStatus.status === 'failed' || runStatus.status === 'cancelled') {
+      if (['failed', 'cancelled', 'expired'].includes(runStatus.status as string)) {
         throw new Error(`Risk assessment run ${runStatus.status}: ${runStatus.last_error?.message}`);
       }
-
+      if (runStatus.status === 'requires_action') {
+        throw new Error('Risk assessment run requires tool outputs but none are provided');
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
       runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
       attempts++;
