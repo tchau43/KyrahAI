@@ -176,7 +176,9 @@ Return a structured risk assessment following the JSON schema.`;
 
     // Get messages
     const messages = await openai.beta.threads.messages.list(thread.id, { order: 'desc', limit: 10 });
-    const lastAssistant = messages.data.find((m) => m.role === 'assistant');
+    // Prefer the message from the current run, fallback to any assistant message
+    const lastAssistant = messages.data.find((m) => m.role === 'assistant' && m.run_id === run.id)
+      ?? messages.data.find((m) => m.role === 'assistant');
 
     if (!lastAssistant || !Array.isArray(lastAssistant.content) || lastAssistant.content.length === 0) {
       throw new Error('No assistant message found');
@@ -185,10 +187,12 @@ Return a structured risk assessment following the JSON schema.`;
     let assessmentOutput: RiskAssessmentOutput;
 
     try {
-      const textContent = lastAssistant.content.find((c): c is Extract<typeof c, { type: 'text' }> => c.type === 'text');
+      // Extract text content (json_schema returns JSON as a string in text type)
+      const textContent = lastAssistant.content.find(
+        (c): c is Extract<typeof c, { type: 'text' }> => c.type === 'text'
+      );
 
       if (!textContent) {
-        // Fallback: try to extract JSON from any content type
         throw new Error('Assistant response missing text content');
       }
 
@@ -198,14 +202,11 @@ Return a structured risk assessment following the JSON schema.`;
         throw new Error('Assistant response has empty text value');
       }
 
-      // Parse the JSON
-      try {
-        assessmentOutput = JSON.parse(jsonStr);
-      } catch (parseError) {
-        throw new Error(`Failed to parse assessment JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
-      }
-    } catch (extractionError) {
-      throw extractionError;
+      assessmentOutput = JSON.parse(jsonStr);
+    } catch (error) {
+      throw new Error(
+        `Failed to parse assessment: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     if (assessmentOutput.detected_audiences) {

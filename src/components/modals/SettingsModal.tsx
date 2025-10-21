@@ -229,7 +229,7 @@ export default function SettingsModal({
                 {/* User Name Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <HeartHandshake className="text-danger" size={20} />
+                    <HeartHandshake className="text-primary" size={20} />
                     <h3 className="body-18-semi text-neutral-9">What should Kyrah call you?</h3>
                   </div>
 
@@ -258,7 +258,7 @@ export default function SettingsModal({
                 {/* Privacy & Data Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Shield className="text-danger" size={20} />
+                    <Shield className="text-primary" size={20} />
                     <h3 className="body-18-semi text-neutral-9">Privacy & Data</h3>
                   </div>
 
@@ -366,7 +366,7 @@ export default function SettingsModal({
                 {/* Conversations Section */}
                 <div className="space-y-4 mt-6">
                   <div className="flex items-center gap-2">
-                    <MessageSquare className="text-danger" size={20} />
+                    <MessageSquare className="text-primary" size={20} />
                     <h3 className="body-18-semi text-neutral-9">Conversations</h3>
                   </div>
 
