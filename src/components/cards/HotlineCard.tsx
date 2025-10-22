@@ -89,7 +89,7 @@ export function ResourceList({
   }
   return (
     <div className="my-4 w-full">
-      <div className="flex gap-2 w-full">
+      <div className="flex flex-col md:flex-row gap-2 w-full">
         {resources.map((resource) => (
           <HotlineCard
             key={resource.resource_id}
