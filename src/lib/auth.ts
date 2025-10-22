@@ -1,3 +1,4 @@
+// src/lib/auth.ts
 import { createClient } from '../utils/supabase/client';
 
 const supabase = createClient();
@@ -419,60 +420,6 @@ export async function getUserSessions(userId: string): Promise<Session[]> {
     throw new AuthError('Failed to get all sessions', error.code || 'UNKNOWN_ERROR', 500);
   }
   return data || [];
-}
-
-// ============================================
-// Session Helpers
-// ============================================
-
-/**
- * Reuse an existing empty session for the user if one exists (no messages), otherwise create new.
- */
-export async function getOrCreateReusableAuthenticatedSession(userId: string): Promise<Session> {
-  // Find an active session for this user that has zero messages
-  const { data: existingSessions, error: existingError } = await supabase
-    .from('sessions')
-    .select('session_id')
-    .eq('user_id', userId)
-    .is('deleted_at', null) // Only consider non-deleted sessions
-    .order('created_at', { ascending: true });
-
-  if (!existingError && existingSessions && existingSessions.length > 0) {
-    for (const s of existingSessions as Array<{ session_id: string }>) {
-      const { count, error: countError } = await supabase
-        .from('messages')
-        .select('message_id', { count: 'exact', head: true })
-        .eq('session_id', s.session_id)
-        .is('deleted_at', null);
-      if (!countError && (count ?? 0) === 0) {
-        // Reuse this empty session
-        const { data } = await supabase
-          .from('sessions')
-          .select('*')
-          .eq('session_id', s.session_id)
-          .single();
-        return data as Session;
-      }
-    }
-  }
-
-  // Otherwise, create a new session
-  const { data: newSession, error: sessionError } = await supabase
-    .from('sessions')
-    .insert({
-      user_id: userId,
-      is_anonymous: false,
-      auth_type: 'email',
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    })
-    .select()
-    .single();
-
-  if (sessionError || !newSession) {
-    throw new AuthError('Failed to create Kyrah session', sessionError?.code || 'UNKNOWN_ERROR', 500);
-  }
-
-  return newSession as Session;
 }
 
 // ============================================

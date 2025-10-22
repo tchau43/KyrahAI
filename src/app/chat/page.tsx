@@ -433,13 +433,21 @@ export default function ChatPage() {
         return;
       }
 
-      // For authenticated users: create new chat by default
+      // For authenticated users: check if we have a saved active session first
       if (user) {
-        const randomIndex = Math.floor(Math.random() * GREETING_MESSAGES.length);
-        setGreetingMessage(GREETING_MESSAGES[randomIndex]);
-        setIsNewChat(true);
-        setActiveSessionId(null);
-        await createTempSession();
+        const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
+        if (savedSessionId) {
+          // User has a selected session, restore it
+          setActiveSessionId(savedSessionId);
+          setIsNewChat(false);
+        } else {
+          // No saved session, create new chat by default
+          const randomIndex = Math.floor(Math.random() * GREETING_MESSAGES.length);
+          setGreetingMessage(GREETING_MESSAGES[randomIndex]);
+          setIsNewChat(true);
+          setActiveSessionId(null);
+          await createTempSession();
+        }
         setIsInitialized(true);
         return;
       }
@@ -466,8 +474,13 @@ export default function ChatPage() {
 
     setIsInitialized(false);
 
-    // Clear active session when user changes
-    setActiveSessionId(null);
+    // Only clear active session when switching between anonymous/authenticated
+    // Don't clear when user is just refreshing/refocusing the same authenticated session
+    const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
+    if (!savedSessionId) {
+      setActiveSessionId(null);
+    }
+
     setOptimisticMessages([]);
     setIsNewChat(false);
 
