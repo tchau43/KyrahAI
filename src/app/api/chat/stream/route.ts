@@ -346,8 +346,13 @@ export async function POST(request: NextRequest) {
           if (isFirstMessage) {
             // Generate title using OpenAI based on user message
             try {
-              const titlePrompt = `Create a short title (max 6 words) for a conversation based on this message: "${userMessage}". Return only the title, no explanation.`;
-
+              const titlePrompt = `You are a title generator for a mental health support chat. 
+                Your goal is to create a short, calm, and general title (max 8 words) for this conversation.
+                Message: "${userMessage}"
+                Rules:
+                1.  The title must be neutral and non-triggering.
+                2.  NEVER repeat any specific negative, crisis, or sensitive words (like 'suicide', 'die', 'depressed', 'self-harm', etc.).
+                3.  DO NOT SUMMARIZE THE PROBLEM WHICH NEGATIVE OR SENSITIVE.`;
               const titleResponse = await openai.chat.completions.create({
                 model: 'gpt-4.1-nano',
                 messages: [
