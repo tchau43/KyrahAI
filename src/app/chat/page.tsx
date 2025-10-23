@@ -561,20 +561,12 @@ export default function ChatPage() {
       {!loading && !user && (
         <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
           <Button
-            color="primary"
-            variant="shadow"
-            onPress={() => { useModalStore.getState().setAuthMode('signin'); openModal('auth-modal'); }}
-            className="px-3 py-3 md:px-5 md:py-2 xl:px-5 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
-          >
-            Log in
-          </Button>
-          <Button
             color="secondary"
             variant="shadow"
-            onPress={() => { useModalStore.getState().setAuthMode('signup'); openModal('auth-modal'); }}
-            className="px-3 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
+            onPress={() => { useModalStore.getState().setAuthMode('signin'); openModal('auth-modal'); }}
+            className="px-3 py-3 md:px-5 md:py-2 xl:px-5 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-1 hover:scale-102 transition-all duration-200"
           >
-            Sign up
+            Log in
           </Button>
         </div>
       )}
