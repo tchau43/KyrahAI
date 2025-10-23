@@ -12,6 +12,10 @@ export interface FolderWithCount extends Folder {
   session_count: number;
 }
 
+interface FolderWithSessions extends Folder {
+  sessions: Array<{ count: number }>;
+}
+
 // ============= FOLDER OPERATIONS =============
 
 /**
@@ -21,7 +25,10 @@ export async function createFolder(folderName: string): Promise<Folder | null> {
   const supabase = createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
+  if (!user) {
+    console.error('User not authenticated');
+    return null;
+  }
 
   const { data, error } = await supabase
     .from('folders')
@@ -56,7 +63,8 @@ export async function getFolders(): Promise<FolderWithCount[]> {
       sessions:sessions(count)
     `)
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<FolderWithSessions[]>();
 
   if (error) {
     console.error('Error fetching folders:', error);
