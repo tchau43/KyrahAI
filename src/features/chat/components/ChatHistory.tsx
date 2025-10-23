@@ -16,7 +16,6 @@ interface ChatHistoryProps {
   folders: FolderWithCount[];
   onMoveToFolder: (sessionId: string, folderId: string | null) => void;
   onCreateFolderWithSession: (sessionId: string) => void;
-  onEditTitle: (sessionId: string) => void;
 }
 
 export default function ChatHistory({
@@ -26,7 +25,6 @@ export default function ChatHistory({
   folders,
   onMoveToFolder,
   onCreateFolderWithSession,
-  onEditTitle,
 }: ChatHistoryProps) {
   const [nonEmptySessionIds, setNonEmptySessionIds] = useState<Set<string>>(new Set());
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -101,12 +99,12 @@ export default function ChatHistory({
     if (session) {
       setEditingSessionId(sessionId);
       setEditTitle(session.title || session.session_id);
+      setOpenDropdownId(null);
     }
   };
 
   const handleSaveTitle = async (sessionId: string) => {
     if (!editTitle.trim()) {
-      // Don't save empty title
       setEditingSessionId(null);
       return;
     }
@@ -254,7 +252,6 @@ export default function ChatHistory({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setOpenDropdownId(null);
                         handleEditTitle(session.session_id);
                       }}
                       className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
@@ -291,19 +288,6 @@ export default function ChatHistory({
                           ref={submenuRef}
                           className="absolute left-0 top-full mt-1 w-full bg-white border border-neutral-3 rounded-lg shadow-lg z-[70] py-2 max-h-60 overflow-y-auto"
                         >
-                          {/* Remove from folder option (if session is in a folder) */}
-                          {session.folder_id && (
-                            <>
-                              <button
-                                onClick={() => handleMoveToFolder(session.session_id, null)}
-                                className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-orange-600 font-medium"
-                              >
-                                📤 Remove from folder
-                              </button>
-                              <div className="border-t border-neutral-3 my-1" />
-                            </>
-                          )}
-
                           {/* Existing folders */}
                           <div className="max-h-40 overflow-y-auto">
                             {folders.length > 0 ? (
@@ -311,12 +295,9 @@ export default function ChatHistory({
                                 <button
                                   key={folder.folder_id}
                                   onClick={() => handleMoveToFolder(session.session_id, folder.folder_id)}
-                                  className={`w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate ${session.folder_id === folder.folder_id ? 'bg-neutral-2 font-medium text-primary' : ''
-                                    }`}
-                                  disabled={session.folder_id === folder.folder_id}
+                                  className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate"
                                 >
-                                  {session.folder_id === folder.folder_id ? '✓ ' : '📁 '}
-                                  {folder.folder_name}
+                                  📁 {folder.folder_name}
                                 </button>
                               ))
                             ) : (

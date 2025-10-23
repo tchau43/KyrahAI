@@ -101,6 +101,19 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
+    const handleSessionsUpdate = () => {
+      // Invalidate queries to refetch sessions
+      queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
+    };
+
+    window.addEventListener('sessions-updated', handleSessionsUpdate);
+
+    return () => {
+      window.removeEventListener('sessions-updated', handleSessionsUpdate);
+    };
+  }, [queryClient, user?.id]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     if (activeSessionId) {
       sessionStorage.setItem('kyrah_active_session_id', activeSessionId);
