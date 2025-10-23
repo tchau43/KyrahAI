@@ -73,7 +73,7 @@ export default function ChatHistory({
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const clickedOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target as Node);
-      const clickedOutsideSubmenu = submenuRef.current && !submenuRef.current.contains(event.target as Node);
+      const clickedOutsideSubmenu = !submenuRef.current || !submenuRef.current.contains(event.target as Node);
 
       if (clickedOutsideDropdown && clickedOutsideSubmenu) {
         setOpenDropdownId(null);
@@ -157,7 +157,7 @@ export default function ChatHistory({
       <div className="text-xs font-semibold text-neutral-9 px-3 py-2 uppercase tracking-normal flex-shrink-0">
         Sessions
       </div>
-      <div className="flex-1 overflow-y-auto px-2 pb-2 min-h-0">
+      <div className="flex-1 px-2 pb-2 min-h-0">
         <div className="space-y-1">
           {sessions
             .filter(session => nonEmptySessionIds.has(session.session_id))
@@ -184,6 +184,7 @@ export default function ChatHistory({
                         onPointerDown={(e) => e.stopPropagation()}
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => {
+                          e.stopPropagation();
                           if (e.key === 'Enter') {
                             handleSaveTitle(session.session_id);
                           } else if (e.key === 'Escape') {
