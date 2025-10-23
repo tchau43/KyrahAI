@@ -11,16 +11,15 @@ import { Session } from '@/types/auth.types';
 import { XIcon } from '@/components/icons';
 import { useModalStore } from '@/store/useModalStore';
 import {
-  getFolders,
   moveSessionToFolder,
   deleteFolder,
   renameFolder,
-  FolderWithCount,
 } from '@/lib/chat';
 import FolderModal from '@/components/modals/FolderModal';
 import FolderList from '@/components/chat/FolderList';
 import { createClient } from '@/utils/supabase/client';
-import { useQueryClient } from '@tanstack/react-query'; // <-- THÊM IMPORT NÀY
+import { useQueryClient } from '@tanstack/react-query';
+import { useGetFolders } from '@/features/chat/hooks/useGetFolders';
 
 interface ChatSidebarProps {
   sessions: Session[];
@@ -43,11 +42,13 @@ export default function ChatSidebar({
 }: ChatSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hasUser, setHasUser] = useState(false);
-  const [folders, setFolders] = useState<FolderWithCount[]>([]);
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
 
-  const queryClient = useQueryClient(); // <-- THÊM DÒNG NÀY
-  const { user } = useAuth(); // <-- Thêm để lấy user ID
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Sử dụng useGetFolders hook
+  const { data: folders = [] } = useGetFolders();
 
   // Modal states
   const { openModal } = useModalStore();
@@ -63,17 +64,6 @@ export default function ChatSidebar({
     });
     return () => subscription.unsubscribe();
   }, []);
-
-  useEffect(() => {
-    if (hasUser) {
-      loadFolders();
-    }
-  }, [hasUser]);
-
-  const loadFolders = async () => {
-    const foldersData = await getFolders();
-    setFolders(foldersData);
-  };
 
   const sessionsByFolder = useMemo(() => {
     const map = new Map<string, Session[]>();
@@ -114,26 +104,16 @@ export default function ChatSidebar({
   const handleRenameFolder = async (folderId: string, newName: string) => {
     const success = await renameFolder(folderId, newName);
     if (success) {
-      await loadFolders();
+      await queryClient.invalidateQueries({ queryKey: ['user-folders', user?.id] });
     }
   };
-
-  // *** SỬA LỖI TẠI ĐÂY ***
-  // Hàm này giờ sẽ tải lại cả session và folder một cách đáng tin cậy
-  const handleFolderModalSuccess = async () => {
-    // 1. Tải lại danh sách folder
-    await loadFolders();
-    // 2. Vô hiệu hóa cache của sessions, buộc react-query phải fetch lại.
-    // Đây là chìa khóa để giao diện cập nhật.
-    await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
-  };
-
 
   const handleMoveToFolder = async (sessionId: string, folderId: string | null) => {
     const success = await moveSessionToFolder(sessionId, folderId);
     if (success) {
-      await loadFolders();
-      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
+      // Invalidate cả folders và sessions
+      await queryClient.invalidateQueries({ queryKey: ['user-folders', user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
     }
   };
 
@@ -145,8 +125,9 @@ export default function ChatSidebar({
         newSet.delete(folderId);
         return newSet;
       });
-      await loadFolders();
-      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
+      // Invalidate cả folders và sessions
+      await queryClient.invalidateQueries({ queryKey: ['user-folders', user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
     }
   };
 
@@ -262,11 +243,8 @@ export default function ChatSidebar({
         <ChatSidebarFooter isCollapsed={isCollapsed} />
       </aside>
 
-      {/* Modal chỉ còn dùng để tạo mới */}
-      <FolderModal
-        sessionIdToMove={sessionIdToMove}
-        onSuccess={handleFolderModalSuccess}
-      />
+      {/* Folder Modal */}
+      <FolderModal sessionIdToMove={sessionIdToMove} />
     </>
   );
 }

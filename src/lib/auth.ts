@@ -58,9 +58,10 @@ export function clearTempSession(): void {
 
 export function clearAllSessionData(): void {
   if (!isBrowser()) return;
-  try { sessionStorage.removeItem('kyrah_temp_session_id'); } catch { }
-  try { sessionStorage.removeItem('kyrah_anonymous_token'); } catch { }
-  try { localStorage.removeItem('kyrah_anonymous_session_id'); } catch { }
+  sessionStorage.removeItem('kyrah_temp_session_id');
+  sessionStorage.removeItem('kyrah_anonymous_token');
+  localStorage.removeItem('kyrah_anonymous_session_id');
+  sessionStorage.removeItem('kyrah_active_session_id');
 }
 
 

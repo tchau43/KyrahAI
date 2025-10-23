@@ -37,6 +37,9 @@ export default function ChatHistory({
   const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const submenuRef = useRef<HTMLDivElement>(null);
+  const [hoveredSessionId, setHoveredSessionId] = useState<string | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -150,6 +153,29 @@ export default function ChatHistory({
     }
   }, [editingSessionId]);
 
+  // Handle tooltip positioning
+  const handleMouseEnter = (sessionId: string, event: React.MouseEvent) => {
+    setHoveredSessionId(sessionId);
+    setTooltipPosition({
+      x: event.clientX,
+      y: event.clientY
+    });
+  };
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    if (hoveredSessionId) {
+      setTooltipPosition({
+        x: event.clientX,
+        y: event.clientY
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredSessionId(null);
+  };
+
+
   return (
     <div className="flex flex-col h-full">
       <div className="text-xs font-semibold text-neutral-9 px-3 py-2 uppercase tracking-normal flex-shrink-0">
@@ -193,7 +219,12 @@ export default function ChatHistory({
                         className="flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border border-primary focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                       />
                     ) : (
-                      <span className="flex-1 min-w-0 text-left whitespace-nowrap overflow-visible group-hover:overflow-hidden group-hover:truncate group-hover:pr-3">
+                      <span
+                        className="flex-1 min-w-0 text-left whitespace-nowrap group-hover:overflow-hidden overflow-hidden truncate group-hover:truncate group-hover:pr-3"
+                        onMouseEnter={(e) => handleMouseEnter(session.session_id, e)}
+                        onMouseMove={handleMouseMove}
+                        onMouseLeave={handleMouseLeave}
+                      >
                         {session?.title || session.session_id}
                       </span>
                     )}
@@ -298,6 +329,21 @@ export default function ChatHistory({
             ))}
         </div>
       </div>
+
+      {/* Custom Tooltip */}
+      {hoveredSessionId && (
+        <div
+          ref={tooltipRef}
+          className="fixed z-[100] bg-neutral-9 text-white text-sm px-3 py-2 rounded-lg shadow-lg pointer-events-none max-w-xs whitespace-nowrap"
+          style={{
+            left: tooltipPosition.x + 10,
+            top: tooltipPosition.y - 40,
+          }}
+        >
+          {sessions.find(s => s.session_id === hoveredSessionId)?.title ||
+            sessions.find(s => s.session_id === hoveredSessionId)?.session_id}
+        </div>
+      )}
     </div>
   );
 }

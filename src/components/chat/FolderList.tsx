@@ -278,13 +278,7 @@ export default function FolderList({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (
-                          confirm(
-                            `Delete folder "${folder.folder_name}"? Sessions will be moved to uncategorized.`
-                          )
-                        ) {
-                          onDeleteFolder(folder.folder_id);
-                        }
+                        onDeleteFolder(folder.folder_id);
                         setOpenDropdownId(null);
                       }}
                       className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-red-600"
