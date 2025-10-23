@@ -12,22 +12,20 @@ import {
 } from '@heroui/react';
 import { useState, useEffect } from 'react';
 import { Folder } from '../icons';
-import { createFolder, moveSessionToFolder } from '@/lib/chat';
-
+import { moveSessionToFolder } from '@/lib/chat';
+import { useCreateFolder } from '@/features/chat/hooks/useCreateFolder';
 interface FolderModalProps {
   sessionIdToMove?: string;
-  onSuccess?: () => Promise<void> | void;
 }
 
-export default function FolderModal({
-  sessionIdToMove,
-  onSuccess,
-}: FolderModalProps) {
+export default function FolderModal({ sessionIdToMove }: FolderModalProps) {
   const { isModalOpen, closeModal } = useModalStore();
   const { user } = useAuth();
-  const [folderName, setFolderName] = useState(''); // Luôn bắt đầu rỗng
-  const [isCreating, setIsCreating] = useState(false);
+  const [folderName, setFolderName] = useState('');
   const [error, setError] = useState('');
+
+  // Sử dụng useCreateFolder hook
+  const createFolderMutation = useCreateFolder();
 
   // Reset form khi modal mở
   useEffect(() => {
@@ -44,29 +42,25 @@ export default function FolderModal({
     }
 
     try {
-      setIsCreating(true);
       setError('');
 
-      const newFolder = await createFolder(folderName.trim());
+      const newFolder = await createFolderMutation.mutateAsync(folderName.trim());
 
       if (newFolder) {
+        // Nếu có session cần move vào folder mới
         if (sessionIdToMove) {
           await moveSessionToFolder(sessionIdToMove, newFolder.folder_id);
-        }
-
-        if (onSuccess) {
-          await onSuccess();
         }
 
         closeModal('folder-modal');
       } else {
         setError('Failed to create folder');
       }
+
+      setFolderName('');
     } catch (err) {
       console.error('Failed to create folder:', err);
       setError('An error occurred');
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -139,7 +133,7 @@ export default function FolderModal({
               <Button
                 variant="bordered"
                 onPress={onModalClose}
-                isDisabled={isCreating}
+                isDisabled={createFolderMutation.isPending}
                 className="border-2 border-neutral-9 text-neutral-9 w-full xl:!w-auto py-5 body-16-semi rounded-full hover:bg-neutral-1"
                 size="lg"
               >
@@ -147,12 +141,12 @@ export default function FolderModal({
               </Button>
               <Button
                 onPress={handleCreateFolder}
-                isDisabled={!folderName.trim() || isCreating}
-                isLoading={isCreating}
+                isDisabled={!folderName.trim() || createFolderMutation.isPending}
+                isLoading={createFolderMutation.isPending}
                 className="bg-neutral-9 text-neutral w-full xl:!w-auto py-5 body-16-semi rounded-full hover:bg-slate-800 disabled:opacity-50"
                 size="lg"
               >
-                {isCreating ? 'Creating...' : 'Create'}
+                {createFolderMutation.isPending ? 'Creating...' : 'Create'}
               </Button>
             </ModalFooter>
           </>
