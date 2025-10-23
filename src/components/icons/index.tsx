@@ -862,3 +862,25 @@ export const Folder: React.FC<IconSvgProps> = ({
     <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
   </svg>
 );
+
+export const FolderHeart: React.FC<IconSvgProps> = ({
+  size,
+  width = 20,
+  height = 20,
+  fill = 'none',
+  stroke = '#f8bbd0',
+  ...props
+}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size ?? width} height={size ?? height} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-folder-heart-icon lucide-folder-heart" {...props}><path d="M10.638 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v3.417" /><path d="M14.62 18.8A2.25 2.25 0 1 1 18 15.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a.998.998 0 0 1-1.507 0z" /></svg>
+);
+
+export const FolderX: React.FC<IconSvgProps> = ({
+  size,
+  width = 24,
+  height = 24,
+  fill = 'none',
+  stroke = '#f8bbd0',
+  ...props
+}) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size ?? width} height={size ?? height} viewBox="0 0 24 24" fill={fill} stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-folder-x-icon lucide-folder-x" {...props}><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /><path d="m9.5 10.5 5 5" /><path d="m14.5 10.5-5 5" /></svg>
+);

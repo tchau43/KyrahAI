@@ -8,6 +8,7 @@ import { Button } from '@heroui/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { FolderWithCount } from '@/lib/chat';
 import { useQueryClient } from '@tanstack/react-query';
+import { Folder, FolderHeart } from '@/components/icons';
 
 interface ChatHistoryProps {
   sessions: Session[];
@@ -264,9 +265,9 @@ export default function ChatHistory({
                                 <button
                                   key={folder.folder_id}
                                   onClick={() => handleMoveToFolder(session.session_id, folder.folder_id)}
-                                  className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate"
+                                  className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate"
                                 >
-                                  📁 {folder.folder_name}
+                                  <FolderHeart /> {folder.folder_name}
                                 </button>
                               ))
                             ) : (
@@ -284,9 +285,9 @@ export default function ChatHistory({
                               setOpenDropdownId(null);
                               setShowFolderSubmenu(null);
                             }}
-                            className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-primary font-medium"
+                            className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-neutral-9 font-medium"
                           >
-                            ➕ Create new folder
+                            <Folder size={20} /> Create new folder
                           </button>
                         </div>
                       )}

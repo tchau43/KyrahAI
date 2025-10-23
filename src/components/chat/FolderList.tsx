@@ -9,6 +9,7 @@ import { Session } from '@/types/auth.types';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/utils/supabase/client';
+import { Folder, FolderHeart, FolderX } from '../icons';
 
 interface FolderListProps {
   folders: FolderWithCount[];
@@ -35,14 +36,13 @@ export default function FolderList({
   onSelectSession,
   expandedFolderIds,
   onMoveToFolder,
-  onCreateFolderWithSession, // <-- SỬA LỖI 3
+  onCreateFolderWithSession,
 }: FolderListProps) {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editFolderName, setEditFolderName] = useState('');
   const [sessionDropdownId, setSessionDropdownId] = useState<string | null>(null);
 
-  // SỬA LỖI 3: Thêm state và refs cho session editing/submenu
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState<string>('');
   const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
@@ -50,23 +50,19 @@ export default function FolderList({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const sessionDropdownRef = useRef<HTMLDivElement>(null);
-  const sessionInputRef = useRef<HTMLInputElement>(null); // <-- SỬA LỖI 3
-  const submenuRef = useRef<HTMLDivElement>(null); // <-- SỬA LỖI 3
+  const sessionInputRef = useRef<HTMLInputElement>(null);
+  const submenuRef = useRef<HTMLDivElement>(null);
 
-  // SỬA LỖI 3: Thêm queryClient và user
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // SỬA LỖI 3: Cập nhật useEffect để xử lý tất cả dropdowns/submenus
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      // Đóng folder dropdown
       if (openDropdownId && dropdownRef.current && !dropdownRef.current.contains(target)) {
         setOpenDropdownId(null);
       }
 
-      // Đóng session dropdown + submenu
       const outsideSessionDropdown = !sessionDropdownRef.current || !sessionDropdownRef.current.contains(target);
       const outsideSubmenu = !submenuRef.current || !submenuRef.current.contains(target);
 
@@ -80,8 +76,6 @@ export default function FolderList({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdownId, sessionDropdownId, showFolderSubmenu]);
 
-
-  // Auto-focus input when editing folder starts
   useEffect(() => {
     if (editingFolderId && folderInputRef.current) {
       folderInputRef.current.focus();
@@ -89,7 +83,6 @@ export default function FolderList({
     }
   }, [editingFolderId]);
 
-  // SỬA LỖI 3: Auto-focus input when editing session starts
   useEffect(() => {
     if (editingSessionId && sessionInputRef.current) {
       sessionInputRef.current.focus();
@@ -217,7 +210,7 @@ export default function FolderList({
                     </svg>
 
                     {/* Folder Icon */}
-                    <span className="flex-shrink-0">📁</span>
+                    <span className="flex-shrink-0"><FolderHeart /></span>
 
                     {/* Folder Name (editable) */}
                     {editingFolderId === folder.folder_id ? (
@@ -240,7 +233,7 @@ export default function FolderList({
                         className="flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border border-primary focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                       />
                     ) : (
-                      <span className="flex-1 min-w-0 text-left truncate">
+                      <span className="flex-1 min-w-0 caption-14-semi text-left truncate">
                         {folder.folder_name}
                       </span>
                     )}
@@ -254,9 +247,12 @@ export default function FolderList({
                     <div
                       role="button"
                       tabIndex={0}
+                      aria-haspopup="menu"
+                      aria-expanded={openDropdownId === folder.folder_id}
+                      aria-controls={`folder-menu-${folder.folder_id}`}
                       onClick={(e) => handleFolderDropdownToggle(folder.folder_id, e)}
                       onPointerDown={(e) => e.stopPropagation()}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-neutral-4 rounded p-1 text-neutral-9 font-semibold"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-neutral-4 rounded p-1 text-neutral-9 font-semibold md:!text-[1rem] xl:!text-[1.125rem]"
                     >
                       ...
                     </div>
@@ -266,6 +262,7 @@ export default function FolderList({
                 {/* Folder Dropdown Menu */}
                 {openDropdownId === folder.folder_id && !editingFolderId && (
                   <div
+                    id={`folder-menu-${folder.folder_id}`}
                     ref={dropdownRef}
                     className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[60] py-2"
                   >
@@ -344,12 +341,15 @@ export default function FolderList({
                           <div
                             role="button"
                             tabIndex={0}
+                            aria-haspopup="menu"
+                            aria-expanded={sessionDropdownId === session.session_id}
+                            aria-controls={`session-menu-${session.session_id}`}
                             onClick={(e) => handleSessionDropdownToggle(session.session_id, e)}
                             onPointerDown={(e) => e.stopPropagation()}
                             className={`-mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-white/10 rounded p-1 ${activeSessionId === session.session_id
                               ? 'text-neutral-1'
                               : 'text-neutral-9'
-                              } font-semibold`}
+                              } font-semibold md:!text-[1rem] xl:!text-[1.125rem]`}
                           >
                             ...
                           </div>
@@ -359,8 +359,9 @@ export default function FolderList({
                       {/* SỬA LỖI 3: Thêm dropdown đầy đủ cho session */}
                       {sessionDropdownId === session.session_id && !editingSessionId && (
                         <div
+                          id={`session-menu-${session.session_id}`}
                           ref={sessionDropdownRef}
-                          className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[70] py-2"
+                          className="absolute right-2 top-full mt-1 w-52 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[70] py-2"
                         >
                           {/* Rename */}
                           <button
@@ -421,9 +422,9 @@ export default function FolderList({
                                           onClick={() =>
                                             handleMoveSession(session.session_id, f.folder_id)
                                           }
-                                          className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate"
+                                          className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate"
                                         >
-                                          📁 {f.folder_name}
+                                          <FolderHeart /> {f.folder_name}
                                         </button>
                                       ))
                                   ) : (
@@ -441,9 +442,9 @@ export default function FolderList({
                                     setSessionDropdownId(null);
                                     setShowFolderSubmenu(null);
                                   }}
-                                  className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-primary font-medium"
+                                  className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-neutral-9 font-medium"
                                 >
-                                  ➕ Create new folder
+                                  <Folder size={20} /> Create new folder
                                 </button>
                               </div>
                             )}
@@ -457,9 +458,9 @@ export default function FolderList({
                             onClick={() => {
                               handleMoveSession(session.session_id, null);
                             }}
-                            className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-orange-600 font-medium"
+                            className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-neutral-9"
                           >
-                            📤 Remove from folder
+                            <FolderX /> Remove from folder
                           </button>
                         </div>
                       )}
