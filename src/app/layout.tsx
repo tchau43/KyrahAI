@@ -3,7 +3,7 @@ import { ThemeProviders } from '../components/provider/providers';
 import '../styles/globals.css';
 import ConditionalNavbar from '@/components/ConditionalNavbar';
 import ConditionalFooter from '@/components/ConditionalFooter';
-import { spectral, inter, inder } from '@/config/fonts';
+import { spectral, inter, inder, poppinsRounded } from '@/config/fonts';
 import ModalProvider from '@/components/provider/ModalProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 
@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${spectral.variable} ${inter.variable} ${inder.variable} antialiased`}
+        className={`${spectral.variable} ${inter.variable} ${inder.variable} ${poppinsRounded.variable} antialiased`}
       >
         {/* <div className="max-w-9xl mx-auto"> */}
         <AuthProvider>

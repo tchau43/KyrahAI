@@ -16,6 +16,7 @@ export interface Session {
   config: SessionConfig;
   metadata: Record<string, unknown>;
   title: string;
+  folder_id: string | null;
 }
 
 export interface SessionConfig {

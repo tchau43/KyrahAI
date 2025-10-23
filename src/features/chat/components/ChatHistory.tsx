@@ -5,29 +5,39 @@ import { Session } from '@/types/auth.types';
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@heroui/react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { FolderWithCount } from '@/lib/chat';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ChatHistoryProps {
   sessions: Session[];
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
+  folders: FolderWithCount[];
+  onMoveToFolder: (sessionId: string, folderId: string | null) => void;
+  onCreateFolderWithSession: (sessionId: string) => void;
+  onEditTitle: (sessionId: string) => void;
 }
 
 export default function ChatHistory({
   sessions,
   activeSessionId,
   onSelectSession,
+  folders,
+  onMoveToFolder,
+  onCreateFolderWithSession,
+  onEditTitle,
 }: ChatHistoryProps) {
   const [nonEmptySessionIds, setNonEmptySessionIds] = useState<Set<string>>(new Set());
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState<string>('');
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
-
+  const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const submenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -49,7 +59,6 @@ export default function ChatHistory({
       }
 
       const hasMessage = new Set<string>();
-
       (data || []).forEach(row => {
         if (row && row.session_id) hasMessage.add(row.session_id as string);
       });
@@ -63,20 +72,25 @@ export default function ChatHistory({
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const clickedOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target as Node);
+      const clickedOutsideSubmenu = submenuRef.current && !submenuRef.current.contains(event.target as Node);
+
+      if (clickedOutsideDropdown && clickedOutsideSubmenu) {
         setOpenDropdownId(null);
+        setShowFolderSubmenu(null);
       }
     }
 
-    if (openDropdownId) {
+    if (openDropdownId || showFolderSubmenu) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [openDropdownId]);
+  }, [openDropdownId, showFolderSubmenu]);
 
   const handleDropdownToggle = (sessionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     setOpenDropdownId(openDropdownId === sessionId ? null : sessionId);
+    setShowFolderSubmenu(null);
   };
 
   const handleEditTitle = (sessionId: string) => {
@@ -118,6 +132,17 @@ export default function ChatHistory({
     setEditTitle('');
   };
 
+  const handleMoveToFolder = (sessionId: string, folderId: string | null) => {
+    onMoveToFolder(sessionId, folderId);
+    setOpenDropdownId(null);
+    setShowFolderSubmenu(null);
+  };
+
+  const handleToggleFolderSubmenu = (sessionId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setShowFolderSubmenu(showFolderSubmenu === sessionId ? null : sessionId);
+  };
+
   // Auto-focus input when editing starts
   useEffect(() => {
     if (editingSessionId && inputRef.current) {
@@ -125,6 +150,7 @@ export default function ChatHistory({
       inputRef.current.select();
     }
   }, [editingSessionId]);
+
 
   return (
     <div className="flex flex-col h-full">
@@ -186,11 +212,13 @@ export default function ChatHistory({
                     </div>
                   </div>
                 </Button>
+
+                {/* Main Dropdown */}
                 {openDropdownId === session.session_id && !editingSessionId && (
                   <div
                     id={`session-menu-${session.session_id}`}
                     ref={dropdownRef}
-                    className="absolute right-0 mt-1 w-44 bg-white border border-neutral-3 rounded-lg shadow-lg z-50 py-1"
+                    className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[60] py-2"
                   >
                     <button
                       onClick={(e) => {
@@ -198,19 +226,90 @@ export default function ChatHistory({
                         setOpenDropdownId(null);
                         handleEditTitle(session.session_id);
                       }}
-                      className="w-full px-4 py-2 text-left text-sm text-neutral-8 hover:bg-neutral-2 transition-colors"
+                      className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
                     >
                       Edit title
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenDropdownId(null);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm text-neutral-8 hover:bg-neutral-2 transition-colors"
-                    >
-                      Add to folder
-                    </button>
+
+                    {/* Add to folder with submenu */}
+                    <div className="relative">
+                      <button
+                        onClick={(e) => handleToggleFolderSubmenu(session.session_id, e)}
+                        className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors flex items-center justify-between"
+                      >
+                        <span>Add to folder</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={`transition-transform ${showFolderSubmenu === session.session_id ? 'rotate-90' : ''}`}
+                        >
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </button>
+
+                      {/* Folder Submenu */}
+                      {showFolderSubmenu === session.session_id && (
+                        <div
+                          ref={submenuRef}
+                          className="absolute left-0 top-full mt-1 w-full bg-white border border-neutral-3 rounded-lg shadow-lg z-[70] py-2 max-h-60 overflow-y-auto"
+                        >
+                          {/* Remove from folder option (if session is in a folder) */}
+                          {session.folder_id && (
+                            <>
+                              <button
+                                onClick={() => handleMoveToFolder(session.session_id, null)}
+                                className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-orange-600 font-medium"
+                              >
+                                📤 Remove from folder
+                              </button>
+                              <div className="border-t border-neutral-3 my-1" />
+                            </>
+                          )}
+
+                          {/* Existing folders */}
+                          <div className="max-h-40 overflow-y-auto">
+                            {folders.length > 0 ? (
+                              folders.map(folder => (
+                                <button
+                                  key={folder.folder_id}
+                                  onClick={() => handleMoveToFolder(session.session_id, folder.folder_id)}
+                                  className={`w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate ${session.folder_id === folder.folder_id ? 'bg-neutral-2 font-medium text-primary' : ''
+                                    }`}
+                                  disabled={session.folder_id === folder.folder_id}
+                                >
+                                  {session.folder_id === folder.folder_id ? '✓ ' : '📁 '}
+                                  {folder.folder_name}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-sm text-neutral-7">
+                                No folders yet
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Create new folder */}
+                          <div className="border-t border-neutral-3 my-1" />
+                          <button
+                            onClick={() => {
+                              onCreateFolderWithSession(session.session_id);
+                              setOpenDropdownId(null);
+                              setShowFolderSubmenu(null);
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-primary font-medium"
+                          >
+                            ➕ Create new folder
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

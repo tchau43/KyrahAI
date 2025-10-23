@@ -1,30 +1,33 @@
+// src/features/chat/components/ChatSidebarHeader.tsx
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@heroui/react';
-import { KyrahAI } from '@/components/icons';
+import { Folder, KyrahAI } from '@/components/icons';
 
 interface ChatSidebarHeaderProps {
   onNewChat: () => void;
+  onNewFolder: () => void;
   onToggleSidebar: () => void;
   showCollapseButton?: boolean;
 }
 
 export default function ChatSidebarHeader({
   onNewChat,
+  onNewFolder,
   onToggleSidebar,
   showCollapseButton = true,
 }: ChatSidebarHeaderProps) {
   return (
     <div className="p-4 relative">
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-7">
         <Link href="/" className="flex items-center">
           <KyrahAI height={40} width={170} />
         </Link>
       </div>
       <Button
         onPress={onNewChat}
-        className="w-full justify-start bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 px-0"
+        className="w-full justify-start bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3.5 px-0"
         variant="light"
         startContent={
           <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
@@ -46,6 +49,14 @@ export default function ChatSidebarHeader({
         }
       >
         New chat
+      </Button>
+      <Button
+        onPress={onNewFolder}
+        className="w-full justify-start bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 px-0"
+        variant="light"
+        startContent={<Folder />}
+      >
+        New folder
       </Button>
 
       {showCollapseButton && (
