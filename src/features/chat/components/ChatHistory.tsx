@@ -104,7 +104,7 @@ export default function ChatHistory({
         .update({ title: editTitle.trim() })
         .eq('session_id', sessionId);
 
-      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
+      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
 
       if (error) {
         console.error('Error updating title:', error);

@@ -360,8 +360,11 @@ export async function POST(request: NextRequest) {
                 temperature: 0.7,
               });
 
-              const generatedTitle = titleResponse.choices[0]?.message?.content?.trim();
-              updateData.title = generatedTitle || userMessage.slice(0, 50) + '...';
+              const generatedTitle = titleResponse.choices?.[0]?.message?.content?.trim();
+              const fallback = userMessage.length > 50
+                ? userMessage.slice(0, 50) + '...'
+                : userMessage;
+              updateData.title = generatedTitle || fallback;
             } catch (error) {
               console.error('Error generating title:', error);
               const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {
