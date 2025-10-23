@@ -84,9 +84,6 @@ export default function ChatHistory({
     if (session) {
       setEditingSessionId(sessionId);
       setEditTitle(session.title || session.session_id);
-      // Focus input after render
-      // setTimeout(() => inputRef.current?.focus(), 0);
-      inputRef.current?.focus()
     }
   };
 
