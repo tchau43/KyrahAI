@@ -47,7 +47,7 @@ export default function ChatSidebar({
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // Sử dụng useGetFolders hook
+  // Use custom hook to fetch folders
   const { data: folders = [] } = useGetFolders();
 
   // Modal states
@@ -111,7 +111,7 @@ export default function ChatSidebar({
   const handleMoveToFolder = async (sessionId: string, folderId: string | null) => {
     const success = await moveSessionToFolder(sessionId, folderId);
     if (success) {
-      // Invalidate cả folders và sessions
+      // Invalidate both folders and sessions
       await queryClient.invalidateQueries({ queryKey: ['user-folders', user?.id] });
       await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
     }
@@ -125,7 +125,7 @@ export default function ChatSidebar({
         newSet.delete(folderId);
         return newSet;
       });
-      // Invalidate cả folders và sessions
+      // Invalidate both folders and sessions
       await queryClient.invalidateQueries({ queryKey: ['user-folders', user?.id] });
       await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
     }
@@ -212,10 +212,8 @@ export default function ChatSidebar({
               {folders.length > 0 && (
                 <FolderList
                   folders={folders}
-                  onSelectFolder={handleToggleFolder}
                   onRenameFolder={handleRenameFolder}
                   onDeleteFolder={handleDeleteFolder}
-                  expandedFolderId={null}
                   onToggleFolder={handleToggleFolder}
                   sessionsInFolder={sessionsByFolder}
                   activeSessionId={activeSessionId}

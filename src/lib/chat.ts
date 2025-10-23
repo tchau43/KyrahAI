@@ -15,7 +15,7 @@ export interface FolderWithCount extends Folder {
 // ============= FOLDER OPERATIONS =============
 
 /**
- * Tạo folder mới
+ * Create a new folder
  */
 export async function createFolder(folderName: string): Promise<Folder | null> {
   const supabase = createClient();
@@ -41,7 +41,7 @@ export async function createFolder(folderName: string): Promise<Folder | null> {
 }
 
 /**
- * Lấy tất cả folders của user
+ * Get all folders for the current user
  */
 export async function getFolders(): Promise<FolderWithCount[]> {
   const supabase = createClient();
@@ -71,7 +71,7 @@ export async function getFolders(): Promise<FolderWithCount[]> {
 }
 
 /**
- * Đổi tên folder
+ * Rename a folder
  */
 export async function renameFolder(folderId: string, newName: string): Promise<boolean> {
   const supabase = createClient();
@@ -92,7 +92,7 @@ export async function renameFolder(folderId: string, newName: string): Promise<b
 }
 
 /**
- * Xóa folder (sessions trong folder sẽ trở về uncategorized)
+ * Delete a folder (sessions in folder will become uncategorized)
  */
 export async function deleteFolder(folderId: string): Promise<boolean> {
   const supabase = createClient();
@@ -113,7 +113,7 @@ export async function deleteFolder(folderId: string): Promise<boolean> {
 // ============= SESSION OPERATIONS =============
 
 /**
- * Chuyển session vào folder
+ * Move a session to a folder
  */
 export async function moveSessionToFolder(
   sessionId: string,
@@ -139,7 +139,7 @@ export async function moveSessionToFolder(
 }
 
 /**
- * Lấy sessions trong folder
+ * Get sessions in a specific folder
  */
 export async function getSessionsInFolder(folderId: string | null) {
   const supabase = createClient();
@@ -154,7 +154,7 @@ export async function getSessionsInFolder(folderId: string | null) {
     .is('deleted_at', null)
     .order('last_activity_at', { ascending: false });
 
-  // Nếu folderId là null, lấy sessions chưa có folder
+  // If folderId is null, get uncategorized sessions
   if (folderId === null) {
     query = query.is('folder_id', null);
   } else {
@@ -172,7 +172,7 @@ export async function getSessionsInFolder(folderId: string | null) {
 }
 
 /**
- * Lấy tất cả sessions của user (bao gồm cả uncategorized)
+ * Get all sessions for the user (including uncategorized)
  */
 export async function getAllSessions() {
   const supabase = createClient();
@@ -196,7 +196,7 @@ export async function getAllSessions() {
 }
 
 /**
- * Lấy sessions chưa có folder (uncategorized)
+ * Get uncategorized sessions (sessions without a folder)
  */
 export async function getUncategorizedSessions() {
   return getSessionsInFolder(null);
@@ -205,7 +205,7 @@ export async function getUncategorizedSessions() {
 // ============= UTILITY FUNCTIONS =============
 
 /**
- * Đếm số sessions trong folder
+ * Count sessions in a folder
  */
 export async function countSessionsInFolder(folderId: string): Promise<number> {
   const supabase = createClient();
@@ -225,7 +225,7 @@ export async function countSessionsInFolder(folderId: string): Promise<number> {
 }
 
 /**
- * Kiểm tra folder có tồn tại không
+ * Check if a folder exists
  */
 export async function folderExists(folderId: string): Promise<boolean> {
   const supabase = createClient();

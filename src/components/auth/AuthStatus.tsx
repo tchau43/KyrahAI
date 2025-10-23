@@ -8,19 +8,43 @@ import { signOut } from '@/lib/auth';
 export default function AuthStatus() {
   const { user } = useAuth();
 
-  const handleEmergencyAction = async () => {
+  const handleSafeExit = async () => {
     try {
       // If authenticated user, sign out first
       if (user) {
         await signOut();
       }
 
+      // Clear all local storage, session storage, and cookies for privacy
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie.split(';').forEach(c => {
+        document.cookie = c
+          .replace(/^ +/, '')
+          .replace(
+            /=.*/,
+            '=;expires=' + new Date().toUTCString() + ';path=/'
+          );
+      });
+
       // Redirect to Google for both authenticated and anonymous users
-      window.location.href = 'https://www.google.com';
+      window.location.replace('https://www.google.com');
+      window.close();
     } catch (error) {
-      console.error('Failed emergency action:', error);
-      // Still redirect even if signout fails
-      window.location.href = 'https://www.google.com';
+      console.error('Failed safe exit:', error);
+      // Still clear storage and redirect even if signout fails
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie.split(';').forEach(c => {
+        document.cookie = c
+          .replace(/^ +/, '')
+          .replace(
+            /=.*/,
+            '=;expires=' + new Date().toUTCString() + ';path=/'
+          );
+      });
+      window.location.replace('https://www.google.com');
+      window.close();
     }
   };
 
@@ -30,8 +54,8 @@ export default function AuthStatus() {
       <Button
         size="sm"
         color="danger"
+        onPress={handleSafeExit}
         variant="shadow"
-        onPress={handleEmergencyAction}
         aria-label="Emergency delete"
         className="hidden xl:group xl:relative xl:flex xl:items-center xl:justify-start xl:min-w-0 xl:h-12 xl:w-12 xl:hover:w-[200px] xl:!p-0 caption-14-semi xl:!text-[16px] rounded-full z-10 transition-all duration-500 ease-in-out overflow-hidden"
       >
@@ -49,7 +73,7 @@ export default function AuthStatus() {
         size="sm"
         color="danger"
         variant="shadow"
-        onPress={handleEmergencyAction}
+        onPress={handleSafeExit}
         className="xl:hidden py-5 md:py-6 px-3 caption-14-semi md:!text-[16px] rounded-full z-10"
       >
         <AlertTriangle size={14} className="md:w-4 md:h-4" />

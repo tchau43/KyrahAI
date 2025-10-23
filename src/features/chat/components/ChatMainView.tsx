@@ -20,7 +20,6 @@ interface MessageWithResources extends Message {
 interface ChatMainViewProps {
   messages: MessageWithResources[] | null;
   onSendMessage: (content: string) => void;
-  onToggleSidebar: () => void;
   onNewChat?: () => void;
   greetingMessage?: string;
   showHeader?: boolean;

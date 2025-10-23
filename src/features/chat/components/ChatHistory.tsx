@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FolderWithCount } from '@/lib/chat';
 import { useQueryClient } from '@tanstack/react-query';
 import { Folder, FolderHeart } from '@/components/icons';
+import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
 
 interface ChatHistoryProps {
   sessions: Session[];
@@ -29,11 +30,17 @@ export default function ChatHistory({
 }: ChatHistoryProps) {
   const [nonEmptySessionIds, setNonEmptySessionIds] = useState<Set<string>>(new Set());
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState<string>('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
+
+  // Use custom hook for session title editing
+  const {
+    editingSessionId,
+    editTitle,
+    inputRef,
+    setEditTitle,
+    startEdit,
+    saveTitle,
+    cancelEdit,
+  } = useSessionTitleEditor();
   const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const submenuRef = useRef<HTMLDivElement>(null);
@@ -54,6 +61,7 @@ export default function ChatHistory({
         .from('messages')
         .select('session_id')
         .in('session_id', ids)
+        .is('deleted_at', null);
 
       if (error) {
         if (isMounted) setNonEmptySessionIds(new Set(ids));
@@ -61,8 +69,8 @@ export default function ChatHistory({
       }
 
       const hasMessage = new Set<string>();
-      (data || []).forEach(row => {
-        if (row && row.session_id) hasMessage.add(row.session_id as string);
+      data?.forEach(row => {
+        if (row?.session_id) hasMessage.add(row.session_id);
       });
 
       if (isMounted) setNonEmptySessionIds(hasMessage);
@@ -74,10 +82,11 @@ export default function ChatHistory({
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      const clickedOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target as Node);
-      const clickedOutsideSubmenu = !submenuRef.current || !submenuRef.current.contains(event.target as Node);
+      const target = event.target as Node;
+      const inDropdown = dropdownRef.current?.contains(target) ?? false;
+      const inSubmenu = submenuRef.current?.contains(target) ?? false;
 
-      if (clickedOutsideDropdown && clickedOutsideSubmenu) {
+      if (!inDropdown && !inSubmenu) {
         setOpenDropdownId(null);
         setShowFolderSubmenu(null);
       }
@@ -98,40 +107,17 @@ export default function ChatHistory({
   const handleEditTitle = (sessionId: string) => {
     const session = sessions.find(s => s.session_id === sessionId);
     if (session) {
-      setEditingSessionId(sessionId);
-      setEditTitle(session.title || session.session_id);
+      startEdit(sessionId, session.title || session.session_id);
       setOpenDropdownId(null);
     }
   };
 
   const handleSaveTitle = async (sessionId: string) => {
-    if (!editTitle.trim()) {
-      setEditingSessionId(null);
-      return;
-    }
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('sessions')
-        .update({ title: editTitle.trim() })
-        .eq('session_id', sessionId);
-
-      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
-
-      if (error) {
-        console.error('Error updating title:', error);
-      }
-    } catch (error) {
-      console.error('Error saving title:', error);
-    } finally {
-      setEditingSessionId(null);
-    }
+    await saveTitle(sessionId);
   };
 
   const handleCancelEdit = () => {
-    setEditingSessionId(null);
-    setEditTitle('');
+    cancelEdit();
   };
 
   const handleMoveToFolder = (sessionId: string, folderId: string | null) => {
@@ -145,13 +131,6 @@ export default function ChatHistory({
     setShowFolderSubmenu(showFolderSubmenu === sessionId ? null : sessionId);
   };
 
-  // Auto-focus input when editing starts
-  useEffect(() => {
-    if (editingSessionId && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [editingSessionId]);
 
   // Handle tooltip positioning
   const handleMouseEnter = (sessionId: string, event: React.MouseEvent) => {
@@ -194,7 +173,7 @@ export default function ChatHistory({
                     }
                   }}
                   className={`group w-full justify-start px-3 py-2 h-auto transition-colors ${activeSessionId === session.session_id
-                    ? 'bg-primary text-white hover:bg-primary/90 hover:text-neutral-1'
+                    ? 'bg-primary text-secondary hover:bg-primary/95 hover:text-secondary/95'
                     : 'bg-transparent text-neutral-8 hover:bg-neutral-3 hover:text-neutral-9'
                     } `}
                 >
@@ -246,8 +225,8 @@ export default function ChatHistory({
                 {/* Main Dropdown */}
                 {openDropdownId === session.session_id && !editingSessionId && (
                   <div
+                    ref={openDropdownId === session.session_id ? dropdownRef : null}
                     id={`session-menu-${session.session_id}`}
-                    ref={dropdownRef}
                     className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[60] py-2"
                   >
                     <button

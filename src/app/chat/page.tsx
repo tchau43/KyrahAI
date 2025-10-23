@@ -538,7 +538,6 @@ export default function ChatPage() {
         <ChatMainView
           messages={currentMessages}
           onSendMessage={handleSendMessage}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onNewChat={handleNewChat}
           greetingMessage={greetingMessage}
           showHeader={!user}

@@ -5,25 +5,22 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@heroui/react';
 import { FolderWithCount } from '@/lib/chat';
 import { Session } from '@/types/auth.types';
-// SỬA LỖI 3: Thêm imports
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/utils/supabase/client';
 import { Folder, FolderHeart, FolderX } from '../icons';
+import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
 
 interface FolderListProps {
   folders: FolderWithCount[];
-  onSelectFolder: (folderId: string) => void;
   onRenameFolder: (folderId: string, currentName: string) => void;
   onDeleteFolder: (folderId: string) => void;
-  expandedFolderId: string | null;
   onToggleFolder: (folderId: string) => void;
   sessionsInFolder: Map<string, Session[]>;
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   expandedFolderIds: Set<string>;
   onMoveToFolder: (sessionId: string, folderId: string | null) => void;
-  onCreateFolderWithSession: (sessionId: string) => void; // <-- SỬA LỖI 3: Thêm prop
+  onCreateFolderWithSession: (sessionId: string) => void;
 }
 
 export default function FolderList({
@@ -43,18 +40,23 @@ export default function FolderList({
   const [editFolderName, setEditFolderName] = useState('');
   const [sessionDropdownId, setSessionDropdownId] = useState<string | null>(null);
 
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState<string>('');
   const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const sessionDropdownRef = useRef<HTMLDivElement>(null);
-  const sessionInputRef = useRef<HTMLInputElement>(null);
   const submenuRef = useRef<HTMLDivElement>(null);
 
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
+  // Use custom hook for session title editing
+  const {
+    editingSessionId,
+    editTitle,
+    inputRef: sessionInputRef,
+    setEditTitle,
+    startEdit,
+    saveTitle,
+    cancelEdit,
+  } = useSessionTitleEditor();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -83,12 +85,6 @@ export default function FolderList({
     }
   }, [editingFolderId]);
 
-  useEffect(() => {
-    if (editingSessionId && sessionInputRef.current) {
-      sessionInputRef.current.focus();
-      sessionInputRef.current.select();
-    }
-  }, [editingSessionId]);
 
   const handleFolderDropdownToggle = (folderId: string, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -112,7 +108,7 @@ export default function FolderList({
 
   const handleSaveFolderName = (folderId: string) => {
     if (editFolderName.trim()) {
-      onRenameFolder(folderId, editFolderName.trim()); // Đây là prop đã sửa ở ChatSidebar
+      onRenameFolder(folderId, editFolderName.trim());
     }
     setEditingFolderId(null);
     setEditFolderName('');
@@ -123,38 +119,18 @@ export default function FolderList({
     setEditFolderName('');
   };
 
-  // SỬA LỖI 3: Thêm các hàm xử lý session (copy từ ChatHistory)
+  // Handle session title editing
   const handleEditTitle = (sessionId: string, currentTitle: string) => {
-    setEditingSessionId(sessionId);
-    setEditTitle(currentTitle);
+    startEdit(sessionId, currentTitle);
     setSessionDropdownId(null);
   };
 
   const handleSaveTitle = async (sessionId: string) => {
-    if (!editTitle.trim()) {
-      setEditingSessionId(null);
-      return;
-    }
-    try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('sessions')
-        .update({ title: editTitle.trim() })
-        .eq('session_id', sessionId);
-
-      await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
-
-      if (error) console.error('Error updating title:', error);
-    } catch (error) {
-      console.error('Error saving title:', error);
-    } finally {
-      setEditingSessionId(null);
-    }
+    await saveTitle(sessionId);
   };
 
   const handleCancelEdit = () => {
-    setEditingSessionId(null);
-    setEditTitle('');
+    cancelEdit();
   };
 
   const handleToggleFolderSubmenu = (sessionId: string, event: React.MouseEvent) => {
@@ -169,7 +145,6 @@ export default function FolderList({
   };
 
   return (
-    // SỬA LỖI 4: Thêm tiêu đề "Folders" và cấu trúc div
     <div>
       <div className="text-xs font-semibold text-neutral-9 px-3 py-2 uppercase tracking-normal flex-shrink-0">
         Folders
@@ -262,8 +237,8 @@ export default function FolderList({
                 {/* Folder Dropdown Menu */}
                 {openDropdownId === folder.folder_id && !editingFolderId && (
                   <div
+                    ref={openDropdownId === folder.folder_id ? dropdownRef : null}
                     id={`folder-menu-${folder.folder_id}`}
-                    ref={dropdownRef}
                     className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[60] py-2"
                   >
                     <button
@@ -296,7 +271,6 @@ export default function FolderList({
                     <div key={session.session_id} className="relative">
                       <Button
                         onPress={() => {
-                          // SỬA LỖI 3: Thêm kiểm tra
                           if (editingSessionId !== session.session_id) {
                             onSelectSession(session.session_id);
                           }
@@ -307,7 +281,6 @@ export default function FolderList({
                           }`}
                       >
                         <div className="w-full flex items-center gap-1">
-                          {/* SỬA LỖI 3: Thêm input đổi tên session */}
                           {editingSessionId === session.session_id ? (
                             <input
                               ref={sessionInputRef}
@@ -350,11 +323,10 @@ export default function FolderList({
                         </div>
                       </Button>
 
-                      {/* SỬA LỖI 3: Thêm dropdown đầy đủ cho session */}
                       {sessionDropdownId === session.session_id && !editingSessionId && (
                         <div
+                          ref={sessionDropdownId === session.session_id ? sessionDropdownRef : null}
                           id={`session-menu-${session.session_id}`}
-                          ref={sessionDropdownRef}
                           className="absolute right-2 top-full mt-1 w-52 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[70] py-2"
                         >
                           {/* Rename */}
@@ -405,7 +377,7 @@ export default function FolderList({
                                 ref={submenuRef}
                                 className="absolute left-0 top-full mt-1 w-full bg-white border border-neutral-3 rounded-lg shadow-lg z-[80] py-2 max-h-60 overflow-y-auto"
                               >
-                                {/* Lọc ra folder hiện tại */}
+                                {/* Filter out current folder */}
                                 <div className="max-h-40 overflow-y-auto">
                                   {folders.filter(f => f.folder_id !== folder.folder_id).length > 0 ? (
                                     folders
