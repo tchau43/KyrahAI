@@ -12,6 +12,8 @@ interface ChatSidebarHeaderProps {
   showCollapseButton?: boolean;
 }
 
+// ...existing code...
+
 export default function ChatSidebarHeader({
   onNewChat,
   onNewFolder,
@@ -54,7 +56,11 @@ export default function ChatSidebarHeader({
         onPress={onNewFolder}
         className="w-full justify-start bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 px-0"
         variant="light"
-        startContent={<Folder />}
+        startContent={
+          <div className="flex items-center justify-center flex-shrink-0">
+            <Folder className="text-neutral-9" />
+          </div>
+        }
       >
         New folder
       </Button>
