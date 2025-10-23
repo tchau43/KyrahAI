@@ -84,12 +84,19 @@ export async function getFolders(): Promise<FolderWithCount[]> {
 export async function renameFolder(folderId: string, newName: string): Promise<boolean> {
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('User not authenticated');
+    return false;
+  }
+
   const { error } = await supabase
     .from('folders')
     .update({
       folder_name: newName,
     })
-    .eq('folder_id', folderId);
+    .eq('folder_id', folderId)
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error renaming folder:', error);
@@ -105,10 +112,17 @@ export async function renameFolder(folderId: string, newName: string): Promise<b
 export async function deleteFolder(folderId: string): Promise<boolean> {
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('User not authenticated');
+    return false;
+  }
+
   const { error } = await supabase
     .from('folders')
     .delete()
-    .eq('folder_id', folderId);
+    .eq('folder_id', folderId)
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error deleting folder:', error);
@@ -129,6 +143,27 @@ export async function moveSessionToFolder(
 ): Promise<boolean> {
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('User not authenticated');
+    return false;
+  }
+
+  // Verify folder exists and belongs to user (if not null)
+  if (folderId !== null) {
+    const { data: folder, error: folderError } = await supabase
+      .from('folders')
+      .select('folder_id')
+      .eq('folder_id', folderId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (folderError || !folder) {
+      console.error('Folder not found or access denied');
+      return false;
+    }
+  }
+
   const updateData: { folder_id: string | null } = {
     folder_id: folderId,
   };
@@ -136,7 +171,8 @@ export async function moveSessionToFolder(
   const { error } = await supabase
     .from('sessions')
     .update(updateData)
-    .eq('session_id', sessionId);
+    .eq('session_id', sessionId)
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error moving session to folder:', error);
@@ -218,6 +254,25 @@ export async function getUncategorizedSessions() {
 export async function countSessionsInFolder(folderId: string): Promise<number> {
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('User not authenticated');
+    return 0;
+  }
+
+  // Verify folder belongs to user
+  const { data: folder, error: folderError } = await supabase
+    .from('folders')
+    .select('folder_id')
+    .eq('folder_id', folderId)
+    .eq('user_id', user.id)
+    .single();
+
+  if (folderError || !folder) {
+    console.error('Folder not found or access denied');
+    return 0;
+  }
+
   const { count, error } = await supabase
     .from('sessions')
     .select('*', { count: 'exact', head: true })
@@ -238,10 +293,17 @@ export async function countSessionsInFolder(folderId: string): Promise<number> {
 export async function folderExists(folderId: string): Promise<boolean> {
   const supabase = createClient();
 
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('User not authenticated');
+    return false;
+  }
+
   const { data, error } = await supabase
     .from('folders')
     .select('folder_id')
     .eq('folder_id', folderId)
+    .eq('user_id', user.id)
     .single();
 
   return !error && !!data;
