@@ -5,21 +5,32 @@ import { Session } from '@/types/auth.types';
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@heroui/react';
+import { FolderWithCount } from '@/lib/chat';
 
 interface ChatHistoryProps {
   sessions: Session[];
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
+  folders: FolderWithCount[];
+  onMoveToFolder: (sessionId: string, folderId: string | null) => void;
+  onCreateFolderWithSession: (sessionId: string) => void;
+  onEditTitle: (sessionId: string) => void;
 }
 
 export default function ChatHistory({
   sessions,
   activeSessionId,
   onSelectSession,
+  folders,
+  onMoveToFolder,
+  onCreateFolderWithSession,
+  onEditTitle,
 }: ChatHistoryProps) {
   const [nonEmptySessionIds, setNonEmptySessionIds] = useState<Set<string>>(new Set());
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const submenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,7 +44,7 @@ export default function ChatHistory({
       const { data, error } = await supabase
         .from('messages')
         .select('session_id', { count: 'exact' })
-        .in('session_id', ids)
+        .in('session_id', ids);
 
       if (error) {
         if (isMounted) setNonEmptySessionIds(new Set(ids));
@@ -41,7 +52,6 @@ export default function ChatHistory({
       }
 
       const hasMessage = new Set<string>();
-
       (data || []).forEach(row => {
         if (row && row.session_id) hasMessage.add(row.session_id as string);
       });
@@ -55,20 +65,36 @@ export default function ChatHistory({
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const clickedOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(event.target as Node);
+      const clickedOutsideSubmenu = submenuRef.current && !submenuRef.current.contains(event.target as Node);
+
+      if (clickedOutsideDropdown && clickedOutsideSubmenu) {
         setOpenDropdownId(null);
+        setShowFolderSubmenu(null);
       }
     }
 
-    if (openDropdownId) {
+    if (openDropdownId || showFolderSubmenu) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [openDropdownId]);
+  }, [openDropdownId, showFolderSubmenu]);
 
   const handleDropdownToggle = (sessionId: string, event: React.MouseEvent) => {
     event.stopPropagation();
     setOpenDropdownId(openDropdownId === sessionId ? null : sessionId);
+    setShowFolderSubmenu(null);
+  };
+
+  const handleMoveToFolder = (sessionId: string, folderId: string | null) => {
+    onMoveToFolder(sessionId, folderId);
+    setOpenDropdownId(null);
+    setShowFolderSubmenu(null);
+  };
+
+  const handleToggleFolderSubmenu = (sessionId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setShowFolderSubmenu(showFolderSubmenu === sessionId ? null : sessionId);
   };
 
   return (
@@ -83,12 +109,11 @@ export default function ChatHistory({
             .map(session => (
               <div key={session.session_id} className='relative'>
                 <Button
-                  key={session.session_id}
                   onPress={() => onSelectSession(session.session_id)}
                   className={`group w-full justify-start px-3 py-2 h-auto transition-colors ${activeSessionId === session.session_id
                     ? 'bg-primary text-white hover:bg-primary/90 hover:text-neutral-1'
                     : 'bg-transparent text-neutral-8 hover:bg-neutral-3 hover:text-neutral-9'
-                    } `}
+                    }`}
                 >
                   <div className="w-full flex items-center gap-1">
                     <span className="flex-1 min-w-0 text-left whitespace-nowrap overflow-visible group-hover:overflow-hidden group-hover:truncate group-hover:pr-3">
@@ -96,19 +121,109 @@ export default function ChatHistory({
                     </span>
                     <div
                       onClick={(e) => handleDropdownToggle(session.session_id, e)}
-                      className={`-mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-white/10 rounded p-1 ${activeSessionId === session.session_id ? 'text-neutral-1' : 'text-neutral-9'} font-semibold md:!text-[1rem] xl:!text-[1.125rem]`}
+                      className={`-mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-white/10 rounded p-1 ${activeSessionId === session.session_id ? 'text-neutral-1' : 'text-neutral-9'
+                        } font-semibold`}
                     >
                       ...
                     </div>
                   </div>
                 </Button>
+
+                {/* Main Dropdown */}
                 {openDropdownId === session.session_id && (
                   <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-1 w-40 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-50 py-2 px-4 flex flex-col gap-1"
+                    className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[60] py-2"
                   >
-                    <p>Edit title</p>
-                    <p>Add to folder</p>
+                    <button
+                      onClick={() => {
+                        onEditTitle(session.session_id);
+                        setOpenDropdownId(null);
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
+                    >
+                      Edit title
+                    </button>
+
+                    {/* Add to folder with submenu */}
+                    <div className="relative">
+                      <button
+                        onClick={(e) => handleToggleFolderSubmenu(session.session_id, e)}
+                        className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors flex items-center justify-between"
+                      >
+                        <span>Add to folder</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={`transition-transform ${showFolderSubmenu === session.session_id ? 'rotate-90' : ''}`}
+                        >
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </button>
+
+                      {/* Folder Submenu */}
+                      {showFolderSubmenu === session.session_id && (
+                        <div
+                          ref={submenuRef}
+                          className="absolute left-0 top-full mt-1 w-full bg-white border border-neutral-3 rounded-lg shadow-lg z-[70] py-2 max-h-60 overflow-y-auto"
+                        >
+                          {/* Remove from folder option (if session is in a folder) */}
+                          {session.folder_id && (
+                            <>
+                              <button
+                                onClick={() => handleMoveToFolder(session.session_id, null)}
+                                className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-orange-600 font-medium"
+                              >
+                                📤 Remove from folder
+                              </button>
+                              <div className="border-t border-neutral-3 my-1" />
+                            </>
+                          )}
+
+                          {/* Existing folders */}
+                          <div className="max-h-40 overflow-y-auto">
+                            {folders.length > 0 ? (
+                              folders.map(folder => (
+                                <button
+                                  key={folder.folder_id}
+                                  onClick={() => handleMoveToFolder(session.session_id, folder.folder_id)}
+                                  className={`w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate ${session.folder_id === folder.folder_id ? 'bg-neutral-2 font-medium text-primary' : ''
+                                    }`}
+                                  disabled={session.folder_id === folder.folder_id}
+                                >
+                                  {session.folder_id === folder.folder_id ? '✓ ' : '📁 '}
+                                  {folder.folder_name}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-sm text-neutral-7">
+                                No folders yet
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Create new folder */}
+                          <div className="border-t border-neutral-3 my-1" />
+                          <button
+                            onClick={() => {
+                              onCreateFolderWithSession(session.session_id);
+                              setOpenDropdownId(null);
+                              setShowFolderSubmenu(null);
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-primary font-medium"
+                          >
+                            ➕ Create new folder
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

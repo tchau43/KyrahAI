@@ -1,7 +1,7 @@
 // src/features/chat/components/ChatSidebar.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@heroui/react';
 import ChatSidebarHeader from './ChatSidebarHeader';
 import ChatHistory from './ChatHistory';
@@ -9,6 +9,15 @@ import ChatSidebarFooter from './ChatSidebarFooter';
 import { createClient } from '@/utils/supabase/client';
 import { Session } from '@/types/auth.types';
 import { XIcon } from '@/components/icons';
+import { useModalStore } from '@/store/useModalStore';
+import {
+  getFolders,
+  moveSessionToFolder,
+  deleteFolder,
+  FolderWithCount
+} from '@/lib/chat';
+import FolderModal from '@/components/modals/FolderModal';
+import FolderList from '@/components/chat/FolderList';
 
 interface ChatSidebarProps {
   sessions: Session[];
@@ -31,11 +40,19 @@ export default function ChatSidebar({
 }: ChatSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hasUser, setHasUser] = useState(false);
+  const [folders, setFolders] = useState<FolderWithCount[]>([]);
+  const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
+
+  // Modal states
+  const { openModal } = useModalStore();
+  const [folderModalMode, setFolderModalMode] = useState<'create' | 'rename'>('create');
+  const [selectedFolderId, setSelectedFolderId] = useState<string | undefined>();
+  const [selectedFolderName, setSelectedFolderName] = useState('');
+  const [sessionIdToMove, setSessionIdToMove] = useState<string | undefined>();
 
   useEffect(() => {
     const supabase = createClient();
 
-    // Use getUser() instead of getSession() for proper validation
     supabase.auth.getUser().then(({ data }) => setHasUser(!!data.user));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -44,6 +61,102 @@ export default function ChatSidebar({
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Load folders
+  useEffect(() => {
+    if (hasUser) {
+      loadFolders();
+    }
+  }, [hasUser]);
+
+  const loadFolders = async () => {
+    const foldersData = await getFolders();
+    setFolders(foldersData);
+  };
+
+  // Tính toán sessions trong mỗi folder từ sessions prop (không cần fetch lại)
+  const sessionsByFolder = useMemo(() => {
+    const map = new Map<string, Session[]>();
+
+    sessions.forEach(session => {
+      if (session.folder_id) {
+        if (!map.has(session.folder_id)) {
+          map.set(session.folder_id, []);
+        }
+        map.get(session.folder_id)!.push(session);
+      }
+    });
+
+    // Sort sessions by last_activity_at
+    map.forEach((sessionList) => {
+      sessionList.sort((a, b) =>
+        new Date(b.last_activity_at).getTime() - new Date(a.last_activity_at).getTime()
+      );
+    });
+
+    return map;
+  }, [sessions]);
+
+  const handleToggleFolder = (folderId: string) => {
+    setExpandedFolderIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderId)) {
+        newSet.delete(folderId);
+      } else {
+        newSet.add(folderId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleOpenCreateFolderModal = (sessionId?: string) => {
+    setFolderModalMode('create');
+    setSelectedFolderId(undefined);
+    setSelectedFolderName('');
+    setSessionIdToMove(sessionId);
+    openModal('folder-modal');
+  };
+
+  const handleOpenRenameFolderModal = (folderId: string, currentName: string) => {
+    setFolderModalMode('rename');
+    setSelectedFolderId(folderId);
+    setSelectedFolderName(currentName);
+    setSessionIdToMove(undefined);
+    openModal('folder-modal');
+  };
+
+  const handleFolderModalSuccess = () => {
+    loadFolders();
+  };
+
+  const handleMoveToFolder = async (sessionId: string, folderId: string | null) => {
+    const success = await moveSessionToFolder(sessionId, folderId);
+    if (success) {
+      // Refresh folders to update counts
+      loadFolders();
+    }
+  };
+
+  const handleDeleteFolder = async (folderId: string) => {
+    const success = await deleteFolder(folderId);
+    if (success) {
+      // Remove from expanded folders
+      setExpandedFolderIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(folderId);
+        return newSet;
+      });
+      loadFolders();
+    }
+  };
+
+  const handleEditTitle = (sessionId: string) => {
+    // TODO: Implement edit title functionality
+    console.log('Edit title for session:', sessionId);
+  };
+
+  // Get uncategorized sessions (sessions without folder_id)
+  const uncategorizedSessions = sessions.filter(session => !session.folder_id);
 
   if (!hasUser) return null;
 
@@ -76,6 +189,7 @@ export default function ChatSidebar({
         <div className={isCollapsed ? 'hidden xl:hidden' : ''}>
           <ChatSidebarHeader
             onNewChat={onNewChat}
+            onNewFolder={() => handleOpenCreateFolderModal()}
             onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
             showCollapseButton={true}
           />
@@ -110,7 +224,7 @@ export default function ChatSidebar({
           </div>
         )}
 
-        <div className={isCollapsed ? 'hidden xl:hidden flex-1 min-h-0' : 'flex-1 min-h-0'}>
+        <div className={isCollapsed ? 'hidden xl:hidden flex-1 min-h-0' : 'flex-1 min-h-0 overflow-y-auto'}>
           {isLoading ? (
             <div className="flex flex-col h-full">
               <div className="text-xs font-semibold text-neutral-9 px-3 py-2 uppercase tracking-normal flex-shrink-0">
@@ -130,11 +244,43 @@ export default function ChatSidebar({
               </div>
             </div>
           ) : (
-            <ChatHistory
-              sessions={sessions}
-              activeSessionId={activeSessionId}
-              onSelectSession={onSelectSession}
-            />
+            <div className="space-y-4">
+              {/* Folders Section */}
+              {folders.length > 0 && (
+                <>
+                  {folders.map(folder => {
+                    const sessionsInFolder = sessionsByFolder.get(folder.folder_id) || [];
+                    const isExpanded = expandedFolderIds.has(folder.folder_id);
+
+                    return (
+                      <FolderList
+                        key={folder.folder_id}
+                        folders={[folder]}
+                        onSelectFolder={handleToggleFolder}
+                        onRenameFolder={handleOpenRenameFolderModal}
+                        onDeleteFolder={handleDeleteFolder}
+                        expandedFolderId={isExpanded ? folder.folder_id : null}
+                        onToggleFolder={handleToggleFolder}
+                        sessionsInFolder={sessionsInFolder}
+                        activeSessionId={activeSessionId}
+                        onSelectSession={onSelectSession}
+                      />
+                    );
+                  })}
+                </>
+              )}
+
+              {/* Uncategorized Sessions */}
+              <ChatHistory
+                sessions={uncategorizedSessions}
+                activeSessionId={activeSessionId}
+                onSelectSession={onSelectSession}
+                folders={folders}
+                onMoveToFolder={handleMoveToFolder}
+                onCreateFolderWithSession={handleOpenCreateFolderModal}
+                onEditTitle={handleEditTitle}
+              />
+            </div>
           )}
         </div>
 
@@ -142,6 +288,15 @@ export default function ChatSidebar({
 
         <ChatSidebarFooter isCollapsed={isCollapsed} />
       </aside>
+
+      {/* Folder Modal */}
+      <FolderModal
+        mode={folderModalMode}
+        folderId={selectedFolderId}
+        initialName={selectedFolderName}
+        sessionIdToMove={sessionIdToMove}
+        onSuccess={handleFolderModalSuccess}
+      />
     </>
   );
 }

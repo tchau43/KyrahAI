@@ -523,8 +523,11 @@ export default function ChatPage() {
       </div>
 
       {/* Auth Status - Top Right (Responsive) */}
-      {!loading && user && (
-        <div className="fixed top-3 right-3 md:top-4 md:right-4 xl:top-6 xl:right-6 z-40">
+      {!loading && (
+        <div className={`fixed z-40 ${user
+          ? 'top-2 right-3 md:top-3 md:right-4 xl:top-5 xl:right-6'
+          : 'top-16 right-3 md:right-6 xl:top-[72px] xl:right-8'
+          }`}>
           <AuthStatus />
         </div>
       )}
@@ -535,7 +538,7 @@ export default function ChatPage() {
             color="primary"
             variant="shadow"
             onPress={() => { useModalStore.getState().setAuthMode('signin'); openModal('auth-modal'); }}
-            className="px-4 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
+            className="px-3 py-3 md:px-5 md:py-2 xl:px-5 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
           >
             Log in
           </Button>
@@ -543,7 +546,7 @@ export default function ChatPage() {
             color="secondary"
             variant="shadow"
             onPress={() => { useModalStore.getState().setAuthMode('signup'); openModal('auth-modal'); }}
-            className="px-4 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
+            className="px-3 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
           >
             Sign up
           </Button>
