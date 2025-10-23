@@ -40,7 +40,7 @@ export default function ChatHistory({
       }
       const { data, error } = await supabase
         .from('messages')
-        .select('session_id', { count: 'exact' })
+        .select('session_id')
         .in('session_id', ids)
 
       if (error) {
@@ -96,11 +96,9 @@ export default function ChatHistory({
       setEditingSessionId(null);
       return;
     }
-    console.log('editTitle', editTitle);
 
     try {
       const supabase = createClient();
-      console.log('user', user);
       const { error } = await supabase
         .from('sessions')
         .update({ title: editTitle.trim() })
@@ -143,7 +141,6 @@ export default function ChatHistory({
             .map(session => (
               <div key={session.session_id} className='relative'>
                 <Button
-                  key={session.session_id}
                   onPress={() => {
                     if (editingSessionId !== session.session_id) {
                       onSelectSession(session.session_id);
@@ -179,6 +176,11 @@ export default function ChatHistory({
                       </span>
                     )}
                     <div
+                      role="button"
+                      tabIndex={0}
+                      aria-haspopup="menu"
+                      aria-expanded={openDropdownId === session.session_id}
+                      aria-controls={`session-menu-${session.session_id}`}
                       onClick={(e) => handleDropdownToggle(session.session_id, e)}
                       onPointerDown={(e) => e.stopPropagation()}
                       className={`-mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-white/10 rounded p-1 ${activeSessionId === session.session_id ? 'text-neutral-1' : 'text-neutral-9'} font-semibold md:!text-[1rem] xl:!text-[1.125rem]`}
@@ -189,6 +191,7 @@ export default function ChatHistory({
                 </Button>
                 {openDropdownId === session.session_id && !editingSessionId && (
                   <div
+                    id={`session-menu-${session.session_id}`}
                     ref={dropdownRef}
                     className="absolute right-0 mt-1 w-44 bg-white border border-neutral-3 rounded-lg shadow-lg z-50 py-1"
                   >

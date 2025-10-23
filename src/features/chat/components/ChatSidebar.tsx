@@ -1,12 +1,12 @@
 // src/features/chat/components/ChatSidebar.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@heroui/react';
 import ChatSidebarHeader from './ChatSidebarHeader';
 import ChatHistory from './ChatHistory';
 import ChatSidebarFooter from './ChatSidebarFooter';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Session } from '@/types/auth.types';
 import { XIcon } from '@/components/icons';
 
@@ -30,22 +30,9 @@ export default function ChatSidebar({
   isLoading = false,
 }: ChatSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [hasUser, setHasUser] = useState(false);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    const supabase = createClient();
-
-    // Use getUser() instead of getSession() for proper validation
-    supabase.auth.getUser().then(({ data }) => setHasUser(!!data.user));
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setHasUser(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (!hasUser) return null;
+  if (!user) return null;
 
   return (
     <>

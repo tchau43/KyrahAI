@@ -11,6 +11,7 @@ import {
   fetchRelevantResources,
   logResourceDisplay,
 } from '@/services/db-risk-assessment.service';
+import openai from '@/lib/openai';
 
 interface ChatRequestBody {
   sessionId: string;
@@ -343,47 +344,66 @@ export async function POST(request: NextRequest) {
           };
 
           if (isFirstMessage) {
-            // Format timestamp with user's timezone
-            const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {
-              try {
-                const date = new Date(timestamp);
-                const userTimezone = timezone || 'UTC';
-                const lang = language || 'en';
-                const userLanguage =
-                  lang.includes('-')
-                    ? lang
-                    : ({
-                      en: 'en-US',
-                      vi: 'vi-VN',
-                      fr: 'fr-FR',
-                      es: 'es-ES',
-                      pt: 'pt-BR',
-                      de: 'de-DE',
-                    } as Record<string, string>)[lang] ?? 'en-US';
+            // Generate title using OpenAI based on user message
+            try {
+              const titlePrompt = `Create a short title (max 6 words) for a conversation based on this message: "${userMessage}". Return only the title, no explanation.`;
 
-                return date.toLocaleString(userLanguage, {
-                  timeZone: userTimezone,
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: false
-                });
-              } catch (error) {
-                console.error('Error formatting timestamp:', error);
-                return new Date(timestamp).toLocaleString();
-              }
-            };
+              const titleResponse = await openai.chat.completions.create({
+                model: 'gpt-4.1-nano',
+                messages: [
+                  {
+                    role: 'user',
+                    content: titlePrompt
+                  }
+                ],
+                max_tokens: 20,
+                temperature: 0.7,
+              });
 
-            const sessionConfig = actualSessionRow?.config as any;
-            const formattedTime = formatTimestampWithTimezone(
-              new Date().toISOString(),
-              sessionConfig?.timezone,
-              sessionConfig?.language
-            );
+              const generatedTitle = titleResponse.choices[0]?.message?.content?.trim();
+              updateData.title = generatedTitle || userMessage.slice(0, 50) + '...';
+            } catch (error) {
+              console.error('Error generating title:', error);
+              const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {
+                try {
+                  const date = new Date(timestamp);
+                  const userTimezone = timezone || 'UTC';
+                  const lang = language || 'en';
+                  const userLanguage =
+                    lang.includes('-')
+                      ? lang
+                      : ({
+                        en: 'en-US',
+                        vi: 'vi-VN',
+                        fr: 'fr-FR',
+                        es: 'es-ES',
+                        pt: 'pt-BR',
+                        de: 'de-DE',
+                      } as Record<string, string>)[lang] ?? 'en-US';
+                  return date.toLocaleString(userLanguage, {
+                    timeZone: userTimezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  });
+                } catch (error) {
+                  console.error('Error formatting timestamp:', error);
+                  return new Date(timestamp).toLocaleString();
+                }
+              };
 
-            updateData.title = `Conversation at ${formattedTime}`;
+              const sessionConfig = actualSessionRow?.config;
+              const formattedTime = formatTimestampWithTimezone(
+                new Date().toISOString(),
+                sessionConfig?.timezone,
+                sessionConfig?.language
+              );
+
+              updateData.title = `Conversation at ${formattedTime}`;
+            }
           }
 
           await supabase
