@@ -12,38 +12,32 @@ import {
 } from '@heroui/react';
 import { useState, useEffect } from 'react';
 import { Folder } from '../icons';
-import { createFolder, renameFolder, moveSessionToFolder } from '@/lib/chat';
+import { createFolder, moveSessionToFolder } from '@/lib/chat';
 
 interface FolderModalProps {
-  mode?: 'create' | 'rename';
-  folderId?: string;
-  initialName?: string;
   sessionIdToMove?: string;
-  onSuccess?: () => void;
+  onSuccess?: () => Promise<void> | void;
 }
 
 export default function FolderModal({
-  mode = 'create',
-  folderId,
-  initialName = '',
   sessionIdToMove,
   onSuccess,
 }: FolderModalProps) {
   const { isModalOpen, closeModal } = useModalStore();
   const { user } = useAuth();
-  const [folderName, setFolderName] = useState(initialName);
+  const [folderName, setFolderName] = useState(''); // Luôn bắt đầu rỗng
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
 
-  // Reset form when modal opens with new data
+  // Reset form khi modal mở
   useEffect(() => {
     if (isModalOpen('folder-modal')) {
-      setFolderName(initialName);
+      setFolderName('');
       setError('');
     }
-  }, [isModalOpen, initialName]);
+  }, [isModalOpen]);
 
-  const handleCreate = async () => {
+  const handleCreateFolder = async () => {
     if (!folderName.trim() || !user) {
       setError('Folder name is required');
       return;
@@ -53,48 +47,23 @@ export default function FolderModal({
       setIsCreating(true);
       setError('');
 
-      if (mode === 'create') {
-        const newFolder = await createFolder(folderName.trim());
+      const newFolder = await createFolder(folderName.trim());
 
-        if (newFolder) {
-          // Nếu có sessionIdToMove, chuyển session vào folder mới
-          if (sessionIdToMove) {
-            await moveSessionToFolder(sessionIdToMove, newFolder.folder_id);
-          }
-
-          console.log('Folder created successfully:', newFolder);
-
-          // Callback success
-          if (onSuccess) {
-            onSuccess();
-          }
-
-          // Reset and close
-          setFolderName('');
-          closeModal('folder-modal');
-        } else {
-          setError('Failed to create folder');
+      if (newFolder) {
+        if (sessionIdToMove) {
+          await moveSessionToFolder(sessionIdToMove, newFolder.folder_id);
         }
-      } else if (mode === 'rename' && folderId) {
-        const success = await renameFolder(folderId, folderName.trim());
 
-        if (success) {
-          console.log('Folder renamed successfully');
-
-          // Callback success
-          if (onSuccess) {
-            onSuccess();
-          }
-
-          // Reset and close
-          setFolderName('');
-          closeModal('folder-modal');
-        } else {
-          setError('Failed to rename folder');
+        if (onSuccess) {
+          await onSuccess();
         }
+
+        closeModal('folder-modal');
+      } else {
+        setError('Failed to create folder');
       }
-    } catch (error) {
-      console.error('Failed to process folder:', error);
+    } catch (err) {
+      console.error('Failed to create folder:', err);
       setError('An error occurred');
     } finally {
       setIsCreating(false);
@@ -102,8 +71,6 @@ export default function FolderModal({
   };
 
   const handleCancel = () => {
-    setFolderName('');
-    setError('');
     closeModal('folder-modal');
   };
 
@@ -129,33 +96,27 @@ export default function FolderModal({
             <ModalHeader className="flex flex-col gap-1 text-neutral-9 pt-6 xl:!pt-8 pb-2.5 px-4 xl:!px-6">
               <div className="flex items-center gap-3">
                 <Folder className="text-primary" size={24} />
-                <h2 className="heading-24 md:!text-[28px]">
-                  {mode === 'create' ? 'Create a new folder' : 'Rename folder'}
-                </h2>
+                <h2 className="heading-24 md:!text-[28px]">Create a new folder</h2>
               </div>
               <p className="body-16-regular text-neutral-6 mt-2">
-                {mode === 'create'
-                  ? 'Easily organize your conversations into folders.'
-                  : 'Update the name of your folder.'}
+                Easily organize your conversations into folders.
               </p>
             </ModalHeader>
 
             <ModalBody className="px-4 xl:!px-6">
               <div className="space-y-3">
-                <label className="body-16-semi text-neutral-9 block">
-                  Folder name
-                </label>
+                <label className="body-16-semi text-neutral-9 block">Folder name</label>
                 <input
                   type="text"
                   autoFocus
                   value={folderName}
                   onChange={(e) => {
                     setFolderName(e.target.value);
-                    setError('');
+                    if (error) setError('');
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && folderName.trim()) {
-                      handleCreate();
+                      handleCreateFolder();
                     }
                   }}
                   placeholder="Enter your folder name here"
@@ -169,11 +130,7 @@ export default function FolderModal({
                   <p className="caption-14-regular text-neutral-6">
                     {folderName.length}/50 characters
                   </p>
-                  {error && (
-                    <p className="caption-14-regular text-red-500">
-                      {error}
-                    </p>
-                  )}
+                  {error && <p className="caption-14-regular text-red-500">{error}</p>}
                 </div>
               </div>
             </ModalBody>
@@ -189,15 +146,13 @@ export default function FolderModal({
                 Cancel
               </Button>
               <Button
-                onPress={handleCreate}
+                onPress={handleCreateFolder}
                 isDisabled={!folderName.trim() || isCreating}
                 isLoading={isCreating}
                 className="bg-neutral-9 text-neutral w-full xl:!w-auto py-5 body-16-semi rounded-full hover:bg-slate-800 disabled:opacity-50"
                 size="lg"
               >
-                {isCreating
-                  ? (mode === 'create' ? 'Creating...' : 'Renaming...')
-                  : (mode === 'create' ? 'Create' : 'Rename')}
+                {isCreating ? 'Creating...' : 'Create'}
               </Button>
             </ModalFooter>
           </>
