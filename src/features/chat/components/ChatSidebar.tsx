@@ -16,6 +16,7 @@ import {
   renameFolder,
 } from '@/lib/chat';
 import FolderModal from '@/components/modals/FolderModal';
+import AddSessionsToFolderModal from '@/components/modals/AddSessionsToFolderModal';
 import FolderList from '@/components/chat/FolderList';
 import { createClient } from '@/utils/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -43,6 +44,8 @@ export default function ChatSidebar({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [hasUser, setHasUser] = useState(false);
   const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(new Set());
+  const [isFoldersCollapsed, setIsFoldersCollapsed] = useState(false);
+  const [isChatHistoryCollapsed, setIsChatHistoryCollapsed] = useState(false);
 
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -172,7 +175,7 @@ export default function ChatSidebar({
 
         {isCollapsed && (
           <div className="p-4">
-            <div className="flex items-center justify-center mb-10 relative">
+            <div className="flex items-center justify-center relative">
               <Button
                 isIconOnly
                 variant="light"
@@ -210,28 +213,85 @@ export default function ChatSidebar({
           ) : (
             <div className="space-y-4">
               {folders.length > 0 && (
-                <FolderList
-                  folders={folders}
-                  onRenameFolder={handleRenameFolder}
-                  onDeleteFolder={handleDeleteFolder}
-                  onToggleFolder={handleToggleFolder}
-                  sessionsInFolder={sessionsByFolder}
-                  activeSessionId={activeSessionId}
-                  onSelectSession={onSelectSession}
-                  expandedFolderIds={expandedFolderIds}
-                  onMoveToFolder={handleMoveToFolder}
-                  onCreateFolderWithSession={handleOpenCreateFolderModal}
-                />
+                <div>
+                  <div className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-neutral-3 rounded-lg transition-colors" onClick={() => setIsFoldersCollapsed(!isFoldersCollapsed)}>
+                    <div className="text-xs font-semibold text-neutral-9 uppercase tracking-normal">
+                      Folders
+                    </div>
+                    <button
+                      className="p-1 rounded transition-colors"
+                      aria-label={isFoldersCollapsed ? "Expand folders" : "Collapse folders"}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`transition-transform text-neutral-6 ${isFoldersCollapsed ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                  {!isFoldersCollapsed && (
+                    <FolderList
+                      folders={folders}
+                      onRenameFolder={handleRenameFolder}
+                      onDeleteFolder={handleDeleteFolder}
+                      onToggleFolder={handleToggleFolder}
+                      sessionsInFolder={sessionsByFolder}
+                      activeSessionId={activeSessionId}
+                      onSelectSession={onSelectSession}
+                      expandedFolderIds={expandedFolderIds}
+                      onMoveToFolder={handleMoveToFolder}
+                      onCreateFolderWithSession={handleOpenCreateFolderModal}
+                      availableSessions={sessions}
+                    />
+                  )}
+                </div>
               )}
 
-              <ChatHistory
-                sessions={uncategorizedSessions}
-                activeSessionId={activeSessionId}
-                onSelectSession={onSelectSession}
-                folders={folders}
-                onMoveToFolder={handleMoveToFolder}
-                onCreateFolderWithSession={handleOpenCreateFolderModal}
-              />
+              <div>
+                <div className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-neutral-3 rounded-lg transition-colors" onClick={() => setIsChatHistoryCollapsed(!isChatHistoryCollapsed)}>
+                  <div className="text-xs font-semibold text-neutral-9 uppercase tracking-normal">
+                    Chat History
+                  </div>
+                  <button
+                    className="p-1 rounded"
+                    aria-label={isChatHistoryCollapsed ? "Expand chat history" : "Collapse chat history"}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`transition-transform text-neutral-6 ${isChatHistoryCollapsed ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                </div>
+                {!isChatHistoryCollapsed && (
+                  <ChatHistory
+                    sessions={uncategorizedSessions}
+                    activeSessionId={activeSessionId}
+                    onSelectSession={onSelectSession}
+                    folders={folders}
+                    onMoveToFolder={handleMoveToFolder}
+                    onCreateFolderWithSession={handleOpenCreateFolderModal}
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -243,6 +303,13 @@ export default function ChatSidebar({
 
       {/* Folder Modal */}
       <FolderModal sessionIdToMove={sessionIdToMove} />
+
+      {/* Add Sessions to Folder Modal */}
+      <AddSessionsToFolderModal
+        folderId={(window as any).addSessionsToFolderData?.folderId || ''}
+        folderName={(window as any).addSessionsToFolderData?.folderName || ''}
+        availableSessions={(window as any).addSessionsToFolderData?.availableSessions || []}
+      />
     </>
   );
 }

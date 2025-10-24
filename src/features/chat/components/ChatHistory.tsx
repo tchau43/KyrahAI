@@ -157,9 +157,6 @@ export default function ChatHistory({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="text-xs font-semibold text-neutral-9 px-3 py-2 uppercase tracking-normal flex-shrink-0">
-        Sessions
-      </div>
       <div className="flex-1 px-2 pb-2 min-h-0">
         <div className="space-y-1">
           {sessions
@@ -199,7 +196,7 @@ export default function ChatHistory({
                       />
                     ) : (
                       <span
-                        className="flex-1 min-w-0 text-left whitespace-nowrap group-hover:overflow-hidden overflow-hidden truncate group-hover:truncate group-hover:pr-3"
+                        className="flex-1 min-w-0 text-left whitespace-nowrap overflow-hidden truncate group-hover:pr-3"
                         onMouseEnter={(e) => handleMouseEnter(session.session_id, e)}
                         onMouseMove={handleMouseMove}
                         onMouseLeave={handleMouseLeave}
