@@ -100,15 +100,17 @@ export async function renameFolder(folderId: string, newName: string): Promise<b
     return false;
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('folders')
     .update({
       folder_name: name,
     })
     .eq('folder_id', folderId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('folder_id')
+    .single();
 
-  if (error) {
+  if (error || !data) {
     console.error('Error renaming folder:', error);
     return false;
   }
