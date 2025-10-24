@@ -273,7 +273,7 @@ export default function FolderList({
                     }}
                     className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
                   >
-                    Add sessions to folder
+                    Add chat to folder
                   </button>
                   <button
                     onClick={(e) => {

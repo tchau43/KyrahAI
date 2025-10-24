@@ -114,7 +114,7 @@ export default function AddSessionsToFolderModal({
             <ModalHeader className="flex flex-col gap-1 text-neutral-9 pt-6 xl:!pt-8 pb-2.5 px-4 xl:!px-6">
               <div className="flex items-center gap-3">
                 <FolderHeart className="text-primary" size={24} />
-                <h2 className="heading-24 md:!text-[28px]">Add sessions to folder</h2>
+                <h2 className="heading-24 md:!text-[28px]">Add chats to folder</h2>
               </div>
               <p className="body-16-regular text-neutral-6 mt-2">
                 Select sessions to add to <span className="font-semibold text-neutral-9">"{folderName}"</span>
@@ -124,15 +124,15 @@ export default function AddSessionsToFolderModal({
             <ModalBody className="px-4 xl:!px-6">
               <div className="space-y-4">
                 {/* Select All */}
-                <div className="flex items-center justify-between p-3 bg-neutral-2 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-secondary-2 rounded-lg">
                   <div className="flex items-center gap-3">
                     <Checkbox
                       isSelected={isAllSelected}
                       onValueChange={handleSelectAll}
                       className="text-primary"
                     />
-                    <span className="body-16-semi text-neutral-9">
-                      Select all ({availableSessions.length} sessions)
+                    <span className="body-16-semi text-white">
+                      Select all ({availableSessions.length} {availableSessions.length === 1 ? 'chat' : 'chats'})
                     </span>
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function AddSessionsToFolderModal({
                 className="bg-neutral-9 text-neutral w-full xl:!w-auto py-5 body-16-semi rounded-full hover:bg-slate-800 disabled:opacity-50"
                 size="lg"
               >
-                {isLoading ? 'Adding...' : `Add ${selectedSessions.size} session${selectedSessions.size !== 1 ? 's' : ''}`}
+                {isLoading ? 'Adding...' : `Add ${selectedSessions.size} chat${selectedSessions.size !== 1 ? 's' : ''}`}
               </Button>
             </ModalFooter>
           </>

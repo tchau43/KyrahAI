@@ -614,6 +614,29 @@ export const KyrahAI: React.FC<IconSvgProps> = ({
   </svg>
 );
 
+export const KyrahAILogo: React.FC<IconSvgProps> = ({
+  size,
+  width = 147,
+  height = 139,
+  fill = '#4E5180',
+  ...props
+}) => (
+  <svg
+    width={size || width}
+    height={size || height}
+    viewBox="0 0 147 139"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <path
+      d="M145 0L86.5293 69.6074L147 139H50L13 95.2031V130H0V44L43 0H145ZM13 76L57 126H120L75.4912 75H13V76ZM49 14L13 50.9229V61H77L117 14H49Z"
+      fill={fill}
+    />
+  </svg>
+);
+
+
 export const Settings: React.FC<IconSvgProps> = ({
   size,
   width = 24,

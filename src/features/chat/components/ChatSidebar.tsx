@@ -151,7 +151,7 @@ export default function ChatSidebar({
       <aside
         className={`
           fixed xl:relative inset-y-0 left-0 z-50 bg-neutral flex flex-col border-r border-neutral-2 
-          transition-all duration-300
+          transition-all duration-300 xl:transition-[width] xl:duration-300 xl:overflow-x-hidden
           ${isCollapsed ? 'xl:w-16' : 'w-72 xl:w-72'}
           ${isOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'}
         `}
@@ -164,54 +164,25 @@ export default function ChatSidebar({
           <XIcon size={20} className="text-neutral-9" />
         </button>
 
-        <div className={isCollapsed ? 'hidden xl:hidden' : ''}>
-          <ChatSidebarHeader
-            onNewChat={onNewChat}
-            onNewFolder={() => handleOpenCreateFolderModal()}
-            onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
-            showCollapseButton={true}
-          />
-        </div>
+        {/* FIX: Render header unconditionally and pass isCollapsed.
+          Remove 'isCollapsed ? 'hidden xl:hidden' : ''
+        */}
+        <ChatSidebarHeader
+          isCollapsed={isCollapsed}
+          onNewChat={onNewChat}
+          onNewFolder={() => handleOpenCreateFolderModal()}
+          onToggleSidebar={() => setIsCollapsed(!isCollapsed)}
+        />
 
-        {isCollapsed && (
-          <div className="p-4">
-            <div className="flex items-center justify-center relative">
-              <Button
-                isIconOnly
-                variant="light"
-                className="hidden xl:flex"
-                onPress={() => setIsCollapsed(false)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="rotate-180"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="9" y1="3" x2="9" y2="21"></line>
-                </svg>
-              </Button>
-            </div>
-          </div>
-        )}
 
         <div
-          className={
-            isCollapsed ? 'hidden xl:hidden flex-1 min-h-0' : 'flex-1 min-h-0 overflow-y-auto'
-          }
+          className={`${isCollapsed ? 'hidden xl:hidden flex-1 min-h-0' : 'flex-1 min-h-0 overflow-y-auto'}`}
         >
           {isLoading ? (
             // ... Loading skeleton ...
             <></>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 p-2">
               {folders.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-neutral-3 rounded-lg transition-colors" onClick={() => setIsFoldersCollapsed(!isFoldersCollapsed)}>
@@ -295,6 +266,11 @@ export default function ChatSidebar({
             </div>
           )}
         </div>
+
+
+
+
+
 
         {isCollapsed && <div className="flex-1" />}
 
