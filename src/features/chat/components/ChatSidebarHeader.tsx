@@ -2,6 +2,8 @@
 'use client';
 
 import { Folder, KyrahAI, KyrahAILogo } from '@/components/icons';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 interface ChatSidebarHeaderProps {
   onNewChat: () => void;
@@ -16,18 +18,52 @@ export default function ChatSidebarHeader({
   onToggleSidebar,
   isCollapsed,
 }: ChatSidebarHeaderProps) {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const returnHome = () => {
+    setIsNavigating(true);
+    router.push('/');
+  };
+
+  // Apply global loading cursor when navigating
+  useEffect(() => {
+    if (isNavigating) {
+      document.body.style.cursor = 'wait';
+    } else {
+      document.body.style.cursor = 'default';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.cursor = 'default';
+    };
+  }, [isNavigating]);
+
+  // Reset loading state after navigation completes
+  useEffect(() => {
+    if (isNavigating) {
+      const timer = setTimeout(() => {
+        setIsNavigating(false);
+      }, 1000); // Reset after 1 second
+
+      return () => clearTimeout(timer);
+    }
+  }, [isNavigating]);
   return (
     <div className="p-2 pt-3">
       {/* collapse button */}
       <div className="h-[40px] mb-8 flex items-center pr-1">
         <div className="flex-1" >
           {!isCollapsed && (
-            <KyrahAI width={170} height={40} />
+            <div className="cursor-pointer" onClick={returnHome}>
+              <KyrahAI width={170} height={40} />
+            </div>
           )}
         </div>
         <button
           type="button"
-          className="hidden xl:flex z-10 text-neutral-9 p-2 rounded-lg hover:bg-neutral-2 transition-colors group relative"
+          className="hidden xl:flex z-10 text-neutral-9 p-2 rounded-lg hover:bg-neutral-2 transition-colors group relative cursor-pointer"
           onClick={onToggleSidebar}
         >
           {/* Default icon */}
@@ -60,7 +96,7 @@ export default function ChatSidebarHeader({
         <button
           type="button"
           onClick={onNewChat}
-          className="w-full flex justify-start items-center bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3.5 py-2 pl-3 rounded-lg transition-colors whitespace-nowrap"
+          className="w-full flex justify-start items-center bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3.5 py-2 pl-3 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
         >
           <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
             <svg
@@ -84,7 +120,7 @@ export default function ChatSidebarHeader({
         <button
           type="button"
           onClick={onNewFolder}
-          className={`${isCollapsed ? 'hidden' : ''} w-full flex justify-start items-center bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 pl-3 py-2 rounded-lg transition-colors whitespace-nowrap`}
+          className={`${isCollapsed ? 'hidden' : ''} w-full flex justify-start items-center bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 pl-3 py-2 rounded-lg transition-colors whitespace-nowrap cursor-pointer`}
         >
           <div className="flex items-center justify-center flex-shrink-0 w-6 h-6">
             <Folder className="text-neutral-9" />
