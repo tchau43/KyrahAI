@@ -30,13 +30,15 @@ export function useSessionTitleEditor() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('sessions')
         .update({ title: editTitle.trim() })
-        .eq('session_id', sessionId);
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id)
+        .select('session_id');
 
-      if (error) {
-        console.error('Error updating title:', error);
+      if (error || !data || data.length === 0) {
+        console.error('Error updating title or no rows updated:', error);
         return;
       }
 

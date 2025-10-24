@@ -352,7 +352,7 @@ export async function POST(request: NextRequest) {
                 Rules:
                 1.  The title must be neutral and non-triggering.
                 2.  NEVER repeat any specific negative, crisis, or sensitive words (like 'suicide', 'die', 'depressed', 'self-harm', etc.).
-                3.  DO NOT SUMMARIZE THE PROBLEM WHICH NEGATIVE OR SENSITIVE.`;
+                3.  DO NOT summarize the problem using negative or sensitive language.`;
               const titleResponse = await openai.chat.completions.create({
                 model: 'gpt-4.1-nano',
                 messages: [
@@ -366,10 +366,7 @@ export async function POST(request: NextRequest) {
               });
 
               const generatedTitle = titleResponse.choices?.[0]?.message?.content?.trim();
-              const fallback = userMessage.length > 50
-                ? userMessage.slice(0, 50) + '...'
-                : userMessage;
-              updateData.title = generatedTitle || fallback;
+              updateData.title = generatedTitle || 'New Conversation';
             } catch (error) {
               console.error('Error generating title:', error);
               const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {

@@ -109,8 +109,11 @@ export default function FolderModal({ sessionIdToMove }: FolderModalProps) {
                     if (error) setError('');
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && folderName.trim()) {
-                      handleCreateFolder();
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (folderName.trim() && !createFolderMutation.isPending) {
+                        handleCreateFolder();
+                      }
                     }
                   }}
                   placeholder="Enter your folder name here"

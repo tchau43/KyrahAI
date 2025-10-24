@@ -23,6 +23,11 @@ interface FolderWithSessions extends Folder {
  */
 export async function createFolder(folderName: string): Promise<Folder | null> {
   const supabase = createClient();
+  const name = folderName.trim();
+  if (!name) {
+    console.error('Folder name cannot be empty');
+    return null;
+  }
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -34,7 +39,7 @@ export async function createFolder(folderName: string): Promise<Folder | null> {
     .from('folders')
     .insert({
       user_id: user.id,
-      folder_name: folderName,
+      folder_name: name,
     })
     .select()
     .single();
@@ -83,6 +88,11 @@ export async function getFolders(): Promise<FolderWithCount[]> {
  */
 export async function renameFolder(folderId: string, newName: string): Promise<boolean> {
   const supabase = createClient();
+  const name = newName.trim();
+  if (!name) {
+    console.error('New folder name cannot be empty');
+    return false;
+  }
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -93,7 +103,7 @@ export async function renameFolder(folderId: string, newName: string): Promise<b
   const { error } = await supabase
     .from('folders')
     .update({
-      folder_name: newName,
+      folder_name: name,
     })
     .eq('folder_id', folderId)
     .eq('user_id', user.id);
@@ -118,13 +128,27 @@ export async function deleteFolder(folderId: string): Promise<boolean> {
     return false;
   }
 
-  const { error } = await supabase
+  // 1) Detach sessions from this folder
+  const { error: detachErr } = await supabase
+    .from('sessions')
+    .update({ folder_id: null })
+    .eq('folder_id', folderId)
+    .eq('user_id', user.id);
+  if (detachErr) {
+    console.error('Error detaching sessions from folder:', detachErr);
+    return false;
+  }
+
+  // 2) Delete the folder and confirm a row was affected
+  const { data, error } = await supabase
     .from('folders')
     .delete()
     .eq('folder_id', folderId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('folder_id')
+    .single();
 
-  if (error) {
+  if (error || !data) {
     console.error('Error deleting folder:', error);
     return false;
   }
@@ -168,13 +192,15 @@ export async function moveSessionToFolder(
     folder_id: folderId,
   };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('sessions')
     .update(updateData)
     .eq('session_id', sessionId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('session_id')
+    .single();
 
-  if (error) {
+  if (error || !data) {
     console.error('Error moving session to folder:', error);
     return false;
   }

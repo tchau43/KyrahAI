@@ -261,7 +261,7 @@ export default function ChatPage() {
         clearTempSession();
 
         // Invalidate queries to refresh session list
-        await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+        await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
         await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
       }
     } catch (error) {
