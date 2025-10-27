@@ -2,12 +2,13 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@heroui/react';
+import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import { FolderWithCount } from '@/lib/chat';
 import { Session } from '@/types/auth.types';
 import { Folder, FolderHeart, FolderX } from '../icons';
 import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
 import { useModalStore } from '@/store/useModalStore';
+import { useOptimisticUpdates } from '@/features/chat/hooks/useOptimisticUpdates';
 
 interface FolderListProps {
   folders: FolderWithCount[];
@@ -36,19 +37,16 @@ export default function FolderList({
   onCreateFolderWithSession,
   availableSessions,
 }: FolderListProps) {
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
   const [editFolderName, setEditFolderName] = useState('');
-  const [sessionDropdownId, setSessionDropdownId] = useState<string | null>(null);
+  const [isFolderDropdownOpen, setIsFolderDropdownOpen] = useState<Set<string>>(new Set());
+  const [isSessionDropdownOpen, setIsSessionDropdownOpen] = useState<Set<string>>(new Set());
+  const [expandedMoveToFolders, setExpandedMoveToFolders] = useState<Set<string>>(new Set());
 
-  const [showFolderSubmenu, setShowFolderSubmenu] = useState<string | null>(null);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const sessionDropdownRef = useRef<HTMLDivElement>(null);
-  const submenuRef = useRef<HTMLDivElement>(null);
 
   const { openModal } = useModalStore();
+  const { optimisticRenameFolder, optimisticMoveSession } = useOptimisticUpdates();
 
   // Use custom hook for session title editing
   const {
@@ -62,56 +60,53 @@ export default function FolderList({
   } = useSessionTitleEditor();
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node;
-      if (openDropdownId && dropdownRef.current && !dropdownRef.current.contains(target)) {
-        setOpenDropdownId(null);
-      }
-
-      const outsideSessionDropdown = !sessionDropdownRef.current || !sessionDropdownRef.current.contains(target);
-      const outsideSubmenu = !submenuRef.current || !submenuRef.current.contains(target);
-
-      if ((sessionDropdownId || showFolderSubmenu) && outsideSessionDropdown && outsideSubmenu) {
-        setSessionDropdownId(null);
-        setShowFolderSubmenu(null);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openDropdownId, sessionDropdownId, showFolderSubmenu]);
-
-  useEffect(() => {
     if (editingFolderId && folderInputRef.current) {
       folderInputRef.current.focus();
       folderInputRef.current.select();
     }
   }, [editingFolderId]);
 
-
-  const handleFolderDropdownToggle = (folderId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setOpenDropdownId(openDropdownId === folderId ? null : folderId);
-    setSessionDropdownId(null);
-    setShowFolderSubmenu(null);
+  const toggleMoveToFolderSubmenu = (sessionId: string) => {
+    setExpandedMoveToFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sessionId)) {
+        newSet.delete(sessionId);
+      } else {
+        newSet.add(sessionId);
+      }
+      return newSet;
+    });
   };
 
-  const handleSessionDropdownToggle = (sessionId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setSessionDropdownId(sessionDropdownId === sessionId ? null : sessionId);
-    setOpenDropdownId(null);
-    setShowFolderSubmenu(null);
-  };
 
   const handleEditFolderName = (folderId: string, currentName: string) => {
     setEditingFolderId(folderId);
     setEditFolderName(currentName);
-    setOpenDropdownId(null);
+    setIsFolderDropdownOpen(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(folderId);
+      return newSet;
+    });
   };
 
-  const handleSaveFolderName = (folderId: string) => {
+  const handleSaveFolderName = async (folderId: string) => {
     if (editFolderName.trim()) {
-      onRenameFolder(folderId, editFolderName.trim());
+      try {
+        // Use optimistic update - UI updates immediately
+        const result = await optimisticRenameFolder(folderId, editFolderName.trim());
+
+        if (!result.success) {
+          console.error('Failed to save folder name:', result.error);
+          // You could show a toast notification here
+          return;
+        }
+
+        // Call the parent handler for any additional logic
+        onRenameFolder(folderId, editFolderName.trim());
+      } catch (error) {
+        console.error('Error saving folder name:', error);
+        // Error handling is done in the optimistic update hook
+      }
     }
     setEditingFolderId(null);
     setEditFolderName('');
@@ -125,7 +120,11 @@ export default function FolderList({
   // Handle session title editing
   const handleEditTitle = (sessionId: string, currentTitle: string) => {
     startEdit(sessionId, currentTitle);
-    setSessionDropdownId(null);
+    setIsSessionDropdownOpen(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(sessionId);
+      return newSet;
+    });
   };
 
   const handleSaveTitle = async (sessionId: string) => {
@@ -136,15 +135,29 @@ export default function FolderList({
     cancelEdit();
   };
 
-  const handleToggleFolderSubmenu = (sessionId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setShowFolderSubmenu(showFolderSubmenu === sessionId ? null : sessionId);
-  };
+  const handleMoveSession = async (sessionId: string, folderId: string | null) => {
+    try {
+      // Use optimistic update - UI updates immediately
+      const result = await optimisticMoveSession(sessionId, folderId);
 
-  const handleMoveSession = (sessionId: string, folderId: string | null) => {
-    onMoveToFolder(sessionId, folderId);
-    setSessionDropdownId(null);
-    setShowFolderSubmenu(null);
+      if (!result.success) {
+        console.error('Failed to move session:', result.error);
+        // You could show a toast notification here
+        return;
+      }
+
+      // Call the parent handler for any additional logic
+      onMoveToFolder(sessionId, folderId);
+    } catch (error) {
+      console.error('Error moving session:', error);
+      // Error handling is done in the optimistic update hook
+    }
+
+    setIsSessionDropdownOpen(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(sessionId);
+      return newSet;
+    });
   };
 
   const handleAddSessionsToFolder = (folderId: string, folderName: string) => {
@@ -161,7 +174,11 @@ export default function FolderList({
     };
 
     openModal('add-sessions-to-folder-modal');
-    setOpenDropdownId(null);
+    setIsFolderDropdownOpen(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(folderId);
+      return newSet;
+    });
   };
 
   return (
@@ -235,58 +252,65 @@ export default function FolderList({
                   </span> */}
 
                   {/* Dropdown Menu Button */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-haspopup="menu"
-                    aria-expanded={openDropdownId === folder.folder_id}
-                    aria-controls={`folder-menu-${folder.folder_id}`}
-                    onClick={(e) => handleFolderDropdownToggle(folder.folder_id, e)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-neutral-4 rounded p-1 text-neutral-9 font-semibold md:!text-[1rem] xl:!text-[1.125rem]"
-                  >
-                    ...
-                  </div>
+                  {editingFolderId !== folder.folder_id && (
+                    <Dropdown
+                      placement="bottom-end"
+                      className="min-w-48"
+                      shouldBlockScroll={false}
+                      isOpen={isFolderDropdownOpen.has(folder.folder_id)}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setIsFolderDropdownOpen(prev => new Set(prev).add(folder.folder_id));
+                        } else {
+                          setIsFolderDropdownOpen(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(folder.folder_id);
+                            return newSet;
+                          });
+                        }
+                      }}
+                    >
+                      <DropdownTrigger>
+                        <div
+                          className="opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer rounded p-1 text-neutral-9 font-semibold md:!text-[1rem] xl:!text-[1.125rem] min-w-6 h-6"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          ⋯
+                        </div>
+                      </DropdownTrigger>
+                      <DropdownMenu aria-label="Folder actions" closeOnSelect={false} items={[
+                        { key: 'rename-folder', label: 'Rename folder', icon: null },
+                        { key: 'add-chat', label: 'Add chat to folder', icon: null },
+                        { key: 'delete-folder', label: 'Delete folder', icon: null }
+                      ]}>
+                        {(item) => (
+                          <DropdownItem
+                            key={item.key}
+                            onPress={() => {
+                              if (item.key === 'rename-folder') {
+                                handleEditFolderName(folder.folder_id, folder.folder_name);
+                              } else if (item.key === 'add-chat') {
+                                handleAddSessionsToFolder(folder.folder_id, folder.folder_name);
+                              } else if (item.key === 'delete-folder') {
+                                onDeleteFolder(folder.folder_id);
+                                setIsFolderDropdownOpen(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(folder.folder_id);
+                                  return newSet;
+                                });
+                              }
+                            }}
+                            className={`font-semibold ${item.key === 'delete-folder' ? 'text-red-600' : 'text-neutral-9'}`}
+                          >
+                            {item.label}
+                          </DropdownItem>
+                        )}
+                      </DropdownMenu>
+                    </Dropdown>
+                  )}
                 </div>
               </Button>
 
-              {/* Folder Dropdown Menu */}
-              {openDropdownId === folder.folder_id && !editingFolderId && (
-                <div
-                  ref={openDropdownId === folder.folder_id ? dropdownRef : null}
-                  id={`folder-menu-${folder.folder_id}`}
-                  className="absolute right-2 top-full mt-1 w-48 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[60] py-2"
-                >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditFolderName(folder.folder_id, folder.folder_name);
-                    }}
-                    className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
-                  >
-                    Rename folder
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddSessionsToFolder(folder.folder_id, folder.folder_name);
-                    }}
-                    className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
-                  >
-                    Add chat to folder
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteFolder(folder.folder_id);
-                      setOpenDropdownId(null);
-                    }}
-                    className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-red-600"
-                  >
-                    Delete folder
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Sessions inside folder */}
@@ -301,7 +325,7 @@ export default function FolderList({
                         }
                       }}
                       className={`group w-full justify-start px-3 py-2 h-auto transition-colors ${activeSessionId === session.session_id
-                        ? 'bg-primary text-white hover:bg-primary/90'
+                        ? 'bg-primary text-secondary hover:bg-primary/95 hover:text-secondary/95'
                         : 'bg-transparent text-neutral-8 hover:bg-neutral-3 hover:text-neutral-9'
                         }`}
                     >
@@ -330,131 +354,100 @@ export default function FolderList({
                             {session?.title || session.session_id}
                           </span>
                         )}
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          aria-haspopup="menu"
-                          aria-expanded={sessionDropdownId === session.session_id}
-                          aria-controls={`session-menu-${session.session_id}`}
-                          onClick={(e) => handleSessionDropdownToggle(session.session_id, e)}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          className={`-mr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer hover:bg-white/10 rounded p-1 ${activeSessionId === session.session_id
-                            ? 'text-neutral-1'
-                            : 'text-neutral-9'
-                            } font-semibold md:!text-[1rem] xl:!text-[1.125rem]`}
-                        >
-                          ...
-                        </div>
+                        {editingSessionId !== session.session_id && (
+                          <Dropdown
+                            placement="bottom-end"
+                            className="min-w-52"
+                            shouldBlockScroll={false}
+                            isOpen={isSessionDropdownOpen.has(session.session_id)}
+                            onOpenChange={(open) => {
+                              if (open) {
+                                setIsSessionDropdownOpen(prev => new Set(prev).add(session.session_id));
+                              } else {
+                                setIsSessionDropdownOpen(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(session.session_id);
+                                  return newSet;
+                                });
+                              }
+                            }}
+                          >
+                            <DropdownTrigger>
+                              <div
+                                className={`-mr-1 opacity-100 xl:opacity-0 xl:group-hover:opacity-100 transition-opacity duration-150 shrink-0 rotate-90 cursor-pointer rounded p-1 ${activeSessionId === session.session_id
+                                  ? 'text-secondary'
+                                  : 'text-neutral-9'
+                                  } font-semibold md:!text-[1rem] xl:!text-[1.125rem] min-w-6 h-6`}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                ⋯
+                              </div>
+                            </DropdownTrigger>
+                            <DropdownMenu aria-label="Session actions" closeOnSelect={false} items={[
+                              { key: 'rename', label: 'Rename', icon: null, hasArrow: false, indent: false },
+                              { key: 'move-to-folder', label: 'Move to folder', icon: <FolderHeart />, hasArrow: true, indent: false },
+                              ...(expandedMoveToFolders.has(session.session_id) ? [
+                                ...folders.filter(f => f.folder_id !== folder.folder_id).map(f => ({
+                                  key: `folder-${f.folder_id}`,
+                                  label: f.folder_name,
+                                  icon: <FolderHeart />,
+                                  indent: true,
+                                  hasArrow: false
+                                })),
+                                { key: 'create-folder', label: 'Create new folder', icon: <Folder size={20} />, indent: true, hasArrow: false }
+                              ] : []),
+                              { key: 'remove-from-folder', label: 'Remove from folder', icon: <FolderX />, hasArrow: false, indent: false }
+                            ]}>
+                              {(item) => (
+                                <DropdownItem
+                                  key={item.key}
+                                  onPress={() => {
+                                    if (item.key === 'rename') {
+                                      handleEditTitle(session.session_id, session.title || session.session_id);
+                                    } else if (item.key === 'move-to-folder') {
+                                      toggleMoveToFolderSubmenu(session.session_id);
+                                    } else if (item.key === 'create-folder') {
+                                      onCreateFolderWithSession(session.session_id);
+                                      setIsSessionDropdownOpen(prev => {
+                                        const newSet = new Set(prev);
+                                        newSet.delete(session.session_id);
+                                        return newSet;
+                                      });
+                                    } else if (item.key.startsWith('folder-')) {
+                                      const folderId = item.key.replace('folder-', '');
+                                      handleMoveSession(session.session_id, folderId);
+                                    } else if (item.key === 'remove-from-folder') {
+                                      handleMoveSession(session.session_id, null);
+                                    }
+                                  }}
+                                  startContent={item.icon}
+                                  endContent={item.hasArrow ? (
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      className={`transition-transform ${expandedMoveToFolders.has(session.session_id) ? 'rotate-90' : ''}`}
+                                    >
+                                      <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                  ) : null}
+                                  className={`font-semibold ${item.key === 'remove-from-folder' ? 'text-neutral-9' : 'text-neutral-9'} ${item.indent ? 'pl-6' : ''}`}
+                                >
+                                  {item.label}
+                                </DropdownItem>
+                              )}
+                            </DropdownMenu>
+                          </Dropdown>
+                        )}
                       </div>
                     </Button>
 
-                    {sessionDropdownId === session.session_id && !editingSessionId && (
-                      <div
-                        ref={sessionDropdownId === session.session_id ? sessionDropdownRef : null}
-                        id={`session-menu-${session.session_id}`}
-                        className="absolute right-2 top-full mt-1 w-52 bg-white text-neutral-8 border border-neutral-3 rounded-lg shadow-lg z-[70] py-2"
-                      >
-                        {/* Rename */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditTitle(
-                              session.session_id,
-                              session.title || session.session_id
-                            );
-                          }}
-                          className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors"
-                        >
-                          Rename
-                        </button>
-
-                        {/* Move to folder (submenu) */}
-                        <div className="relative">
-                          <button
-                            onClick={(e) =>
-                              handleToggleFolderSubmenu(session.session_id, e)
-                            }
-                            className="w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors flex items-center justify-between"
-                          >
-                            <span>Move to folder</span>
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              className={`transition-transform ${showFolderSubmenu === session.session_id
-                                ? 'rotate-90'
-                                : ''
-                                }`}
-                            >
-                              <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                          </button>
-
-                          {/* Folder Submenu */}
-                          {showFolderSubmenu === session.session_id && (
-                            <div
-                              ref={submenuRef}
-                              className="absolute left-0 top-full mt-1 w-full bg-white border border-neutral-3 rounded-lg shadow-lg z-[80] py-2 max-h-60 overflow-y-auto"
-                            >
-                              {/* Filter out current folder */}
-                              <div className="max-h-40 overflow-y-auto">
-                                {folders.filter(f => f.folder_id !== folder.folder_id).length > 0 ? (
-                                  folders
-                                    .filter(f => f.folder_id !== folder.folder_id)
-                                    .map((f) => (
-                                      <button
-                                        key={f.folder_id}
-                                        onClick={() =>
-                                          handleMoveSession(session.session_id, f.folder_id)
-                                        }
-                                        className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm truncate"
-                                      >
-                                        <FolderHeart /> {f.folder_name}
-                                      </button>
-                                    ))
-                                ) : (
-                                  <div className="px-4 py-2 text-sm text-neutral-7">
-                                    No other folders
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Create new folder */}
-                              <div className="border-t border-neutral-3 my-1" />
-                              <button
-                                onClick={() => {
-                                  onCreateFolderWithSession(session.session_id);
-                                  setSessionDropdownId(null);
-                                  setShowFolderSubmenu(null);
-                                }}
-                                className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-sm text-neutral-9 font-medium"
-                              >
-                                <Folder size={20} /> Create new folder
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Divider */}
-                        <div className="border-t border-neutral-3 my-1" />
-
-                        {/* Remove from folder */}
-                        <button
-                          onClick={() => {
-                            handleMoveSession(session.session_id, null);
-                          }}
-                          className="flex gap-2 w-full px-4 py-2 text-left hover:bg-neutral-2 transition-colors text-neutral-9"
-                        >
-                          <FolderX /> Remove from folder
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>

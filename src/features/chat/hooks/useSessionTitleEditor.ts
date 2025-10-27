@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useOptimisticUpdates } from './useOptimisticUpdates';
 
 export function useSessionTitleEditor() {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
@@ -9,6 +9,7 @@ export function useSessionTitleEditor() {
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { optimisticRenameSession } = useOptimisticUpdates();
 
   useEffect(() => {
     if (editingSessionId && inputRef.current) {
@@ -29,16 +30,12 @@ export function useSessionTitleEditor() {
     }
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('sessions')
-        .update({ title: editTitle.trim() })
-        .eq('session_id', sessionId)
-        .eq('user_id', user.id)
-        .select('session_id');
+      // Use optimistic update - UI updates immediately
+      const result = await optimisticRenameSession(sessionId, editTitle.trim());
 
-      if (error || !data || data.length === 0) {
-        console.error('Error updating title or no rows updated:', error);
+      if (!result.success) {
+        console.error('Failed to save title:', result.error);
+        // You could show a toast notification here
         return;
       }
 
