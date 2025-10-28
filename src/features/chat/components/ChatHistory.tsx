@@ -8,6 +8,7 @@ import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@
 import { FolderWithCount } from '@/lib/chat';
 import { EditPencil, Folder, FolderHeart } from '@/components/icons';
 import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
+import { createPortal } from 'react-dom';
 
 interface ChatHistoryProps {
   sessions: Session[];
@@ -346,7 +347,7 @@ export default function ChatHistory({
       </div>
 
       {/* Custom Tooltip */}
-      {hoveredSessionId && (
+      {hoveredSessionId && typeof window !== 'undefined' && createPortal(
         <div
           ref={tooltipRef}
           className="fixed z-[100] bg-neutral-9 text-white text-sm px-3 py-2 rounded-lg shadow-lg pointer-events-none max-w-xs whitespace-nowrap"
@@ -357,7 +358,8 @@ export default function ChatHistory({
         >
           {sessions.find(s => s.session_id === hoveredSessionId)?.title ||
             sessions.find(s => s.session_id === hoveredSessionId)?.session_id}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
