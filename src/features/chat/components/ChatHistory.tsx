@@ -226,7 +226,7 @@ export default function ChatHistory({
                         onBlur={handleCancelEdit}
                         className={`flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border focus:outline-none focus:ring-1 text-sm  ${activeSessionId === session.session_id
                           ? 'border-secondary focus:ring-secondary selection:bg-blue-500 selection:text-white'
-                            : 'border-primary focus:ring-primary'
+                          : 'border-primary focus:ring-primary'
                           }`}
                       />
                     ) : (

@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       const hashedToken = hashToken(anonHeader);
       const { data: tokenRow } = await supabase
         .from('anonymous_session_tokens')
-        .select('token_id')
+        .select('token_hash')
         .eq('session_id', sessionId)
         .eq('token_hash', hashedToken)
         .gt('expires_at', new Date().toISOString())
