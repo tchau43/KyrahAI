@@ -1,4 +1,3 @@
-// src/features/chat/components/ChatSidebar.tsx
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -54,6 +53,11 @@ export default function ChatSidebar({
     optimisticMoveSession,
     optimisticDeleteFolder
   } = useOptimisticUpdates();
+
+  // Wrapper function to match the expected Promise<void> signature
+  const handleMoveToFolderWrapper = async (sessionId: string, folderId: string | null): Promise<void> => {
+    await optimisticMoveSession(sessionId, folderId);
+  };
 
   // Auth state management
   useEffect(() => {
@@ -229,7 +233,7 @@ export default function ChatSidebar({
                         activeSessionId={activeSessionId}
                         onSelectSession={onSelectSession}
                         expandedFolderIds={expandedFolderIds}
-                        onMoveToFolder={optimisticMoveSession}
+                        onMoveToFolder={handleMoveToFolderWrapper}
                         onCreateFolderWithSession={handleOpenCreateFolderModal}
                         onAddSessionsToFolder={handleAddSessionsToFolder}
                         availableSessions={sessions}
@@ -271,7 +275,7 @@ export default function ChatSidebar({
                       activeSessionId={activeSessionId}
                       onSelectSession={onSelectSession}
                       folders={folders}
-                      onMoveToFolder={optimisticMoveSession}
+                      onMoveToFolder={handleMoveToFolderWrapper}
                       onCreateFolderWithSession={handleOpenCreateFolderModal}
                     />
                   )}

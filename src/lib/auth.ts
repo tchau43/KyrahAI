@@ -95,7 +95,7 @@ export async function startAnonymousSession(
     // Create a client-only temporary session id; defer DB writes until first message
     const temp = await createTempSession();
 
-    // Generate a UUID token_id (not a hash) to be stored and validated 1:1 with session_id
+    // Generate a UUID token_id to be stored in sessionStorage and validated via hash
     const tokenId = generateUuid();
     if (isBrowser()) {
       sessionStorage.setItem('kyrah_anonymous_token', tokenId);

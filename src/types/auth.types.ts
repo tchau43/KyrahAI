@@ -27,7 +27,6 @@ export interface SessionConfig {
 }
 
 export interface AnonymousSessionToken {
-  token_id: string;
   session_id: string;
   token_hash: string;
   created_at: string;

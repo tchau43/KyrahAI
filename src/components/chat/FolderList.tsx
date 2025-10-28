@@ -1,4 +1,3 @@
-// src/components/chat/FolderList.tsx
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -7,7 +6,6 @@ import { FolderWithCount } from '@/lib/chat';
 import { Session } from '@/types/auth.types';
 import { Folder, FolderHeart, FolderX } from '../icons';
 import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
-import { useModalStore } from '@/store/useModalStore';
 
 interface FolderListProps {
   folders: FolderWithCount[];
@@ -18,7 +16,7 @@ interface FolderListProps {
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   expandedFolderIds: Set<string>;
-  onMoveToFolder: (sessionId: string, folderId: string | null) => Promise<{ success: boolean; error?: string }>;
+  onMoveToFolder: (sessionId: string, folderId: string | null) => Promise<void>;
   onCreateFolderWithSession: (sessionId: string) => void;
   onAddSessionsToFolder: (folderId: string, folderName: string, availableSessions: Session[]) => void;
   availableSessions: Session[];
@@ -46,7 +44,6 @@ export default function FolderList({
 
   const folderInputRef = useRef<HTMLInputElement>(null);
 
-  const { openModal } = useModalStore();
 
   // Use custom hook for session title editing
   const {
@@ -134,14 +131,8 @@ export default function FolderList({
 
   const handleMoveSession = async (sessionId: string, folderId: string | null) => {
     try {
-      // Use optimistic update - UI updates immediately
-      const result = await onMoveToFolder(sessionId, folderId);
-
-      if (!result.success) {
-        console.error('Failed to move session:', result.error);
-        // You could show a toast notification here
-        return;
-      }
+      // Call the parent handler (which is optimisticMoveSession)
+      await onMoveToFolder(sessionId, folderId);
     } catch (error) {
       console.error('Error moving session:', error);
       // Error handling is done in the optimistic update hook
@@ -191,21 +182,21 @@ export default function FolderList({
                 <div className="w-full flex items-center gap-2">
                   {/* Expand/Collapse Icon */}
                   {/* <div className={`${isExpanded ? "block" : "hidden"}`} > */}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className={`transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''
-                        }`}
-                    >
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={`transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''
+                      }`}
+                  >
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
                   {/* </div> */}
                   {/* Folder Icon */}
                   <span className="flex-shrink-0"><FolderHeart /></span>
@@ -340,7 +331,7 @@ export default function FolderList({
                             className="flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border border-primary focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                           />
                         ) : (
-                          <span className="flex-1 min-w-0 text-left whitespace-nowrap overflow-hidden truncate group-hover:pr-3">
+                          <span className="flex-1 min-w-0 text-left whitespace-nowGrap overflow-hidden truncate group-hover:pr-3">
                             {session?.title || session.session_id}
                           </span>
                         )}

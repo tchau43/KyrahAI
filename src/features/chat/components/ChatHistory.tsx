@@ -1,4 +1,3 @@
-// src/features/chat/components/ChatHistory.tsx
 'use client';
 
 import { Session } from '@/types/auth.types';
@@ -15,7 +14,7 @@ interface ChatHistoryProps {
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
   folders: FolderWithCount[];
-  onMoveToFolder: (sessionId: string, folderId: string | null) => Promise<{ success: boolean; error?: string }>;
+  onMoveToFolder: (sessionId: string, folderId: string | null) => Promise<void>;
   onCreateFolderWithSession: (sessionId: string) => void;
 }
 
@@ -99,14 +98,8 @@ export default function ChatHistory({
 
   const handleMoveToFolder = async (sessionId: string, folderId: string | null) => {
     try {
-      // Use optimistic update - UI updates immediately
-      const result = await onMoveToFolder(sessionId, folderId);
-
-      if (!result.success) {
-        console.error('Failed to move session:', result.error);
-        // You could show a toast notification here
-        return;
-      }
+      // Call the parent handler (which is optimisticMoveSession)
+      await onMoveToFolder(sessionId, folderId);
     } catch (error) {
       console.error('Error moving session:', error);
       // Error handling is done in the optimistic update hook

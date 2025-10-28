@@ -38,14 +38,13 @@ async function generateTitle(
       2. NEVER repeat any specific negative, crisis, or sensitive words (like 'suicide', 'die', 'depressed', 'self-harm', etc.).
       3. DO NOT summarize the problem using negative or sensitive language.`;
 
-    const titleResponse = await openai.chat.completions.create({
+    const titleResponse = await openai.responses.create({
       model: 'gpt-4.1-nano',
-      messages: [{ role: 'user', content: titlePrompt }],
-      max_tokens: 20,
+      input: titlePrompt,
       temperature: 0.7,
     });
 
-    const generatedTitle = titleResponse.choices?.[0]?.message?.content?.trim();
+    const generatedTitle = titleResponse.output_text?.trim();
     if (generatedTitle) {
       return generatedTitle;
     }
