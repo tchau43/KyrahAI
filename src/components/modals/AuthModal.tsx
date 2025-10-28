@@ -164,7 +164,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
             <Button
               type="submit"
               isDisabled={isPending}
-              className="w-full py-6 body-16-semi rounded-full bg-secondary text-white hover:bg-secondary-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-6 body-16-semi rounded-full bg-secondary text-white hover:bg-secondary-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               size="lg"
             >
               {isPending

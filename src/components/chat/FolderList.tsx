@@ -331,7 +331,7 @@ export default function FolderList({
                             className="flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border border-primary focus:outline-none focus:ring-1 focus:ring-primary text-sm"
                           />
                         ) : (
-                          <span className="flex-1 min-w-0 text-left whitespace-nowGrap overflow-hidden truncate group-hover:pr-3">
+                          <span className="flex-1 min-w-0 text-left whitespace-nowrap overflow-hidden truncate group-hover:pr-3">
                             {session?.title || session.session_id}
                           </span>
                         )}
