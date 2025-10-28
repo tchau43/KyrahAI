@@ -1,4 +1,7 @@
 // src/app/api/chat/stream/route.ts
+// FIXED: Send title_updated event when title is ready
+// Skeleton will show until real title arrives
+
 import { NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/auth-helpers';
@@ -19,198 +22,274 @@ interface ChatRequestBody {
   isFirstMessage?: boolean;
 }
 
+/**
+ * Generate title in background
+ */
+async function generateTitle(
+  userMessage: string,
+  sessionConfig: { language?: string; timezone?: string } | null
+): Promise<string> {
+  try {
+    const titlePrompt = `You are a title generator for a mental health support chat.
+      Your goal is to create a short, calm, and general title (max 8 words) for this conversation.
+      Message: "${userMessage}"
+      Rules:
+      1. The title must be neutral and non-triggering.
+      2. NEVER repeat any specific negative, crisis, or sensitive words (like 'suicide', 'die', 'depressed', 'self-harm', etc.).
+      3. DO NOT summarize the problem using negative or sensitive language.`;
+
+    const titleResponse = await openai.chat.completions.create({
+      model: 'gpt-4.1-nano',
+      messages: [{ role: 'user', content: titlePrompt }],
+      max_tokens: 20,
+      temperature: 0.7,
+    });
+
+    const generatedTitle = titleResponse.choices?.[0]?.message?.content?.trim();
+    if (generatedTitle) {
+      return generatedTitle;
+    }
+  } catch (error) {
+    console.error('Error generating title:', error);
+  }
+
+  // Fallback title generation
+  const formatTimestampWithTimezone = (
+    timestamp: string,
+    timezone?: string,
+    language?: string
+  ) => {
+    try {
+      const date = new Date(timestamp);
+      const userTimezone = timezone || 'UTC';
+      const lang = language || 'en';
+      const userLanguage =
+        lang.includes('-')
+          ? lang
+          : ({
+            en: 'en-US',
+            vi: 'vi-VN',
+            fr: 'fr-FR',
+            es: 'es-ES',
+            pt: 'pt-BR',
+            de: 'de-DE',
+          } as Record<string, string>)[lang] ?? 'en-US';
+      return date.toLocaleString(userLanguage, {
+        timeZone: userTimezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return new Date(timestamp).toLocaleString();
+    }
+  };
+
+  const formattedTime = formatTimestampWithTimezone(
+    new Date().toISOString(),
+    sessionConfig?.timezone,
+    sessionConfig?.language
+  );
+
+  return `Conversation at ${formattedTime}`;
+}
+
 export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
 
   try {
-    // Get anonymous token header (for anonymous users only)
     const anonHeader = request.headers.get('X-Anonymous-Token') || request.headers.get('x-anonymous-token');
-
-    // Create Supabase client - automatically reads JWT from cookies for authenticated users
     const supabase = await createClient();
-
     const body: ChatRequestBody = await request.json();
     const { sessionId, userMessage, isFirstMessage = false } = body;
 
-    // Check if user is authenticated (JWT in cookies) using helper function
     const currentUser = await getCurrentUser();
     const currentUserId = currentUser?.id ?? null;
 
     if (!sessionId || !userMessage) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: sessionId or userMessage' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
     }
 
-    // Validate session ownership/access - for first message, create session if doesn't exist
     const { data: sessionRow, error: sessionErr } = await supabase
       .from('sessions')
       .select('*')
       .eq('session_id', sessionId)
       .maybeSingle();
 
-    // Track the actual session row to use (may be created in this block)
     let actualSessionRow = sessionRow;
 
-    // If session doesn't exist and this is first message, create it
     if (!sessionRow && isFirstMessage) {
-      // Double-check session doesn't exist (in case of race condition)
-      const { data: doubleCheckSession } = await supabase
+      let userPreferences = null;
+      if (currentUserId) {
+        const { data: userPrefs } = await supabase
+          .from('user_preferences')
+          .select('*')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+        userPreferences = userPrefs ?? null;
+      }
+      const config = {
+        language: userPreferences?.language || 'vi',
+        timezone: userPreferences?.timezone || 'Asia/Ho_Chi_Minh',
+        timezone_offset: userPreferences?.timezone_offset || 'UTC+7',
+        retention_days: userPreferences?.retention_days || (currentUserId ? 30 : 1),
+      };
+
+      const { data: newSession, error: createErr } = await supabase
         .from('sessions')
-        .select('session_id, user_id, is_anonymous, auth_type')
-        .eq('session_id', sessionId)
-        .maybeSingle();
+        .insert({
+          session_id: sessionId,
+          user_id: currentUserId,
+          is_anonymous: !currentUserId,
+          auth_type: currentUserId ? 'email' : 'anonymous',
+          config,
+        })
+        .select()
+        .single();
 
-      if (doubleCheckSession) {
-        actualSessionRow = doubleCheckSession;
-      } else {
-        const isAnonymous = !currentUserId;
+      if (createErr || !newSession) {
+        return new Response(JSON.stringify({ error: 'Failed to create session' }), { status: 500 });
+      }
+      actualSessionRow = newSession;
 
-        // Fetch user preferences for authenticated users
-        let userPreferences = null;
-        if (currentUserId) {
-          try {
-            // Fetch user preferences directly using server client
-            const { data: userPrefs } = await supabase
-              .from('user_preferences')
-              .select('*')
-              .eq('user_id', currentUserId)
-              .maybeSingle();
-            userPreferences = userPrefs ?? null;
-          } catch (error) {
-            console.warn('Failed to fetch user preferences, using defaults:', error);
-          }
-        }
-
-        // Build config based on user preferences or defaults
-        const config = {
-          language: userPreferences?.language || 'vi',
-          timezone: userPreferences?.timezone || 'Asia/Ho_Chi_Minh',
-          timezone_offset: userPreferences?.timezone_offset || 'UTC+7',
-          retention_days: userPreferences?.retention_days || (currentUserId ? 30 : 1),
-        };
-
-        const { data: newSession, error: createErr } = await supabase
-          .from('sessions')
-          .insert({
-            session_id: sessionId,
-            user_id: currentUserId,
-            is_anonymous: isAnonymous,
-            auth_type: currentUserId ? 'email' : 'anonymous',
-            config,
-          })
-          .select()
-          .single();
-
-        if (createErr || !newSession) {
-          return new Response(
-            JSON.stringify({ error: 'Failed to create session' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
-          );
-        }
-
-        actualSessionRow = newSession;
-
-        // For anonymous sessions, create token record
-        if (isAnonymous && anonHeader) {
-          const tokenId = anonHeader;
-          const hashedToken = hashToken(tokenId);
-          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-          await supabase.from('anonymous_session_tokens').insert({
-            token_id: tokenId,
-            token_hash: hashedToken,
-            session_id: sessionId,
-            expires_at: expiresAt,
-            user_agent: request.headers.get('user-agent') || null,
-            ip_address: request.headers.get('x-forwarded-for') || null,
-          });
-        }
+      if (!currentUserId && anonHeader) {
+        const hashedToken = hashToken(anonHeader);
+        await supabase.from('anonymous_session_tokens').insert({
+          token_id: anonHeader,
+          token_hash: hashedToken,
+          session_id: sessionId,
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          user_agent: request.headers.get('user-agent') || null,
+          ip_address: request.headers.get('x-forwarded-for') || null,
+        });
       }
     }
 
     if (sessionErr && sessionErr.code !== 'PGRST116') {
-      return new Response(
-        JSON.stringify({ error: 'Failed to get session' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Failed to get session' }), { status: 500 });
     }
-
     if (!actualSessionRow) {
-      return new Response(
-        JSON.stringify({ error: 'Session not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Session not found' }), { status: 404 });
     }
 
     const isAnonymousSession = actualSessionRow?.is_anonymous ?? true;
-
-    // Validate session ownership
     if (!isAnonymousSession) {
       if (!currentUserId || actualSessionRow.user_id !== currentUserId) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 403, headers: { 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403 });
       }
     }
 
-    // Validate anonymous token (skip for first message)
     if (isAnonymousSession && !isFirstMessage) {
-      const tokenId = anonHeader || '';
-      if (!tokenId) {
-        return new Response(
-          JSON.stringify({ error: 'Missing anonymous token' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
+      if (!anonHeader) {
+        return new Response(JSON.stringify({ error: 'Missing anonymous token' }), { status: 401 });
       }
-
-      const hashedToken = hashToken(tokenId);
+      const hashedToken = hashToken(anonHeader);
       const { data: tokenRow } = await supabase
         .from('anonymous_session_tokens')
-        .select('token_id, session_id, expires_at')
+        .select('token_id')
         .eq('session_id', sessionId)
         .eq('token_hash', hashedToken)
+        .gt('expires_at', new Date().toISOString())
         .maybeSingle();
 
-      if (!tokenRow || new Date(tokenRow.expires_at) < new Date()) {
-        return new Response(
-          JSON.stringify({ error: 'Invalid or expired token' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
+      if (!tokenRow) {
+        return new Response(JSON.stringify({ error: 'Invalid or expired token' }), { status: 401 });
       }
     }
 
-    // Get assistant ID (your existing assistant)
     const assistantId = getAssistantId();
+    const threadId = (actualSessionRow as { thread_id?: string }).thread_id || null;
 
-    // Get thread ID from session
-    const threadId = actualSessionRow && 'thread_id' in actualSessionRow
-      ? (actualSessionRow as { thread_id?: string }).thread_id || null
-      : null;
-
-    // Create readable stream for SSE
     const stream = new ReadableStream({
       async start(controller) {
-        try {
-          let fullContent = '';
-          let promptTokens = 0;
-          let completionTokens = 0;
+        let fullContent = '';
+        let promptTokens = 0;
+        let completionTokens = 0;
+        let newThreadId: string | null = null;
+        let savedUserMessage: any = null;
 
-          const { data: savedUserMessage, error: userMsgErr } = await supabase
+        // Helper to send SSE events safely
+        const sendEvent = (data: any) => {
+          try {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+          } catch (err) {
+            console.warn('Failed to send event (stream may be closed):', err);
+          }
+        };
+
+        try {
+          const { data: userMsg, error: userMsgErr } = await supabase
             .from('messages')
             .insert({
               session_id: sessionId,
               role: 'user',
               content: userMessage,
-              token_count: promptTokens,
+              token_count: 0,
             })
             .select()
             .single();
 
-          if (userMsgErr || !savedUserMessage) {
+          if (userMsgErr || !userMsg) {
             throw new Error('Failed to save user message');
           }
+          savedUserMessage = userMsg;
+
+          const riskTask = (async () => {
+            let resourcesData: any[] = [];
+            let riskLevel: string | null = null;
+            try {
+              if (containsCrisisKeywords(userMessage)) {
+                sendEvent({
+                  type: 'crisis_alert',
+                  message: 'Detecting potential crisis indicators...',
+                });
+              }
+
+              const riskResult = await assessRisk(userMessage);
+
+              if (riskResult.success) {
+                const assessment = riskResult.data;
+                riskLevel = assessment.risk_level;
+
+                saveRiskAssessment(
+                  savedUserMessage.message_id,
+                  sessionId,
+                  assessment,
+                  'v1.0'
+                ).catch((err: Error) => console.error('Failed to save risk assessment:', err));
+
+                sendEvent({
+                  type: 'risk_assessment',
+                  risk_level: assessment.risk_level,
+                  requires_immediate_cards: assessment.requires_immediate_cards,
+                  flags: assessment.flags,
+                });
+
+                if (assessment.risk_level === 'high' || assessment.requires_immediate_cards) {
+                  resourcesData = await fetchRelevantResources(
+                    assessment,
+                    3,
+                    currentUserId || undefined
+                  );
+
+                  if (resourcesData.length > 0) {
+                    sendEvent({
+                      type: 'resources',
+                      resources: resourcesData,
+                      risk_level: assessment.risk_level,
+                    });
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Risk assessment task error:', error);
+            }
+            return { resourcesData, riskLevel };
+          })();
 
           const streamResult = await runAssistantStream({
             assistantId,
@@ -218,94 +297,15 @@ export async function POST(request: NextRequest) {
             message: userMessage,
             onToken: (token: string) => {
               fullContent += token;
-              controller.enqueue(encoder.encode(
-                `data: ${JSON.stringify({ type: 'token', content: token })}\n\n`
-              ));
+              sendEvent({ type: 'token', content: token });
             },
           });
 
-          const { content, promptTokens: streamPromptTokens, completionTokens: streamCompletionTokens, threadId: newThreadId } = streamResult;
-          fullContent = content;
-          promptTokens = streamPromptTokens;
-          completionTokens = streamCompletionTokens;
+          promptTokens = streamResult.promptTokens;
+          completionTokens = streamResult.completionTokens;
+          newThreadId = streamResult.threadId;
 
-          // Persist new thread ID to session if this is a new thread
-          if (newThreadId && !threadId) {
-            await supabase
-              .from('sessions')
-              .update({ thread_id: newThreadId })
-              .eq('session_id', sessionId);
-          }
-
-          // 3) Update prompt token_count on saved user message
-          await supabase
-            .from('messages')
-            .update({ token_count: promptTokens })
-            .eq('message_id', savedUserMessage.message_id);
-
-          let resourcesData: any[] = [];
-          let riskLevel: string | null = null;
-
-          const hasCrisisKeywords = containsCrisisKeywords(userMessage);
-          if (hasCrisisKeywords) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({
-                  type: 'crisis_alert',
-                  message: 'Detecting potential crisis indicators...',
-                })}\n\n`
-              )
-            );
-          }
-
-          try {
-            const riskResult = await assessRisk(userMessage);
-
-            if (riskResult.success) {
-              const assessment = riskResult.data;
-              riskLevel = assessment.risk_level;
-
-              await saveRiskAssessment(
-                savedUserMessage.message_id,
-                sessionId,
-                assessment,
-                'v1.0'
-              );
-
-              controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({
-                    type: 'risk_assessment',
-                    risk_level: assessment.risk_level,
-                    requires_immediate_cards: assessment.requires_immediate_cards,
-                    flags: assessment.flags,
-                  })}\n\n`
-                )
-              );
-
-              if (assessment.risk_level === 'high' || assessment.requires_immediate_cards) {
-                resourcesData = await fetchRelevantResources(
-                  assessment,
-                  3,
-                  currentUserId || undefined
-                );
-
-                if (resourcesData.length > 0) {
-                  controller.enqueue(
-                    encoder.encode(
-                      `data: ${JSON.stringify({
-                        type: 'resources',
-                        resources: resourcesData,
-                        risk_level: assessment.risk_level,
-                      })}\n\n`
-                    )
-                  );
-                }
-              }
-            }
-          } catch (error) {
-            console.error('Risk assessment error:', error);
-          }
+          const { resourcesData, riskLevel } = await riskTask;
 
           const { data: savedAssistantMessage, error: assistantMsgErr } = await supabase
             .from('messages')
@@ -325,114 +325,118 @@ export async function POST(request: NextRequest) {
           if (assistantMsgErr || !savedAssistantMessage) {
             throw new Error('Failed to save assistant message');
           }
-          if (resourcesData.length > 0) {
-            resourcesData.forEach((resource) => {
-              logResourceDisplay(
-                sessionId,
-                savedAssistantMessage.message_id,
-                resource.resource_id,
-                'card'
-              ).catch((err) => {
-                console.warn('Failed to log resource display (non-critical):', err.message);
-              });
-            });
-          }
 
-          // Update session (use service role client)
-          const updateData: { last_activity_at: string; title?: string } = {
-            last_activity_at: new Date().toISOString(),
-          };
-
-          if (isFirstMessage) {
-            // Generate title using OpenAI based on user message
-            try {
-              const titlePrompt = `You are a title generator for a mental health support chat. 
-                Your goal is to create a short, calm, and general title (max 8 words) for this conversation.
-                Message: "${userMessage}"
-                Rules:
-                1.  The title must be neutral and non-triggering.
-                2.  NEVER repeat any specific negative, crisis, or sensitive words (like 'suicide', 'die', 'depressed', 'self-harm', etc.).
-                3.  DO NOT summarize the problem using negative or sensitive language.`;
-              const titleResponse = await openai.chat.completions.create({
-                model: 'gpt-4.1-nano',
-                messages: [
-                  {
-                    role: 'user',
-                    content: titlePrompt
-                  }
-                ],
-                max_tokens: 20,
-                temperature: 0.7,
-              });
-
-              const generatedTitle = titleResponse.choices?.[0]?.message?.content?.trim();
-              updateData.title = generatedTitle || 'New Conversation';
-            } catch (error) {
-              console.error('Error generating title:', error);
-              const formatTimestampWithTimezone = (timestamp: string, timezone?: string, language?: string) => {
-                try {
-                  const date = new Date(timestamp);
-                  const userTimezone = timezone || 'UTC';
-                  const lang = language || 'en';
-                  const userLanguage =
-                    lang.includes('-')
-                      ? lang
-                      : ({
-                        en: 'en-US',
-                        vi: 'vi-VN',
-                        fr: 'fr-FR',
-                        es: 'es-ES',
-                        pt: 'pt-BR',
-                        de: 'de-DE',
-                      } as Record<string, string>)[lang] ?? 'en-US';
-                  return date.toLocaleString(userLanguage, {
-                    timeZone: userTimezone,
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                  });
-                } catch (error) {
-                  console.error('Error formatting timestamp:', error);
-                  return new Date(timestamp).toLocaleString();
-                }
-              };
-
-              const sessionConfig = actualSessionRow?.config;
-              const formattedTime = formatTimestampWithTimezone(
-                new Date().toISOString(),
-                sessionConfig?.timezone,
-                sessionConfig?.language
-              );
-
-              updateData.title = `Conversation at ${formattedTime}`;
-            }
-          }
-
-          await supabase
-            .from('sessions')
-            .update(updateData)
-            .eq('session_id', sessionId);
-
-          // Send completion event
-          const doneData = JSON.stringify({
+          // Send 'done' event immediately
+          sendEvent({
             type: 'done',
             userMessage: savedUserMessage,
             assistantMessage: savedAssistantMessage,
             tokensUsed: promptTokens + completionTokens,
           });
-          controller.enqueue(encoder.encode(`data: ${doneData}\n\n`));
 
+          // IMPORTANT: Don't close controller yet if we need to send title_updated
+          // We'll close it after title generation
+
+          // Background tasks array
+          const backgroundTasks: Promise<any>[] = [];
+
+          // Update thread_id
+          if (newThreadId && !threadId) {
+            backgroundTasks.push(
+              Promise.resolve(
+                supabase
+                  .from('sessions')
+                  .update({ thread_id: newThreadId })
+                  .eq('session_id', sessionId)
+              )
+                .then(() => console.log('✓ Thread ID updated'))
+                .catch((err: Error) => console.error('Failed to update thread_id:', err))
+            );
+          }
+
+          // Update user message token count
+          backgroundTasks.push(
+            Promise.resolve(
+              supabase
+                .from('messages')
+                .update({ token_count: promptTokens })
+                .eq('message_id', savedUserMessage.message_id)
+            )
+              .then(() => console.log('✓ User message tokens updated'))
+              .catch((err: Error) => console.error('Failed to update user message tokens:', err))
+          );
+
+          // Log resource displays
+          if (resourcesData.length > 0) {
+            resourcesData.forEach((resource) => {
+              backgroundTasks.push(
+                logResourceDisplay(
+                  sessionId,
+                  savedAssistantMessage.message_id,
+                  resource.resource_id,
+                  'card'
+                ).catch((err: Error) => {
+                  console.warn('Failed to log resource display (non-critical):', err.message);
+                })
+              );
+            });
+          }
+
+          // Update last_activity_at
+          backgroundTasks.push(
+            Promise.resolve(
+              supabase
+                .from('sessions')
+                .update({ last_activity_at: new Date().toISOString() })
+                .eq('session_id', sessionId)
+            )
+              .then(() => console.log('✓ Session activity updated'))
+              .catch((err: Error) => console.error('Failed to update session activity:', err))
+          );
+
+          // CRITICAL: Generate title and send event BEFORE closing stream
+          if (isFirstMessage) {
+            try {
+              const title = await generateTitle(userMessage, actualSessionRow?.config);
+
+              // Save title to database
+              await supabase
+                .from('sessions')
+                .update({ title: title })
+                .eq('session_id', sessionId);
+
+              // Send title_updated event while stream is still open
+              sendEvent({
+                type: 'title_updated',
+                sessionId: sessionId,
+                title: title,
+              });
+
+              console.log('✓ Title generated and sent:', title);
+            } catch (err) {
+              console.error('Failed to generate/save title:', err);
+              // Even if title fails, don't block the stream
+            }
+          }
+
+          // Wait for critical background tasks
+          await Promise.allSettled(backgroundTasks);
+          console.log('✓ All background tasks completed');
+
+          // Now close the stream
           controller.close();
+
         } catch (error) {
-          const errorData = JSON.stringify({
-            type: 'error',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-          controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
-          controller.close();
+          try {
+            sendEvent({
+              type: 'error',
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+            controller.close();
+          } catch (streamCloseError) {
+            console.error("Stream error:", error);
+            console.warn("Failed to send error to client:", streamCloseError);
+          }
         }
       },
     });

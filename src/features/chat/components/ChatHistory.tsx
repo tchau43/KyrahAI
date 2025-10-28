@@ -51,11 +51,15 @@ export default function ChatHistory({
     let isMounted = true;
     async function loadCounts() {
       const supabase = createClient();
-      const ids = sessions.map(s => s.session_id);
+      const ids = sessions
+        .filter((s: any) => !s.isSkeleton) // Skip skeleton sessions
+        .map(s => s.session_id);
+
       if (ids.length === 0) {
         if (isMounted) setNonEmptySessionIds(new Set());
         return;
       }
+
       const { data, error } = await supabase
         .from('messages')
         .select('session_id')
@@ -152,14 +156,49 @@ export default function ChatHistory({
     setHoveredSessionId(null);
   };
 
+  // Skeleton Session Component
+  const SkeletonSession = () => (
+    <div className="group w-full justify-start px-3 py-2 h-auto bg-transparent rounded-lg">
+      <div className="w-full flex items-center gap-2">
+        {/* Animated shimmer effect */}
+        <div className="flex-1 h-5 bg-gradient-to-r from-neutral-2 via-neutral-3 to-neutral-2 rounded animate-pulse bg-[length:200%_100%]"
+          style={{
+            animation: 'shimmer 2s infinite linear',
+          }}
+        />
+      </div>
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 px-2 pb-2 min-h-0">
         <div className="space-y-1">
-          {sessions
-            .filter(session => nonEmptySessionIds.has(session.session_id))
-            .map(session => (
+          {sessions.map((session: any) => {
+            // Render skeleton for loading sessions
+            if (session.isSkeleton) {
+              return (
+                <div key={session.session_id}>
+                  <SkeletonSession />
+                </div>
+              );
+            }
+
+            // Skip sessions without messages (unless it's the active session)
+            const hasMessages = nonEmptySessionIds.has(session.session_id);
+            const isActive = activeSessionId === session.session_id;
+
+            if (!hasMessages && !isActive) {
+              return null;
+            }
+
+            return (
               <div key={session.session_id} className='relative'>
                 <Button
                   onPress={() => {
@@ -303,7 +342,8 @@ export default function ChatHistory({
                 </Button>
 
               </div>
-            ))}
+            );
+          })}
         </div>
       </div>
 
