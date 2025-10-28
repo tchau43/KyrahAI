@@ -190,22 +190,23 @@ export default function FolderList({
               >
                 <div className="w-full flex items-center gap-2">
                   {/* Expand/Collapse Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className={`transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''
-                      }`}
-                  >
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-
+                  {/* <div className={`${isExpanded ? "block" : "hidden"}`} > */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={`transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''
+                        }`}
+                    >
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  {/* </div> */}
                   {/* Folder Icon */}
                   <span className="flex-shrink-0"><FolderHeart /></span>
 

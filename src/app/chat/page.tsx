@@ -148,20 +148,16 @@ export default function ChatPage() {
   }, [messagesLoading, isSelectingSession]);
 
   // NEW: Merge real sessions with skeleton session
-  const displaySessions = useMemo(() => {
-    if (!skeletonSession) return sessions;
-
-    // Check if real session with title exists
+  useEffect(() => {
+    if (!skeletonSession) return;
     const realSession = sessions.find(s => s.session_id === skeletonSession.session_id);
-
     if (realSession && realSession.title) {
-      // Real session with title loaded, remove skeleton
       setSkeletonSession(null);
-      return sessions;
     }
+  }, [sessions, skeletonSession]);
 
-    // Skeleton session still needed (real session not loaded or no title yet)
-    return [skeletonSession as any, ...sessions];
+  const displaySessions = useMemo(() => {
+    return (skeletonSession ? [skeletonSession as any, ...sessions] : sessions);
   }, [sessions, skeletonSession]);
 
   const currentMessages = useMemo(() => {
@@ -600,7 +596,7 @@ export default function ChatPage() {
       )}
 
       {!loading && !user && (
-        <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
+        <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2 cursor-pointer">
           <Button
             color="secondary"
             variant="shadow"

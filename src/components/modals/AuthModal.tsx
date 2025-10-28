@@ -182,7 +182,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
             {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
             <button
               onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
-              className="ml-2 caption-14-semi md:!body-16-semi text-secondary hover:text-secondary-1 transition-colors"
+              className="ml-2 caption-14-semi md:!body-16-semi text-secondary hover:text-secondary-1 transition-colors cursor-pointer"
             >
               {mode === 'signup' ? 'Sign In' : 'Sign Up'}
             </button>

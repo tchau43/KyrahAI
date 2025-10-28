@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState, useRef } from 'react';
 import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
 import { FolderWithCount } from '@/lib/chat';
-import { Folder, FolderHeart } from '@/components/icons';
+import { EditPencil, Folder, FolderHeart } from '@/components/icons';
 import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
 
 interface ChatHistoryProps {
@@ -224,7 +224,10 @@ export default function ChatHistory({
                           }
                         }}
                         onBlur={handleCancelEdit}
-                        className="flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border border-primary focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                        className={`flex-1 min-w-0 text-neutral-9 px-2 py-1 rounded border focus:outline-none focus:ring-1 text-sm  ${activeSessionId === session.session_id
+                          ? 'border-secondary focus:ring-secondary selection:bg-blue-500 selection:text-white'
+                            : 'border-primary focus:ring-primary'
+                          }`}
                       />
                     ) : (
                       <span
@@ -264,7 +267,7 @@ export default function ChatHistory({
                           </div>
                         </DropdownTrigger>
                         <DropdownMenu aria-label="Session actions" closeOnSelect={false} items={[
-                          { key: 'edit-title', label: 'Edit title', icon: null, hasArrow: false, indent: false },
+                          { key: 'edit-title', label: 'Edit title', icon: <EditPencil />, hasArrow: false, indent: false },
                           { key: 'add-to-folder', label: 'Add to folder', icon: <FolderHeart />, hasArrow: true, indent: false },
                           ...(expandedFolders.has(session.session_id) ? [
                             ...folders.map(folder => ({

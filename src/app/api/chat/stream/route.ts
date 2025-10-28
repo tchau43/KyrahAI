@@ -159,7 +159,6 @@ export async function POST(request: NextRequest) {
       if (!currentUserId && anonHeader) {
         const hashedToken = hashToken(anonHeader);
         await supabase.from('anonymous_session_tokens').insert({
-          token_id: anonHeader,
           token_hash: hashedToken,
           session_id: sessionId,
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
