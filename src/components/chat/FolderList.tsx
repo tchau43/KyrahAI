@@ -8,19 +8,19 @@ import { Session } from '@/types/auth.types';
 import { Folder, FolderHeart, FolderX } from '../icons';
 import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
 import { useModalStore } from '@/store/useModalStore';
-import { useOptimisticUpdates } from '@/features/chat/hooks/useOptimisticUpdates';
 
 interface FolderListProps {
   folders: FolderWithCount[];
-  onRenameFolder: (folderId: string, currentName: string) => void;
+  onRenameFolder: (folderId: string, newName: string) => Promise<{ success: boolean; error?: string }>;
   onDeleteFolder: (folderId: string) => void;
   onToggleFolder: (folderId: string) => void;
   sessionsInFolder: Map<string, Session[]>;
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   expandedFolderIds: Set<string>;
-  onMoveToFolder: (sessionId: string, folderId: string | null) => void;
+  onMoveToFolder: (sessionId: string, folderId: string | null) => Promise<{ success: boolean; error?: string }>;
   onCreateFolderWithSession: (sessionId: string) => void;
+  onAddSessionsToFolder: (folderId: string, folderName: string, availableSessions: Session[]) => void;
   availableSessions: Session[];
 }
 
@@ -35,6 +35,7 @@ export default function FolderList({
   expandedFolderIds,
   onMoveToFolder,
   onCreateFolderWithSession,
+  onAddSessionsToFolder,
   availableSessions,
 }: FolderListProps) {
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
@@ -46,7 +47,6 @@ export default function FolderList({
   const folderInputRef = useRef<HTMLInputElement>(null);
 
   const { openModal } = useModalStore();
-  const { optimisticRenameFolder, optimisticMoveSession } = useOptimisticUpdates();
 
   // Use custom hook for session title editing
   const {
@@ -93,16 +93,13 @@ export default function FolderList({
     if (editFolderName.trim()) {
       try {
         // Use optimistic update - UI updates immediately
-        const result = await optimisticRenameFolder(folderId, editFolderName.trim());
+        const result = await onRenameFolder(folderId, editFolderName.trim());
 
         if (!result.success) {
           console.error('Failed to save folder name:', result.error);
           // You could show a toast notification here
           return;
         }
-
-        // Call the parent handler for any additional logic
-        onRenameFolder(folderId, editFolderName.trim());
       } catch (error) {
         console.error('Error saving folder name:', error);
         // Error handling is done in the optimistic update hook
@@ -138,16 +135,13 @@ export default function FolderList({
   const handleMoveSession = async (sessionId: string, folderId: string | null) => {
     try {
       // Use optimistic update - UI updates immediately
-      const result = await optimisticMoveSession(sessionId, folderId);
+      const result = await onMoveToFolder(sessionId, folderId);
 
       if (!result.success) {
         console.error('Failed to move session:', result.error);
         // You could show a toast notification here
         return;
       }
-
-      // Call the parent handler for any additional logic
-      onMoveToFolder(sessionId, folderId);
     } catch (error) {
       console.error('Error moving session:', error);
       // Error handling is done in the optimistic update hook
@@ -166,14 +160,9 @@ export default function FolderList({
     const sessionIdsInFolder = new Set(sessionsInThisFolder.map(s => s.session_id));
     const availableSessionsForFolder = availableSessions.filter(s => !sessionIdsInFolder.has(s.session_id));
 
-    // Store folder info for the modal
-    (window as any).addSessionsToFolderData = {
-      folderId,
-      folderName,
-      availableSessions: availableSessionsForFolder
-    };
+    // Call parent handler which manages modal data via proper state
+    onAddSessionsToFolder(folderId, folderName, availableSessionsForFolder);
 
-    openModal('add-sessions-to-folder-modal');
     setIsFolderDropdownOpen(prev => {
       const newSet = new Set(prev);
       newSet.delete(folderId);

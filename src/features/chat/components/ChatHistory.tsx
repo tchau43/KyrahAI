@@ -8,14 +8,13 @@ import { Button, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@
 import { FolderWithCount } from '@/lib/chat';
 import { Folder, FolderHeart } from '@/components/icons';
 import { useSessionTitleEditor } from '@/features/chat/hooks/useSessionTitleEditor';
-import { useOptimisticUpdates } from '@/features/chat/hooks/useOptimisticUpdates';
 
 interface ChatHistoryProps {
   sessions: Session[];
   activeSessionId: string | null;
   onSelectSession: (id: string) => void;
   folders: FolderWithCount[];
-  onMoveToFolder: (sessionId: string, folderId: string | null) => void;
+  onMoveToFolder: (sessionId: string, folderId: string | null) => Promise<{ success: boolean; error?: string }>;
   onCreateFolderWithSession: (sessionId: string) => void;
 }
 
@@ -45,7 +44,6 @@ export default function ChatHistory({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [isDropdownOpen, setIsDropdownOpen] = useState<Set<string>>(new Set());
-  const { optimisticMoveSession } = useOptimisticUpdates();
 
   useEffect(() => {
     let isMounted = true;
@@ -101,16 +99,13 @@ export default function ChatHistory({
   const handleMoveToFolder = async (sessionId: string, folderId: string | null) => {
     try {
       // Use optimistic update - UI updates immediately
-      const result = await optimisticMoveSession(sessionId, folderId);
+      const result = await onMoveToFolder(sessionId, folderId);
 
       if (!result.success) {
         console.error('Failed to move session:', result.error);
         // You could show a toast notification here
         return;
       }
-
-      // Call the parent handler for any additional logic
-      onMoveToFolder(sessionId, folderId);
     } catch (error) {
       console.error('Error moving session:', error);
       // Error handling is done in the optimistic update hook
@@ -295,7 +290,7 @@ export default function ChatHistory({
                                   });
                                 } else if (item.key === 'add-to-folder') {
                                   toggleFolderSubmenu(session.session_id);
-                                  // Không đóng dropdown khi click Add to folder
+                                  // Keep dropdown open when clicking "Add to folder"
                                 } else if (item.key === 'create-folder') {
                                   handleCreateFolderWithSession(session.session_id);
                                   setIsDropdownOpen(prev => {

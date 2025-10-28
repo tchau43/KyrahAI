@@ -114,26 +114,6 @@ export default function ChatSidebar({
     openModal('folder-modal');
   }, [openModal]);
 
-  const handleRenameFolder = useCallback(async (folderId: string, newName: string) => {
-    const result = await optimisticRenameFolder(folderId, newName);
-
-    if (!result.success) {
-      console.error('Failed to rename folder:', result.error);
-      // TODO: Show toast notification
-    }
-    // ❌ REMOVED: No need to invalidate - optimistic update handles it
-  }, [optimisticRenameFolder]);
-
-  const handleMoveToFolder = useCallback(async (sessionId: string, folderId: string | null) => {
-    const result = await optimisticMoveSession(sessionId, folderId);
-
-    if (!result.success) {
-      console.error('Failed to move session:', result.error);
-      // TODO: Show toast notification
-    }
-    // ❌ REMOVED: No need to invalidate
-  }, [optimisticMoveSession]);
-
   const handleDeleteFolder = useCallback(async (folderId: string) => {
     // Update local UI state
     setExpandedFolderIds((prev) => {
@@ -242,15 +222,16 @@ export default function ChatSidebar({
                     {!isFoldersCollapsed && (
                       <FolderList
                         folders={folders}
-                        onRenameFolder={handleRenameFolder}
+                        onRenameFolder={optimisticRenameFolder}
                         onDeleteFolder={handleDeleteFolder}
                         onToggleFolder={handleToggleFolder}
                         sessionsInFolder={sessionsByFolder}
                         activeSessionId={activeSessionId}
                         onSelectSession={onSelectSession}
                         expandedFolderIds={expandedFolderIds}
-                        onMoveToFolder={handleMoveToFolder}
+                        onMoveToFolder={optimisticMoveSession}
                         onCreateFolderWithSession={handleOpenCreateFolderModal}
+                        onAddSessionsToFolder={handleAddSessionsToFolder}
                         availableSessions={sessions}
                       />
                     )}
@@ -290,7 +271,7 @@ export default function ChatSidebar({
                       activeSessionId={activeSessionId}
                       onSelectSession={onSelectSession}
                       folders={folders}
-                      onMoveToFolder={handleMoveToFolder}
+                      onMoveToFolder={optimisticMoveSession}
                       onCreateFolderWithSession={handleOpenCreateFolderModal}
                     />
                   )}
