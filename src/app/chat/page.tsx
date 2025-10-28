@@ -1,3 +1,4 @@
+// src/app/chat/page.tsx
 'use client';
 
 import { useEffect, useRef, useState, useMemo } from 'react';
@@ -30,6 +31,7 @@ interface OptimisticMessage {
   isStreaming?: boolean;
   resources?: Resource[];
   riskLevel?: string;
+  optimisticOrder?: number;
 }
 
 const GREETING_MESSAGES = [
@@ -66,11 +68,19 @@ const SUGGESTION_MESSAGES = [
   "I need coping strategies for depression",
 ];
 
-// Add this interface for type safety
 interface MessageWithResources extends Message {
   resources?: Resource[];
   riskLevel?: string;
   isStreaming?: boolean;
+  optimisticOrder?: number;
+}
+
+// NEW: Interface for skeleton session
+interface SkeletonSession {
+  session_id: string;
+  isSkeleton: true;
+  title: string;
+  created_at: string;
 }
 
 export default function ChatPage() {
@@ -86,11 +96,14 @@ export default function ChatPage() {
   const [greetingMessage, setGreetingMessage] = useState(GREETING_MESSAGES[0]);
   const [isNewChat, setIsNewChat] = useState(false);
   const [isSelectingSession, setIsSelectingSession] = useState(false);
+  const optimisticOrderRef = useRef(0);
+
+  // NEW: Track skeleton session
+  const [skeletonSession, setSkeletonSession] = useState<SkeletonSession | null>(null);
 
   const hasInitializedAnonymousRef = useRef(false);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Immediate restore from sessionStorage on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
@@ -99,6 +112,18 @@ export default function ChatPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const handleSessionsUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id || ''] });
+    };
+
+    window.addEventListener('sessions-updated', handleSessionsUpdate);
+
+    return () => {
+      window.removeEventListener('sessions-updated', handleSessionsUpdate);
+    };
+  }, [queryClient, user?.id]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -116,14 +141,25 @@ export default function ChatPage() {
     offset: 0,
   });
 
-  // Reset selecting session state when messages are loaded
   useEffect(() => {
     if (!messagesLoading && isSelectingSession) {
       setIsSelectingSession(false);
     }
   }, [messagesLoading, isSelectingSession]);
 
-  // Merge DB messages with optimistic messages, dedupe by message_id
+  // NEW: Merge real sessions with skeleton session
+  useEffect(() => {
+    if (!skeletonSession) return;
+    const realSession = sessions.find(s => s.session_id === skeletonSession.session_id);
+    if (realSession && realSession.title) {
+      setSkeletonSession(null);
+    }
+  }, [sessions, skeletonSession]);
+
+  const displaySessions = useMemo(() => {
+    return (skeletonSession ? [skeletonSession as any, ...sessions] : sessions);
+  }, [sessions, skeletonSession]);
+
   const currentMessages = useMemo(() => {
     if (optimisticMessages.length > 0 && !activeSessionId) {
       return optimisticMessages.map(m => m as unknown as MessageWithResources);
@@ -133,27 +169,31 @@ export default function ChatPage() {
     if (isNewChat) return null;
 
     const dbMessages = messagesData?.messages || [];
-
     const byId = new Map<string, MessageWithResources>();
 
-    // Process DB messages and extract resources from metadata
     for (const m of dbMessages) {
       const messageWithResources: MessageWithResources = {
         ...m,
-        // Extract resources from metadata if exists
         resources: (m.metadata as any)?.resources || undefined,
         riskLevel: (m.metadata as any)?.riskLevel || undefined,
       };
       byId.set(m.message_id, messageWithResources);
     }
 
-    // Overlay optimistic messages (prefer optimistic if same id)
     for (const m of optimisticMessages) {
       byId.set(m.message_id, m as unknown as MessageWithResources);
     }
 
     const merged = Array.from(byId.values());
-    return merged.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+    return merged.sort((a, b) => {
+      if (a.optimisticOrder !== undefined && b.optimisticOrder !== undefined) {
+        return a.optimisticOrder - b.optimisticOrder;
+      }
+      if (a.optimisticOrder !== undefined) return 1;
+      if (b.optimisticOrder !== undefined) return -1;
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    });
   }, [activeSessionId, messagesData, optimisticMessages, isNewChat]);
 
   const handleNewChat = async () => {
@@ -163,11 +203,11 @@ export default function ChatPage() {
     setIsSidebarOpen(false);
     setOptimisticMessages([]);
     setIsNewChat(true);
+    optimisticOrderRef.current = 0;
+    setSkeletonSession(null); // Clear skeleton when creating new chat
 
-    // Clear active session (no real session yet)
     setActiveSessionId(null);
 
-    // Clear any existing temp session and create new one
     clearTempSession();
     await createTempSession();
 
@@ -175,10 +215,16 @@ export default function ChatPage() {
   };
 
   const handleSelectSession = (sessionId: string) => {
+    // Don't allow selecting skeleton sessions
+    if (skeletonSession && sessionId === skeletonSession.session_id) {
+      return;
+    }
+
     setIsSelectingSession(true);
     setActiveSessionId(sessionId);
     setOptimisticMessages([]);
     setIsNewChat(false);
+    optimisticOrderRef.current = 0;
 
     clearTempSession();
     setIsSidebarOpen(false);
@@ -200,7 +246,20 @@ export default function ChatPage() {
 
     const isFirstMessage = !!tempSessionId;
 
-    // 1. Immediately show user message (optimistic update)
+    // NEW: Create skeleton session immediately for first message
+    if (isFirstMessage && user) {
+      const now = new Date().toISOString();
+      setSkeletonSession({
+        session_id: currentSessionId,
+        isSkeleton: true,
+        title: 'New conversation...', // Temporary title
+        created_at: now,
+      });
+    }
+
+    const userOrder = optimisticOrderRef.current++;
+    const assistantOrder = optimisticOrderRef.current++;
+
     const userMsgId = `temp-user-${Date.now()}`;
     const userMessage: OptimisticMessage = {
       message_id: userMsgId,
@@ -212,11 +271,11 @@ export default function ChatPage() {
       token_count: null,
       metadata: {},
       deleted_at: null,
+      optimisticOrder: userOrder,
     };
 
     setOptimisticMessages(prev => [...prev, userMessage]);
 
-    // 2. Assistant message placeholder
     const assistantMsgId = `temp-assistant-${Date.now()}`;
     const assistantMessage: OptimisticMessage = {
       message_id: assistantMsgId,
@@ -229,31 +288,30 @@ export default function ChatPage() {
       token_count: null,
       metadata: {},
       deleted_at: null,
+      optimisticOrder: assistantOrder,
     };
 
     setOptimisticMessages(prev => [...prev, assistantMessage]);
 
-    // 3. For first message, immediately set activeSessionId to enable message display
     if (isFirstMessage) {
       setActiveSessionId(currentSessionId);
     }
 
     try {
-      // 4. Stream the response from API
       await streamChatResponse(currentSessionId, content, isFirstMessage, assistantMsgId, userMsgId);
 
-      // 5. If this was a temp session (first message), now it's persisted in DB
-      // Clear temp session
       if (isFirstMessage) {
         clearTempSession();
-
-        // Invalidate queries to refresh session list
-        await queryClient.invalidateQueries({ queryKey: ['user-sessions'] });
+        // Invalidate to fetch real session (which will replace skeleton)
+        await queryClient.invalidateQueries({ queryKey: ['user-sessions', user?.id] });
         await queryClient.invalidateQueries({ queryKey: ['session-messages'] });
       }
     } catch (error) {
       console.error('Error sending message:', error);
       setOptimisticMessages([]);
+      if (isFirstMessage) {
+        setSkeletonSession(null); // Remove skeleton on error
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -310,7 +368,6 @@ export default function ChatPage() {
       throw new Error('No reader available');
     }
 
-    // Store resources and risk level temporarily
     let currentResources: Resource[] = [];
     let currentRiskLevel: string | undefined;
 
@@ -318,21 +375,18 @@ export default function ChatPage() {
     while (true) {
       const { done, value } = await reader.read();
       if (done) {
-        // process any remaining buffered line
         if (buffer) {
           const line = buffer;
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              // handle one last event if needed
-            } catch { /* ignore partial */ }
+            } catch { }
           }
         }
         break;
       }
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      // keep the last partial line in buffer
       buffer = lines.pop() ?? '';
 
       for (const raw of lines) {
@@ -342,13 +396,11 @@ export default function ChatPage() {
           try {
             data = JSON.parse(line.slice(6));
           } catch {
-            // Put back into buffer if partial and continue
             buffer = line + '\n' + buffer;
             continue;
           }
 
           if (data.type === 'token') {
-            // Update streaming assistant message
             setOptimisticMessages(prev =>
               prev.map(msg =>
                 msg.message_id === assistantMsgId
@@ -357,14 +409,10 @@ export default function ChatPage() {
               )
             );
           }
-          // ============================================
-          // NEW: Handle resources event
-          // ============================================
           else if (data.type === 'resources') {
             currentResources = data.resources || [];
             currentRiskLevel = data.risk_level;
 
-            // Immediately attach to assistant message
             setOptimisticMessages(prev =>
               prev.map(msg =>
                 msg.message_id === assistantMsgId
@@ -383,6 +431,17 @@ export default function ChatPage() {
           else if (data.type === 'crisis_alert') {
             console.warn('⚠️ CRISIS ALERT:', data.message);
           }
+          else if (data.type === 'title_updated') {
+            console.log('📝 Title updated:', data.title);
+
+            // Clear skeleton session - title is ready
+            setSkeletonSession(null);
+
+            // Invalidate sessions query to fetch full session with real title
+            queryClient.invalidateQueries({
+              queryKey: ['user-sessions', user?.id]
+            });
+          }
           else if (data.type === 'done') {
             const savedUser = data.userMessage as Message;
             const savedAssistant = data.assistantMessage as Message;
@@ -396,12 +455,14 @@ export default function ChatPage() {
                     isStreaming: false,
                     resources: currentResources,
                     riskLevel: currentRiskLevel,
+                    optimisticOrder: undefined,
                   } as unknown as OptimisticMessage;
                 }
                 if (msg.message_id === userMsgId) {
                   return {
                     ...savedUser,
                     isOptimistic: false,
+                    optimisticOrder: undefined,
                   } as unknown as OptimisticMessage;
                 }
                 return msg;
@@ -425,32 +486,34 @@ export default function ChatPage() {
     const initializePage = async () => {
       const tempSessionId = getTempSessionId();
 
-      // If we have a temp session (from BeginModal or previous new chat)
       if (tempSessionId) {
         setIsNewChat(true);
-        setActiveSessionId(null); // No active session yet until first message
-        setIsInitialized(true);
-        return;
-      }
-
-      // For authenticated users: create new chat by default
-      if (user) {
-        const randomIndex = Math.floor(Math.random() * GREETING_MESSAGES.length);
-        setGreetingMessage(GREETING_MESSAGES[randomIndex]);
-        setIsNewChat(true);
         setActiveSessionId(null);
-        await createTempSession();
         setIsInitialized(true);
         return;
       }
 
-      // No temp session, no user - page is ready but waiting for anonymous init
+      if (user) {
+        const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
+        if (savedSessionId) {
+          setActiveSessionId(savedSessionId);
+          setIsNewChat(false);
+        } else {
+          const randomIndex = Math.floor(Math.random() * GREETING_MESSAGES.length);
+          setGreetingMessage(GREETING_MESSAGES[randomIndex]);
+          setIsNewChat(true);
+          setActiveSessionId(null);
+          await createTempSession();
+        }
+        setIsInitialized(true);
+        return;
+      }
+
       setIsInitialized(true);
     };
 
     initializePage();
   }, [loading, user, isInitialized]);
-
 
   useEffect(() => {
     if (hasInitializedAnonymousRef.current) return;
@@ -460,18 +523,21 @@ export default function ChatPage() {
     }
   }, [loading, user, startAnon]);
 
-
   useEffect(() => {
     if (loading) return;
 
     setIsInitialized(false);
 
-    // Clear active session when user changes
-    setActiveSessionId(null);
+    const savedSessionId = sessionStorage.getItem('kyrah_active_session_id');
+    if (!savedSessionId) {
+      setActiveSessionId(null);
+    }
+
     setOptimisticMessages([]);
     setIsNewChat(false);
+    optimisticOrderRef.current = 0;
+    setSkeletonSession(null); // Clear skeleton on auth change
 
-    // Reset anonymous initialization when user signs in
     if (user) {
       hasInitializedAnonymousRef.current = false;
     }
@@ -479,7 +545,6 @@ export default function ChatPage() {
 
   useEffect(() => {
     return () => {
-      // Only clear temp session on unmount, keep active session
       clearTempSession();
     };
   }, []);
@@ -488,7 +553,7 @@ export default function ChatPage() {
     <div className="flex h-screen overflow-hidden">
       {user && (
         <ChatSidebar
-          sessions={sessions}
+          sessions={displaySessions}
           activeSessionId={activeSessionId}
           onSelectSession={handleSelectSession}
           onNewChat={handleNewChat}
@@ -512,7 +577,6 @@ export default function ChatPage() {
         <ChatMainView
           messages={currentMessages}
           onSendMessage={handleSendMessage}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onNewChat={handleNewChat}
           greetingMessage={greetingMessage}
           showHeader={!user}
@@ -522,30 +586,24 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* Auth Status - Top Right (Responsive) */}
-      {!loading && user && (
-        <div className="fixed top-3 right-3 md:top-4 md:right-4 xl:top-6 xl:right-6 z-40">
+      {!loading && (
+        <div className={`fixed z-40 ${user
+          ? 'top-2 right-3 md:top-3 md:right-4 xl:top-5 xl:right-6'
+          : 'top-16 right-3 md:right-6 xl:top-[72px] xl:right-8'
+          }`}>
           <AuthStatus />
         </div>
       )}
 
       {!loading && !user && (
-        <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2">
-          <Button
-            color="primary"
-            variant="shadow"
-            onPress={() => { useModalStore.getState().setAuthMode('signin'); openModal('auth-modal'); }}
-            className="px-4 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-primary/90 hover:scale-102 transition-all duration-200"
-          >
-            Log in
-          </Button>
+        <div className="fixed top-3 right-3 md:top-4 md:right-6 xl:top-4 xl:right-8 z-40 flex gap-2 cursor-pointer">
           <Button
             color="secondary"
             variant="shadow"
-            onPress={() => { useModalStore.getState().setAuthMode('signup'); openModal('auth-modal'); }}
-            className="px-4 py-3 md:px-5 md:py-2 xl:px-6 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-2/90 hover:scale-102 transition-all duration-200 flex items-center gap-1.5 md:gap-2"
+            onPress={() => { useModalStore.getState().setAuthMode('signin'); openModal('auth-modal'); }}
+            className="px-3 py-3 md:px-5 md:py-2 xl:px-5 xl:py-2 text-white rounded-full body-16-semi md:!caption-14-semi xl:!body-16-semi shadow-lg hover:bg-secondary-1 hover:scale-102 transition-all duration-200"
           >
-            Sign up
+            Log in
           </Button>
         </div>
       )}

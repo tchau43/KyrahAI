@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ModalType = 'begin-modal' | 'safety-note-modal' | 'auth-modal' | 'mail-confirm-modal';
+export type ModalType = 'begin-modal' | 'safety-note-modal' | 'auth-modal' | 'mail-confirm-modal' | 'folder-modal' | 'add-sessions-to-folder-modal';
 
 interface ModalStore {
   openModals: Set<ModalType>;

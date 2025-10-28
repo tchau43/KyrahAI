@@ -164,7 +164,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
             <Button
               type="submit"
               isDisabled={isPending}
-              className="w-full py-6 body-16-semi rounded-full bg-secondary-2 text-white hover:bg-secondary-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-6 body-16-semi rounded-full bg-secondary text-white hover:bg-secondary-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               size="lg"
             >
               {isPending
@@ -182,7 +182,7 @@ export default function AuthModal({ initialMode = 'signup' }: AuthModalProps) {
             {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
             <button
               onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
-              className="ml-2 caption-14-semi md:!body-16-semi text-secondary-2 hover:text-secondary-1 transition-colors"
+              className="ml-2 caption-14-semi md:!body-16-semi text-secondary hover:text-secondary-1 transition-colors cursor-pointer"
             >
               {mode === 'signup' ? 'Sign In' : 'Sign Up'}
             </button>

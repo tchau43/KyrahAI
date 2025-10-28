@@ -16,6 +16,7 @@ export interface Session {
   config: SessionConfig;
   metadata: Record<string, unknown>;
   title: string;
+  folder_id: string | null;
 }
 
 export interface SessionConfig {
@@ -26,7 +27,6 @@ export interface SessionConfig {
 }
 
 export interface AnonymousSessionToken {
-  token_id: string;
   session_id: string;
   token_hash: string;
   created_at: string;

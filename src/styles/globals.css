@@ -12,7 +12,7 @@
   --container-6xl: 1152px;
   --container-7xl: 1280px;
   --container-8xl: 1408px;
-  --container-9xl: 1536px; 
+  --container-9xl: 1536px;
   --container-10xl: 1664px;
   --container-11xl: 1792px;
   --container-12xl: 1920px;
@@ -91,7 +91,8 @@
   }
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -254,4 +255,15 @@ body {
 .exitIcon:hover path {
   stroke: var(--color-neutral);
   transition: color 0.3s ease-in-out;
+}
+
+.font-poppins-rounded {
+  font-family: var(--font-poppins-rounded), var(--font-inter), sans-serif;
+}
+
+.kyrah-heading {
+  font-family: var(--font-poppins-rounded), sans-serif;
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 1;
 }

@@ -1,3 +1,4 @@
+// src/contexts/AuthContext.tsx
 'use client'
 
 import {
@@ -5,6 +6,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   ReactNode,
 } from 'react'
 import { createClient } from '../utils/supabase/client'
@@ -63,15 +65,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null)
   const [preferencesLoading, setPreferencesLoading] = useState<boolean>(false)
 
+  const userRef = useRef(user)
+
+  useEffect(() => {
+    userRef.current = user
+  }, [user])
+
   useEffect(() => {
     const supabase = createClient()
+
+    // checkSession() bây giờ sẽ chỉ chạy MỘT LẦN khi mount
     checkSession()
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
 
+      // 5. Sử dụng userRef.current thay vì `user`
+      const currentUser = userRef.current
+
       if (event === 'SIGNED_IN' && session) {
-        await handleSignIn(session)
+        // KIỂM TRA QUAN TRỌNG:
+        if (!currentUser || currentUser.id !== session.user.id) {
+          await handleSignIn(session)
+        } else {
+          setUser(session.user as SupabaseUser)
+          setAuthType('authenticated')
+        }
       } else if (event === 'SIGNED_OUT') {
         clearSessionState()
       } else if (event === 'USER_UPDATED' && session) {

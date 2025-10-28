@@ -20,7 +20,7 @@ export default function Footer() {
         <div className="md:col-span-7 xl:col-span-4 flex flex-col gap-6 mt-20 md:mt-0 pt-10 md:pt-0 border-t border-neutral-6 md:border-none">
           {/* BRAND */}
           <div className="flex flex-col gap-4 pb-10">
-            <h2 className="font-inder text-[1.75rem] md:text-[2.625rem] font-normal text-neutral leading-none">
+            <h2 className="kyrah-heading text-[1.75rem] md:!text-[2.625rem] font-normal text-neutral leading-none">
               KYRAH.AI
             </h2>
             <p className="body-16-semi md:!text-[1.25rem] md:!font-medium  text-neutral">

@@ -20,7 +20,6 @@ interface MessageWithResources extends Message {
 interface ChatMainViewProps {
   messages: MessageWithResources[] | null;
   onSendMessage: (content: string) => void;
-  onToggleSidebar: () => void;
   onNewChat?: () => void;
   greetingMessage?: string;
   showHeader?: boolean;
@@ -123,8 +122,8 @@ export default function ChatMainView({
           {onNewChat && (
             <Button
               onPress={onNewChat}
-              className="justify-center w-full bg-transparent hover:bg-neutral-2 text-neutral-9 body-16-medium gap-3 px-0"
-              variant="light"
+              className="justify-center w-full bg-white hover:bg-neutral-1 text-neutral-9 body-16-medium gap-3 px-0 border-1 border-primary"
+              // variant="light"
               startContent={
                 <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                   <svg
