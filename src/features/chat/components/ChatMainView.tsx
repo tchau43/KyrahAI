@@ -9,6 +9,7 @@ import { KyrahAI } from '@/components/icons';
 import { Resource } from '@/types/risk-assessment';
 import { ResourceList } from '@/components/cards/HotlineCard';
 import MessageListSkeleton from '@/components/skeletons/MessageListSkeleton';
+import EmergencyHotlineButton from '@/components/emergency/EmergencyHotlineButton';
 
 // Extend Message type to include resources
 interface MessageWithResources extends Message {
@@ -249,6 +250,9 @@ export default function ChatMainView({
           </div>
         </>
       )}
+
+      {/* Emergency Hotline Button - Always visible, fixed position */}
+      <EmergencyHotlineButton position="fixed" />
     </div>
   );
 }
